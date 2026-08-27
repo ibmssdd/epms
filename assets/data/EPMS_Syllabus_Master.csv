@@ -1,0 +1,499 @@
+﻿SubjectName,SubjectCode,ChapterName,ChapterCode,TopicName,TopicCode,TopicID,Status,TopicStartDate,TopicEndDate,DisplayOrder
+Biology,Bio,Sexual Reproduction In Flowering Plants,Ch01,Flower+ Microsprorogensis,T01,Bio-Ch01-T01,NotStarted,Bio-Ch01-T01,,1
+Biology,Bio,Sexual Reproduction In Flowering Plants,Ch01,Megasprorogensis + Double Fertilization,T02,Bio-Ch01-T02,NotStarted,Bio-Ch01-T02,,2
+Biology,Bio,Sexual Reproduction In Flowering Plants,Ch01,Pollination,T03,Bio-Ch01-T03,NotStarted,Bio-Ch01-T03,,3
+Biology,Bio,Sexual Reproduction In Flowering Plants,Ch01,Post fertilization,T04,Bio-Ch01-T04,NotStarted,Bio-Ch01-T04,,4
+Biology,Bio,Sexual Reproduction In Flowering Plants,Ch01,"Apomixis, polyembryony",T05,Bio-Ch01-T05,NotStarted,Bio-Ch01-T05,,5
+Biology,Bio,Human Reproduction,Ch02,Male Reproductive System,T01,Bio-Ch02-T01,NotStarted,Bio-Ch02-T01,,1
+Biology,Bio,Human Reproduction,Ch02,"Spermatogenesis, Structure of sperm",T02,Bio-Ch02-T02,NotStarted,Bio-Ch02-T02,,2
+Biology,Bio,Human Reproduction,Ch02,Female reproductive system,T03,Bio-Ch02-T03,NotStarted,Bio-Ch02-T03,,3
+Biology,Bio,Human Reproduction,Ch02,"Folliculogenesis, Oogenesis",T04,Bio-Ch02-T04,NotStarted,Bio-Ch02-T04,,4
+Biology,Bio,Human Reproduction,Ch02,Menstrual cycle,T05,Bio-Ch02-T05,NotStarted,Bio-Ch02-T05,,5
+Biology,Bio,Human Reproduction,Ch02,"Placenta, Fertilization",T06,Bio-Ch02-T06,NotStarted,Bio-Ch02-T06,,6
+Biology,Bio,Human Reproduction,Ch02,Post embryonic development,T07,Bio-Ch02-T07,NotStarted,Bio-Ch02-T07,,7
+Biology,Bio,Human Reproduction,Ch02,"Parturition, lactation",T08,Bio-Ch02-T08,NotStarted,Bio-Ch02-T08,,8
+Biology,Bio,Reproductive Health,Ch03,Introduction,T01,Bio-Ch03-T01,NotStarted,Bio-Ch03-T01,,1
+Biology,Bio,Reproductive Health,Ch03,Contraceptive Devices,T02,Bio-Ch03-T02,NotStarted,Bio-Ch03-T02,,2
+Biology,Bio,Reproductive Health,Ch03,MTP & ART,T03,Bio-Ch03-T03,NotStarted,Bio-Ch03-T03,,3
+Biology,Bio,Principle Of Inheritance & Variation,Ch04,Introduction,T01,Bio-Ch04-T01,NotStarted,Bio-Ch04-T01,,1
+Biology,Bio,Principle Of Inheritance & Variation,Ch04,Mendels Monohybrid,T02,Bio-Ch04-T02,NotStarted,Bio-Ch04-T02,,2
+Biology,Bio,Principle Of Inheritance & Variation,Ch04,Dihybrid cross Exception of Mendelism,T03,Bio-Ch04-T03,NotStarted,Bio-Ch04-T03,,3
+Biology,Bio,Principle Of Inheritance & Variation,Ch04,Linkage & Recombination,T04,Bio-Ch04-T04,NotStarted,Bio-Ch04-T04,,4
+Biology,Bio,Principle Of Inheritance & Variation,Ch04,Sex determination,T05,Bio-Ch04-T05,NotStarted,Bio-Ch04-T05,,5
+Biology,Bio,Principle Of Inheritance & Variation,Ch04,Mutation,T06,Bio-Ch04-T06,NotStarted,Bio-Ch04-T06,,6
+Biology,Bio,Principle Of Inheritance & Variation,Ch04,Pedigree analysis,T07,Bio-Ch04-T07,NotStarted,Bio-Ch04-T07,,7
+Biology,Bio,Principle Of Inheritance & Variation,Ch04,Genetic disorders,T08,Bio-Ch04-T08,NotStarted,Bio-Ch04-T08,,8
+Biology,Bio,Molecular Basis Of Inheritance,Ch05,Introduction,T01,Bio-Ch05-T01,NotStarted,Bio-Ch05-T01,,1
+Biology,Bio,Molecular Basis Of Inheritance,Ch05,Structure of DNA,T02,Bio-Ch05-T02,NotStarted,Bio-Ch05-T02,,2
+Biology,Bio,Molecular Basis Of Inheritance,Ch05,Packaging Search for genetic material,T03,Bio-Ch05-T03,NotStarted,Bio-Ch05-T03,,3
+Biology,Bio,Molecular Basis Of Inheritance,Ch05,Replication of DNA,T04,Bio-Ch05-T04,NotStarted,Bio-Ch05-T04,,4
+Biology,Bio,Molecular Basis Of Inheritance,Ch05,Transcription,T05,Bio-Ch05-T05,NotStarted,Bio-Ch05-T05,,5
+Biology,Bio,Molecular Basis Of Inheritance,Ch05,Genetic code & translation,T06,Bio-Ch05-T06,NotStarted,Bio-Ch05-T06,,6
+Biology,Bio,Molecular Basis Of Inheritance,Ch05,Lac Operon,T07,Bio-Ch05-T07,NotStarted,Bio-Ch05-T07,,7
+Biology,Bio,Molecular Basis Of Inheritance,Ch05,Human Genome Project,T08,Bio-Ch05-T08,NotStarted,Bio-Ch05-T08,,8
+Biology,Bio,Molecular Basis Of Inheritance,Ch05,DNA fingerprinting,T09,Bio-Ch05-T09,NotStarted,Bio-Ch05-T09,,9
+Biology,Bio,Evolution,Ch06,Origin of life,T01,Bio-Ch06-T01,NotStarted,Bio-Ch06-T01,,1
+Biology,Bio,Evolution,Ch06,Evidences,T02,Bio-Ch06-T02,NotStarted,Bio-Ch06-T02,,2
+Biology,Bio,Evolution,Ch06,Organic evolution,T03,Bio-Ch06-T03,NotStarted,Bio-Ch06-T03,,3
+Biology,Bio,Evolution,Ch06,plant & animal evolution,T04,Bio-Ch06-T04,NotStarted,Bio-Ch06-T04,,4
+Biology,Bio,Evolution,Ch06,human evolution,T05,Bio-Ch06-T05,NotStarted,Bio-Ch06-T05,,5
+Biology,Bio,Human Health & Disease,Ch07,Diseases,T01,Bio-Ch07-T01,NotStarted,Bio-Ch07-T01,,1
+Biology,Bio,Human Health & Disease,Ch07,Immunity,T02,Bio-Ch07-T02,NotStarted,Bio-Ch07-T02,,2
+Biology,Bio,Human Health & Disease,Ch07,AIDS Cancer,T03,Bio-Ch07-T03,NotStarted,Bio-Ch07-T03,,3
+Biology,Bio,Human Health & Disease,Ch07,Drug & alcohol abuse,T04,Bio-Ch07-T04,NotStarted,Bio-Ch07-T04,,4
+Biology,Bio,Microbes In Human Welfare,Ch08,Household Products,T01,Bio-Ch08-T01,NotStarted,Bio-Ch08-T01,,1
+Biology,Bio,Microbes In Human Welfare,Ch08,"Industrial Products, Sewag Biogas",T02,Bio-Ch08-T02,NotStarted,Bio-Ch08-T02,,2
+Biology,Bio,Microbes In Human Welfare,Ch08,"Biocontrol Agents, Biofertilizers",T03,Bio-Ch08-T03,NotStarted,Bio-Ch08-T03,,3
+Biology,Bio,Biotechnology Principle & Processes,Ch09,Introduction,T01,Bio-Ch09-T01,NotStarted,Bio-Ch09-T01,,1
+Biology,Bio,Biotechnology Principle & Processes,Ch09,Vectors,T02,Bio-Ch09-T02,NotStarted,Bio-Ch09-T02,,2
+Biology,Bio,Biotechnology Principle & Processes,Ch09,PCR,T03,Bio-Ch09-T03,NotStarted,Bio-Ch09-T03,,3
+Biology,Bio,Biotechnology & Its Applications,Ch10,Agriculture,T01,Bio-Ch10-T01,NotStarted,Bio-Ch10-T01,,1
+Biology,Bio,Biotechnology & Its Applications,Ch10,animals,T02,Bio-Ch10-T02,NotStarted,Bio-Ch10-T02,,2
+Biology,Bio,Biotechnology & Its Applications,Ch10,Ethical issues,T03,Bio-Ch10-T03,NotStarted,Bio-Ch10-T03,,3
+Biology,Bio,Organism & Populations,Ch11,Introduction,T01,Bio-Ch11-T01,NotStarted,Bio-Ch11-T01,,1
+Biology,Bio,Organism & Populations,Ch11,Population,T02,Bio-Ch11-T02,NotStarted,Bio-Ch11-T02,,2
+Biology,Bio,Organism & Populations,Ch11,Population Interaction,T03,Bio-Ch11-T03,NotStarted,Bio-Ch11-T03,,3
+Biology,Bio,Ecosystem,Ch12,"Structure, Productivity, Decomposition",T01,Bio-Ch12-T01,NotStarted,Bio-Ch12-T01,,1
+Biology,Bio,Ecosystem,Ch12,"Energy flow, Ecological Pyramids,",T02,Bio-Ch12-T02,NotStarted,Bio-Ch12-T02,,2
+Biology,Bio,Biodiversity & Conservation,Ch13,Introduction,T01,Bio-Ch13-T01,NotStarted,Bio-Ch13-T01,,1
+Biology,Bio,Biodiversity & Conservation,Ch13,Evil Quartet,T02,Bio-Ch13-T02,NotStarted,Bio-Ch13-T02,,2
+Biology,Bio,The Living World,Ch14,Diversity in the Living World,T01,Bio-Ch14-T01,NotStarted,Bio-Ch14-T01,,1
+Biology,Bio,The Living World,Ch14,Taxonomic Categories,T02,Bio-Ch14-T02,NotStarted,Bio-Ch14-T02,,2
+Biology,Bio,Biological Classification,Ch15,Kingdom Monera,T01,Bio-Ch15-T01,NotStarted,Bio-Ch15-T01,,1
+Biology,Bio,Biological Classification,Ch15,Kingdom Protista,T02,Bio-Ch15-T02,NotStarted,Bio-Ch15-T02,,2
+Biology,Bio,Biological Classification,Ch15,Kingdom Fungi,T03,Bio-Ch15-T03,NotStarted,Bio-Ch15-T03,,3
+Biology,Bio,Biological Classification,Ch15,Kingdom Plantae,T04,Bio-Ch15-T04,NotStarted,Bio-Ch15-T04,,4
+Biology,Bio,Biological Classification,Ch15,Kingdom Animalia,T05,Bio-Ch15-T05,NotStarted,Bio-Ch15-T05,,5
+Biology,Bio,Biological Classification,Ch15,"Viruses, Viroid's & Lichens",T06,Bio-Ch15-T06,NotStarted,Bio-Ch15-T06,,6
+Biology,Bio,Plant Kingdom,Ch16,Algae,T01,Bio-Ch16-T01,NotStarted,Bio-Ch16-T01,,1
+Biology,Bio,Plant Kingdom,Ch16,Bryophytes,T02,Bio-Ch16-T02,NotStarted,Bio-Ch16-T02,,2
+Biology,Bio,Plant Kingdom,Ch16,Pteridophytes,T03,Bio-Ch16-T03,NotStarted,Bio-Ch16-T03,,3
+Biology,Bio,Plant Kingdom,Ch16,Gymnocperms,T04,Bio-Ch16-T04,NotStarted,Bio-Ch16-T04,,4
+Biology,Bio,Animal Kingdom,Ch17,Basis Of Classification,T01,Bio-Ch17-T01,NotStarted,Bio-Ch17-T01,,1
+Biology,Bio,Animal Kingdom,Ch17,Classification of Animals,T02,Bio-Ch17-T02,NotStarted,Bio-Ch17-T02,,2
+Biology,Bio,Morphology Of Flowering Plants,Ch18,The Root,T01,Bio-Ch18-T01,NotStarted,Bio-Ch18-T01,,1
+Biology,Bio,Morphology Of Flowering Plants,Ch18,The Stem,T02,Bio-Ch18-T02,NotStarted,Bio-Ch18-T02,,2
+Biology,Bio,Morphology Of Flowering Plants,Ch18,The Leaf,T03,Bio-Ch18-T03,NotStarted,Bio-Ch18-T03,,3
+Biology,Bio,Morphology Of Flowering Plants,Ch18,The Inflorescence,T04,Bio-Ch18-T04,NotStarted,Bio-Ch18-T04,,4
+Biology,Bio,Morphology Of Flowering Plants,Ch18,The Flower,T05,Bio-Ch18-T05,NotStarted,Bio-Ch18-T05,,5
+Biology,Bio,Morphology Of Flowering Plants,Ch18,The Fruit,T06,Bio-Ch18-T06,NotStarted,Bio-Ch18-T06,,6
+Biology,Bio,Morphology Of Flowering Plants,Ch18,The Seed,T07,Bio-Ch18-T07,NotStarted,Bio-Ch18-T07,,7
+Biology,Bio,Morphology Of Flowering Plants,Ch18,Semi-technical Desc of Flowering Plant,T08,Bio-Ch18-T08,NotStarted,Bio-Ch18-T08,,8
+Biology,Bio,Morphology Of Flowering Plants,Ch18,Description of Some Important Families,T09,Bio-Ch18-T09,NotStarted,Bio-Ch18-T09,,9
+Biology,Bio,Anatomy Of Flowering Plants,Ch19,The Tissue system,T01,Bio-Ch19-T01,NotStarted,Bio-Ch19-T01,,1
+Biology,Bio,Anatomy Of Flowering Plants,Ch19,Anatomy of Dicotyledonous Monocotyledonous & plants,T02,Bio-Ch19-T02,NotStarted,Bio-Ch19-T02,,2
+Biology,Bio,Anatomy Of Flowering Plants,Ch19,Secondary Growth,T03,Bio-Ch19-T03,NotStarted,Bio-Ch19-T03,,3
+Biology,Bio,Structural Organisation In Animals,Ch20,Organ & Organ System,T01,Bio-Ch20-T01,NotStarted,Bio-Ch20-T01,,1
+Biology,Bio,Structural Organisation In Animals,Ch20,Cockroach,T02,Bio-Ch20-T02,NotStarted,Bio-Ch20-T02,,2
+Biology,Bio,Structural Organisation In Animals,Ch20,Frogs,T03,Bio-Ch20-T03,NotStarted,Bio-Ch20-T03,,3
+Biology,Bio,Cell : The Unit Of Life,Ch21,What is a Cell?,T01,Bio-Ch21-T01,NotStarted,Bio-Ch21-T01,,1
+Biology,Bio,Cell : The Unit Of Life,Ch21,Cell Theory,T02,Bio-Ch21-T02,NotStarted,Bio-Ch21-T02,,2
+Biology,Bio,Cell : The Unit Of Life,Ch21,An Overview of Cell,T03,Bio-Ch21-T03,NotStarted,Bio-Ch21-T03,,3
+Biology,Bio,Cell : The Unit Of Life,Ch21,Prokaryotic Cells,T04,Bio-Ch21-T04,NotStarted,Bio-Ch21-T04,,4
+Biology,Bio,Cell Cycle & Cell Division,Ch22,Cell Cycle,T01,Bio-Ch22-T01,NotStarted,Bio-Ch22-T01,,1
+Biology,Bio,Cell Cycle & Cell Division,Ch22,M Phase,T02,Bio-Ch22-T02,NotStarted,Bio-Ch22-T02,,2
+Biology,Bio,Cell Cycle & Cell Division,Ch22,Significance of Mitosis,T03,Bio-Ch22-T03,NotStarted,Bio-Ch22-T03,,3
+Biology,Bio,Cell Cycle & Cell Division,Ch22,Meiosis,T04,Bio-Ch22-T04,NotStarted,Bio-Ch22-T04,,4
+Biology,Bio,Cell Cycle & Cell Division,Ch22,Significance of Meiosis,T05,Bio-Ch22-T05,NotStarted,Bio-Ch22-T05,,5
+Biology,Bio,Biomolecules,Ch23,Analyse Chemical Composition?,T01,Bio-Ch23-T01,NotStarted,Bio-Ch23-T01,,1
+Biology,Bio,Biomolecules,Ch23,Primary & Secondary Metabolites,T02,Bio-Ch23-T02,NotStarted,Bio-Ch23-T02,,2
+Biology,Bio,Biomolecules,Ch23,Biomacromolecules,T03,Bio-Ch23-T03,NotStarted,Bio-Ch23-T03,,3
+Biology,Bio,Biomolecules,Ch23,Proteins,T04,Bio-Ch23-T04,NotStarted,Bio-Ch23-T04,,4
+Biology,Bio,Biomolecules,Ch23,Polysaccharides,T05,Bio-Ch23-T05,NotStarted,Bio-Ch23-T05,,5
+Biology,Bio,Biomolecules,Ch23,Nucleic Acids,T06,Bio-Ch23-T06,NotStarted,Bio-Ch23-T06,,6
+Biology,Bio,Biomolecules,Ch23,Structure of Proteins,T07,Bio-Ch23-T07,NotStarted,Bio-Ch23-T07,,7
+Biology,Bio,Biomolecules,Ch23,Enzymes,T08,Bio-Ch23-T08,NotStarted,Bio-Ch23-T08,,8
+Biology,Bio,Photosynthesis In Higher Plants,Ch24,What do we Know?,T01,Bio-Ch24-T01,NotStarted,Bio-Ch24-T01,,1
+Biology,Bio,Photosynthesis In Higher Plants,Ch24,Early Experiments,T02,Bio-Ch24-T02,NotStarted,Bio-Ch24-T02,,2
+Biology,Bio,Photosynthesis In Higher Plants,Ch24,Where does Photosynthesis take place?,T03,Bio-Ch24-T03,NotStarted,Bio-Ch24-T03,,3
+Biology,Bio,Photosynthesis In Higher Plants,Ch24,Pigments are involved in Photosynthesis?,T04,Bio-Ch24-T04,NotStarted,Bio-Ch24-T04,,4
+Biology,Bio,Photosynthesis In Higher Plants,Ch24,What is Light Reaction?,T05,Bio-Ch24-T05,NotStarted,Bio-Ch24-T05,,5
+Biology,Bio,Photosynthesis In Higher Plants,Ch24,The Electron Transport,T06,Bio-Ch24-T06,NotStarted,Bio-Ch24-T06,,6
+Biology,Bio,Photosynthesis In Higher Plants,Ch24,Where are the ATP & NADPH Used?,T07,Bio-Ch24-T07,NotStarted,Bio-Ch24-T07,,7
+Biology,Bio,Photosynthesis In Higher Plants,Ch24,The C4 pathway,T08,Bio-Ch24-T08,NotStarted,Bio-Ch24-T08,,8
+Biology,Bio,Photosynthesis In Higher Plants,Ch24,Photorespiration,T09,Bio-Ch24-T09,NotStarted,Bio-Ch24-T09,,9
+Biology,Bio,Photosynthesis In Higher Plants,Ch24,Factors affecting photosynthesis,T10,Bio-Ch24-T10,NotStarted,Bio-Ch24-T10,,10
+Biology,Bio,Respiration In Plants,Ch25,Do Plants Breathe?,T01,Bio-Ch25-T01,NotStarted,Bio-Ch25-T01,,1
+Biology,Bio,Respiration In Plants,Ch25,Glycolysis,T02,Bio-Ch25-T02,NotStarted,Bio-Ch25-T02,,2
+Biology,Bio,Respiration In Plants,Ch25,Fermentation,T03,Bio-Ch25-T03,NotStarted,Bio-Ch25-T03,,3
+Biology,Bio,Respiration In Plants,Ch25,Aerobic Respiration,T04,Bio-Ch25-T04,NotStarted,Bio-Ch25-T04,,4
+Biology,Bio,Respiration In Plants,Ch25,The Respiratory Balance Sheet,T05,Bio-Ch25-T05,NotStarted,Bio-Ch25-T05,,5
+Biology,Bio,Respiration In Plants,Ch25,Amphibolic Pathway,T06,Bio-Ch25-T06,NotStarted,Bio-Ch25-T06,,6
+Biology,Bio,Respiration In Plants,Ch25,Respiratory Quotient,T07,Bio-Ch25-T07,NotStarted,Bio-Ch25-T07,,7
+Biology,Bio,Plant Growth & Development,Ch26,Growth,T01,Bio-Ch26-T01,NotStarted,Bio-Ch26-T01,,1
+Biology,Bio,Plant Growth & Development,Ch26,Differentiation,T02,Bio-Ch26-T02,NotStarted,Bio-Ch26-T02,,2
+Biology,Bio,Plant Growth & Development,Ch26,Dedifferentiation & Redifferentiation,T03,Bio-Ch26-T03,NotStarted,Bio-Ch26-T03,,3
+Biology,Bio,Plant Growth & Development,Ch26,Development,T04,Bio-Ch26-T04,NotStarted,Bio-Ch26-T04,,4
+Biology,Bio,Plant Growth & Development,Ch26,Plant Growth Regulators,T05,Bio-Ch26-T05,NotStarted,Bio-Ch26-T05,,5
+Biology,Bio,Breathing & Exchange Of Gases,Ch27,Respiratory Organs,T01,Bio-Ch27-T01,NotStarted,Bio-Ch27-T01,,1
+Biology,Bio,Breathing & Exchange Of Gases,Ch27,Mechanism of Breathing,T02,Bio-Ch27-T02,NotStarted,Bio-Ch27-T02,,2
+Biology,Bio,Breathing & Exchange Of Gases,Ch27,Exchange of Gases,T03,Bio-Ch27-T03,NotStarted,Bio-Ch27-T03,,3
+Biology,Bio,Breathing & Exchange Of Gases,Ch27,Transport of Gases,T04,Bio-Ch27-T04,NotStarted,Bio-Ch27-T04,,4
+Biology,Bio,Breathing & Exchange Of Gases,Ch27,Regulation of Respiration,T05,Bio-Ch27-T05,NotStarted,Bio-Ch27-T05,,5
+Biology,Bio,Breathing & Exchange Of Gases,Ch27,Disorders of Respiratory System,T06,Bio-Ch27-T06,NotStarted,Bio-Ch27-T06,,6
+Biology,Bio,Body Fluids & Circulation,Ch28,Blood,T01,Bio-Ch28-T01,NotStarted,Bio-Ch28-T01,,1
+Biology,Bio,Body Fluids & Circulation,Ch28,Lymph (Tissue Fluid),T02,Bio-Ch28-T02,NotStarted,Bio-Ch28-T02,,2
+Biology,Bio,Body Fluids & Circulation,Ch28,Circulatory Pathways,T03,Bio-Ch28-T03,NotStarted,Bio-Ch28-T03,,3
+Biology,Bio,Body Fluids & Circulation,Ch28,Double Circulation,T04,Bio-Ch28-T04,NotStarted,Bio-Ch28-T04,,4
+Biology,Bio,Body Fluids & Circulation,Ch28,Regulation of Cardiac Activity,T05,Bio-Ch28-T05,NotStarted,Bio-Ch28-T05,,5
+Biology,Bio,Body Fluids & Circulation,Ch28,Disorders of Circulatory System,T06,Bio-Ch28-T06,NotStarted,Bio-Ch28-T06,,6
+Biology,Bio,Excretory Products & Their Eliminations,Ch29,Human Excretory System,T01,Bio-Ch29-T01,NotStarted,Bio-Ch29-T01,,1
+Biology,Bio,Excretory Products & Their Eliminations,Ch29,Urine Formation,T02,Bio-Ch29-T02,NotStarted,Bio-Ch29-T02,,2
+Biology,Bio,Excretory Products & Their Eliminations,Ch29,Function of the Tubules,T03,Bio-Ch29-T03,NotStarted,Bio-Ch29-T03,,3
+Biology,Bio,Excretory Products & Their Eliminations,Ch29,Mechanism of Concentration of the Filtrate,T04,Bio-Ch29-T04,NotStarted,Bio-Ch29-T04,,4
+Biology,Bio,Excretory Products & Their Eliminations,Ch29,Regulation of Kidney Function,T05,Bio-Ch29-T05,NotStarted,Bio-Ch29-T05,,5
+Biology,Bio,Excretory Products & Their Eliminations,Ch29,Micturition,T06,Bio-Ch29-T06,NotStarted,Bio-Ch29-T06,,6
+Biology,Bio,Excretory Products & Their Eliminations,Ch29,Role of other Organs in Excretion,T07,Bio-Ch29-T07,NotStarted,Bio-Ch29-T07,,7
+Biology,Bio,Excretory Products & Their Eliminations,Ch29,Disorders of the Excretory System,T08,Bio-Ch29-T08,NotStarted,Bio-Ch29-T08,,8
+Biology,Bio,Locomotion & Movement,Ch30,Types of Movement,T01,Bio-Ch30-T01,NotStarted,Bio-Ch30-T01,,1
+Biology,Bio,Locomotion & Movement,Ch30,Muscle,T02,Bio-Ch30-T02,NotStarted,Bio-Ch30-T02,,2
+Biology,Bio,Locomotion & Movement,Ch30,Skeletal System,T03,Bio-Ch30-T03,NotStarted,Bio-Ch30-T03,,3
+Biology,Bio,Locomotion & Movement,Ch30,Joints,T04,Bio-Ch30-T04,NotStarted,Bio-Ch30-T04,,4
+Biology,Bio,Locomotion & Movement,Ch30,Disorders of Muscular & Skeletal System,T05,Bio-Ch30-T05,NotStarted,Bio-Ch30-T05,,5
+Biology,Bio,Neural Control & Coordination,Ch31,Neural System,T01,Bio-Ch31-T01,NotStarted,Bio-Ch31-T01,,1
+Biology,Bio,Neural Control & Coordination,Ch31,Human Neural System,T02,Bio-Ch31-T02,NotStarted,Bio-Ch31-T02,,2
+Biology,Bio,Neural Control & Coordination,Ch31,Neuron as Structural & Functional Unit,T03,Bio-Ch31-T03,NotStarted,Bio-Ch31-T03,,3
+Biology,Bio,Neural Control & Coordination,Ch31,Central Neural System,T04,Bio-Ch31-T04,NotStarted,Bio-Ch31-T04,,4
+Biology,Bio,Chemical Coordination & Integration,Ch32,Endocrinen Gl&s & Hormones,T01,Bio-Ch32-T01,NotStarted,Bio-Ch32-T01,,1
+Biology,Bio,Chemical Coordination & Integration,Ch32,Human Endocrine System,T02,Bio-Ch32-T02,NotStarted,Bio-Ch32-T02,,2
+Biology,Bio,Chemical Coordination & Integration,Ch32,Hormones of Heart,T03,Bio-Ch32-T03,NotStarted,Bio-Ch32-T03,,3
+Biology,Bio,Chemical Coordination & Integration,Ch32,Hormones of Gastrointestinal tract,T04,Bio-Ch32-T04,NotStarted,Bio-Ch32-T04,,4
+Biology,Bio,Chemical Coordination & Integration,Ch32,Hormones of Kidney,T05,Bio-Ch32-T05,NotStarted,Bio-Ch32-T05,,5
+Biology,Bio,Chemical Coordination & Integration,Ch32,Mechanism of Hormone Action,T06,Bio-Ch32-T06,NotStarted,Bio-Ch32-T06,,6
+Chemistry,Chem,Some Basic Concept Of Chemistry,Ch01,"Nature, Properties of Matter",T01,Chem-Ch01-T01,NotStarted,Chem-Ch01-T01,,1
+Chemistry,Chem,Some Basic Concept Of Chemistry,Ch01,Measurement of Matter,T02,Chem-Ch01-T02,NotStarted,Chem-Ch01-T02,,2
+Chemistry,Chem,Some Basic Concept Of Chemistry,Ch01,Uncertainty in Measurement,T03,Chem-Ch01-T03,NotStarted,Chem-Ch01-T03,,3
+Chemistry,Chem,Some Basic Concept Of Chemistry,Ch01,Laws of Chemical Combinations,T04,Chem-Ch01-T04,NotStarted,Chem-Ch01-T04,,4
+Chemistry,Chem,Some Basic Concept Of Chemistry,Ch01,Atomic & Molecular Masses,T05,Chem-Ch01-T05,NotStarted,Chem-Ch01-T05,,5
+Chemistry,Chem,Some Basic Concept Of Chemistry,Ch01,Mole Concept & Molar Masses,T06,Chem-Ch01-T06,NotStarted,Chem-Ch01-T06,,6
+Chemistry,Chem,Some Basic Concept Of Chemistry,Ch01,Percentage Composition,T07,Chem-Ch01-T07,NotStarted,Chem-Ch01-T07,,7
+Chemistry,Chem,Some Basic Concept Of Chemistry,Ch01,Stoichiometry & Stoichiometric Calculations,T08,Chem-Ch01-T08,NotStarted,Chem-Ch01-T08,,8
+Chemistry,Chem,Structure Of Atom,Ch02,Sub-atomic Particles,T01,Chem-Ch02-T01,NotStarted,Chem-Ch02-T01,,1
+Chemistry,Chem,Structure Of Atom,Ch02,Atomic Models,T02,Chem-Ch02-T02,NotStarted,Chem-Ch02-T02,,2
+Chemistry,Chem,Structure Of Atom,Ch02,Developments Leading to the Bohr's Model ofAtom,T03,Chem-Ch02-T03,NotStarted,Chem-Ch02-T03,,3
+Chemistry,Chem,Structure Of Atom,Ch02,Bohr's Model for Hydrogen Atom,T04,Chem-Ch02-T04,NotStarted,Chem-Ch02-T04,,4
+Chemistry,Chem,Structure Of Atom,Ch02,Towards Quantum Mechanical Modelof the Atom,T05,Chem-Ch02-T05,NotStarted,Chem-Ch02-T05,,5
+Chemistry,Chem,Structure Of Atom,Ch02,Quantum Mechanical Model ofAtom,T06,Chem-Ch02-T06,NotStarted,Chem-Ch02-T06,,6
+Chemistry,Chem,Elements Classification & Periodicity,Ch03,Genesis of Periodic Classification,T01,Chem-Ch03-T01,NotStarted,Chem-Ch03-T01,,1
+Chemistry,Chem,Elements Classification & Periodicity,Ch03,Modern Periodic Law & Present Periodic Table,T02,Chem-Ch03-T02,NotStarted,Chem-Ch03-T02,,2
+Chemistry,Chem,Elements Classification & Periodicity,Ch03,Nomenclature of Elements Atomic Num > 100,T03,Chem-Ch03-T03,NotStarted,Chem-Ch03-T03,,3
+Chemistry,Chem,Elements Classification & Periodicity,Ch03,Electronic Config of Elem & Periodic Table,T04,Chem-Ch03-T04,NotStarted,Chem-Ch03-T04,,4
+Chemistry,Chem,Elements Classification & Periodicity,Ch03,"Electronic Config &Types: s-, p-, d-, f-Blocks",T05,Chem-Ch03-T05,NotStarted,Chem-Ch03-T05,,5
+Chemistry,Chem,Elements Classification & Periodicity,Ch03,Periodic Trends in Properties of Elements,T06,Chem-Ch03-T06,NotStarted,Chem-Ch03-T06,,6
+Chemistry,Chem,Chemical Bonding & Molecular Structure,Ch04,Kossel-Lewis Approach to Chemical Bonding,T01,Chem-Ch04-T01,NotStarted,Chem-Ch04-T01,,1
+Chemistry,Chem,Chemical Bonding & Molecular Structure,Ch04,Ionic or Electrovalent Bond,T02,Chem-Ch04-T02,NotStarted,Chem-Ch04-T02,,2
+Chemistry,Chem,Chemical Bonding & Molecular Structure,Ch04,Bond Parameters,T03,Chem-Ch04-T03,NotStarted,Chem-Ch04-T03,,3
+Chemistry,Chem,Chemical Bonding & Molecular Structure,Ch04,VSEPR: Valence Shell Elearon Pair Repulsion Theory,T04,Chem-Ch04-T04,NotStarted,Chem-Ch04-T04,,4
+Chemistry,Chem,Chemical Bonding & Molecular Structure,Ch04,Valence Bond Theory,T05,Chem-Ch04-T05,NotStarted,Chem-Ch04-T05,,5
+Chemistry,Chem,Chemical Bonding & Molecular Structure,Ch04,Hybridisation,T06,Chem-Ch04-T06,NotStarted,Chem-Ch04-T06,,6
+Chemistry,Chem,Chemical Bonding & Molecular Structure,Ch04,Molecular Orbital Theory,T07,Chem-Ch04-T07,NotStarted,Chem-Ch04-T07,,7
+Chemistry,Chem,Chemical Bonding & Molecular Structure,Ch04,Bonding in Some Homonuclear Diatomic Molecules,T08,Chem-Ch04-T08,NotStarted,Chem-Ch04-T08,,8
+Chemistry,Chem,Chemical Bonding & Molecular Structure,Ch04,Hydrogen Bonding,T09,Chem-Ch04-T09,NotStarted,Chem-Ch04-T09,,9
+Chemistry,Chem,Thermodynamics,Ch05,Thermodynamic Terms & Applications,T01,Chem-Ch05-T01,NotStarted,Chem-Ch05-T01,,1
+Chemistry,Chem,Thermodynamics,Ch05,"Enthalpy Change, A/f ofa Reaaion",T02,Chem-Ch05-T02,NotStarted,Chem-Ch05-T02,,2
+Chemistry,Chem,Thermodynamics,Ch05,Enthalpies for Different Types of Reactions,T03,Chem-Ch05-T03,NotStarted,Chem-Ch05-T03,,3
+Chemistry,Chem,Thermodynamics,Ch05,Spontaneity,T04,Chem-Ch05-T04,NotStarted,Chem-Ch05-T04,,4
+Chemistry,Chem,Thermodynamics,Ch05,Gibbs Energy Change & Equilibrium,T05,Chem-Ch05-T05,NotStarted,Chem-Ch05-T05,,5
+Chemistry,Chem,Equilibrium,Ch06,Equilibrium in Physical Processes,T01,Chem-Ch06-T01,NotStarted,Chem-Ch06-T01,,1
+Chemistry,Chem,Equilibrium,Ch06,Equilibrium in Chemical Process,T02,Chem-Ch06-T02,NotStarted,Chem-Ch06-T02,,2
+Chemistry,Chem,Equilibrium,Ch06,Equilibrium in Dynamic Process,T03,Chem-Ch06-T03,NotStarted,Chem-Ch06-T03,,3
+Chemistry,Chem,Equilibrium,Ch06,Law ofChemical Equilibrium & Equilibrium Constant,T04,Chem-Ch06-T04,NotStarted,Chem-Ch06-T04,,4
+Chemistry,Chem,Equilibrium,Ch06,Homogeneous & Heterogenous Equilibria,T05,Chem-Ch06-T05,NotStarted,Chem-Ch06-T05,,5
+Chemistry,Chem,Equilibrium,Ch06,Applications ofEquilibrium Constants,T06,Chem-Ch06-T06,NotStarted,Chem-Ch06-T06,,6
+Chemistry,Chem,Equilibrium,Ch06,"Relationship K-Q-G Equilibrium Constant, Reaaion Quotient & Gibbs Energy",T07,Chem-Ch06-T07,NotStarted,Chem-Ch06-T07,,7
+Chemistry,Chem,Equilibrium,Ch06,"Fadors Affeding Equilibria Acids, Bases & Salts lonization of Acids & Bases",T08,Chem-Ch06-T08,NotStarted,Chem-Ch06-T08,,8
+Chemistry,Chem,Equilibrium,Ch06,Buffer Solutions,T09,Chem-Ch06-T09,NotStarted,Chem-Ch06-T09,,9
+Chemistry,Chem,Equilibrium,Ch06,Solubility Equilibria of Sparingly Soluble Salts,T10,Chem-Ch06-T10,NotStarted,Chem-Ch06-T10,,10
+Chemistry,Chem,Redox Reactions,Ch07,Redox Readions inTerms of Eledron Transfer Readions,T01,Chem-Ch07-T01,NotStarted,Chem-Ch07-T01,,1
+Chemistry,Chem,Redox Reactions,Ch07,Oxidation Number,T02,Chem-Ch07-T02,NotStarted,Chem-Ch07-T02,,2
+Chemistry,Chem,Redox Reactions,Ch07,Redox Readions & Eledrode Processes,T03,Chem-Ch07-T03,NotStarted,Chem-Ch07-T03,,3
+Chemistry,Chem,The P-Block Elements,Ch13,Group 13 Elements -The Boron Family,T01,Chem-Ch13-T01,NotStarted,Chem-Ch13-T01,,1
+Chemistry,Chem,The P-Block Elements,Ch13,Group 14 Elements-The Carbon Family,T02,Chem-Ch13-T02,NotStarted,Chem-Ch13-T02,,2
+Chemistry,Chem,The P-Block Elements,Ch13,Allotropes of Carbon,T03,Chem-Ch13-T03,NotStarted,Chem-Ch13-T03,,3
+Chemistry,Chem,The P-Block Elements,Ch13,Some Important Compounds of Carbon & Silicon,T04,Chem-Ch13-T04,NotStarted,Chem-Ch13-T04,,4
+Chemistry,Chem,Org Chemistry -Basic Principles & Tech,Ch09,Tetravalence of Carbon: Shapes of Organic Compounds,T01,Chem-Ch09-T01,NotStarted,Chem-Ch09-T01,,1
+Chemistry,Chem,Org Chemistry -Basic Principles & Tech,Ch09,Nomenclature of Organic Compounds,T02,Chem-Ch09-T02,NotStarted,Chem-Ch09-T02,,2
+Chemistry,Chem,Org Chemistry -Basic Principles & Tech,Ch09,Isomerism,T03,Chem-Ch09-T03,NotStarted,Chem-Ch09-T03,,3
+Chemistry,Chem,Org Chemistry -Basic Principles & Tech,Ch09,Fundamental in Organic Reaction Mechanism,T04,Chem-Ch09-T04,NotStarted,Chem-Ch09-T04,,4
+Chemistry,Chem,Org Chemistry -Basic Principles & Tech,Ch09,Qualitative Analysis of Organic Compounds,T05,Chem-Ch09-T05,NotStarted,Chem-Ch09-T05,,5
+Chemistry,Chem,Hydrocarbons,Ch10,Alkanes,T01,Chem-Ch10-T01,NotStarted,Chem-Ch10-T01,,1
+Chemistry,Chem,Hydrocarbons,Ch10,Alkenes,T02,Chem-Ch10-T02,NotStarted,Chem-Ch10-T02,,2
+Chemistry,Chem,Hydrocarbons,Ch10,Alkynes,T03,Chem-Ch10-T03,NotStarted,Chem-Ch10-T03,,3
+Chemistry,Chem,Hydrocarbons,Ch10,Aromatic Hydrocarbons,T04,Chem-Ch10-T04,NotStarted,Chem-Ch10-T04,,4
+Chemistry,Chem,Solutions,Ch11,Types of Solutions,T01,Chem-Ch11-T01,NotStarted,Chem-Ch11-T01,,1
+Chemistry,Chem,Solutions,Ch11,Expressing Concentration of Solutions,T02,Chem-Ch11-T02,NotStarted,Chem-Ch11-T02,,2
+Chemistry,Chem,Solutions,Ch11,Solubility,T03,Chem-Ch11-T03,NotStarted,Chem-Ch11-T03,,3
+Chemistry,Chem,Solutions,Ch11,Ideal& Non-ideal Solutions,T04,Chem-Ch11-T04,NotStarted,Chem-Ch11-T04,,4
+Chemistry,Chem,Solutions,Ch11,Colligative Properties & Determination of Molar Mass,T05,Chem-Ch11-T05,NotStarted,Chem-Ch11-T05,,5
+Chemistry,Chem,Electrochemistry,Ch12,Electrochemical & Galvanic Cells,T01,Chem-Ch12-T01,NotStarted,Chem-Ch12-T01,,1
+Chemistry,Chem,Electrochemistry,Ch12,Nernst Equation,T02,Chem-Ch12-T02,NotStarted,Chem-Ch12-T02,,2
+Chemistry,Chem,Electrochemistry,Ch12,Electrolytic Cells & Electrolysis,T03,Chem-Ch12-T03,NotStarted,Chem-Ch12-T03,,3
+Chemistry,Chem,Electrochemistry,Ch12,"Batteries , Fuel Cells , Corrosion",T04,Chem-Ch12-T04,NotStarted,Chem-Ch12-T04,,4
+Chemistry,Chem,Chemical Kinetics,Ch08,Rate of a Chemical Reaction,T01,Chem-Ch08-T01,NotStarted,Chem-Ch08-T01,,1
+Chemistry,Chem,Chemical Kinetics,Ch08,integrated Rate Equations,T02,Chem-Ch08-T02,NotStarted,Chem-Ch08-T02,,2
+Chemistry,Chem,Chemical Kinetics,Ch08,Pseudo First Order Reaction,T03,Chem-Ch08-T03,NotStarted,Chem-Ch08-T03,,3
+Chemistry,Chem,Chemical Kinetics,Ch08,Temperature Dependence ofthe Rate ofa Reaction,T04,Chem-Ch08-T04,NotStarted,Chem-Ch08-T04,,4
+Chemistry,Chem,Chemical Kinetics,Ch08,Collision Theory of Chemical Reactions,T05,Chem-Ch08-T05,NotStarted,Chem-Ch08-T05,,5
+Chemistry,Chem,The P-Block Elements,Ch13,Group 15 Elements,T05,Chem-Ch13-T05,NotStarted,Chem-Ch13-T05,,5
+Chemistry,Chem,The P-Block Elements,Ch13,"Dinitrogen , Ammonia , Oxides of Nitrogen",T06,Chem-Ch13-T06,NotStarted,Chem-Ch13-T06,,6
+Chemistry,Chem,The P-Block Elements,Ch13,"Nitric Acid , Phosphorus: Allotropic Forms , Phosphine",T07,Chem-Ch13-T07,NotStarted,Chem-Ch13-T07,,7
+Chemistry,Chem,The P-Block Elements,Ch13,Phosphorus Halides,T08,Chem-Ch13-T08,NotStarted,Chem-Ch13-T08,,8
+Chemistry,Chem,The P-Block Elements,Ch13,Oxoacids of Phosphorus,T09,Chem-Ch13-T09,NotStarted,Chem-Ch13-T09,,9
+Chemistry,Chem,The P-Block Elements,Ch13,Group 16 Elements,T10,Chem-Ch13-T10,NotStarted,Chem-Ch13-T10,,10
+Chemistry,Chem,The P-Block Elements,Ch13,"Dioxygen , Simple Oxides , Ozone Sulphur",T11,Chem-Ch13-T11,NotStarted,Chem-Ch13-T11,,11
+Chemistry,Chem,The P-Block Elements,Ch13,"Allotropic Forms , Sulphur Dioxide",T12,Chem-Ch13-T12,NotStarted,Chem-Ch13-T12,,12
+Chemistry,Chem,The P-Block Elements,Ch13,Group 17 Elements,T13,Chem-Ch13-T13,NotStarted,Chem-Ch13-T13,,13
+Chemistry,Chem,The P-Block Elements,Ch13,"Chlorine , Hydrogen Chloride",T14,Chem-Ch13-T14,NotStarted,Chem-Ch13-T14,,14
+Chemistry,Chem,The P-Block Elements,Ch13,Oxoacids of Halogens,T15,Chem-Ch13-T15,NotStarted,Chem-Ch13-T15,,15
+Chemistry,Chem,The P-Block Elements,Ch13,Interhalogen Compounds,T16,Chem-Ch13-T16,NotStarted,Chem-Ch13-T16,,16
+Chemistry,Chem,The P-Block Elements,Ch13,Group 18 Elements,T17,Chem-Ch13-T17,NotStarted,Chem-Ch13-T17,,17
+Chemistry,Chem,The D- & F-Block Elements,Ch14,Electronic Configurations of the rf-Block Elements,T01,Chem-Ch14-T01,NotStarted,Chem-Ch14-T01,,1
+Chemistry,Chem,The D- & F-Block Elements,Ch14,Properties of Transition Elements (d-block),T02,Chem-Ch14-T02,NotStarted,Chem-Ch14-T02,,2
+Chemistry,Chem,The D- & F-Block Elements,Ch14,The Lanthanoids,T03,Chem-Ch14-T03,NotStarted,Chem-Ch14-T03,,3
+Chemistry,Chem,The D- & F-Block Elements,Ch14,The Actinoids,T04,Chem-Ch14-T04,NotStarted,Chem-Ch14-T04,,4
+Chemistry,Chem,Coordination Compounds,Ch15,Werner'sTheoryof Coordination Compounds,T01,Chem-Ch15-T01,NotStarted,Chem-Ch15-T01,,1
+Chemistry,Chem,Coordination Compounds,Ch15,Nomenclature ofCoordination Compounds,T02,Chem-Ch15-T02,NotStarted,Chem-Ch15-T02,,2
+Chemistry,Chem,Coordination Compounds,Ch15,isomerism in Coordination Compounds,T03,Chem-Ch15-T03,NotStarted,Chem-Ch15-T03,,3
+Chemistry,Chem,Coordination Compounds,Ch15,Bonding in Coordination Compounds,T04,Chem-Ch15-T04,NotStarted,Chem-Ch15-T04,,4
+Chemistry,Chem,Coordination Compounds,Ch15,Stability ofCoordination Compounds,T05,Chem-Ch15-T05,NotStarted,Chem-Ch15-T05,,5
+Chemistry,Chem,Haloalkanes & Haloarenes,Ch16,"Classification , Nomenclature",T01,Chem-Ch16-T01,NotStarted,Chem-Ch16-T01,,1
+Chemistry,Chem,Haloalkanes & Haloarenes,Ch16,Methods of Preparation,T02,Chem-Ch16-T02,NotStarted,Chem-Ch16-T02,,2
+Chemistry,Chem,Haloalkanes & Haloarenes,Ch16,Physical Properties,T03,Chem-Ch16-T03,NotStarted,Chem-Ch16-T03,,3
+Chemistry,Chem,Haloalkanes & Haloarenes,Ch16,Chemical Reactions,T04,Chem-Ch16-T04,NotStarted,Chem-Ch16-T04,,4
+Chemistry,Chem,Haloalkanes & Haloarenes,Ch16,Polyhalogen Compounds,T05,Chem-Ch16-T05,NotStarted,Chem-Ch16-T05,,5
+Chemistry,Chem,"Alcohols, Phenols & Ethers",Ch17,"Classification , Nomenclature",T01,Chem-Ch17-T01,NotStarted,Chem-Ch17-T01,,1
+Chemistry,Chem,"Alcohols, Phenols & Ethers",Ch17,Structure of Functional Groups,T02,Chem-Ch17-T02,NotStarted,Chem-Ch17-T02,,2
+Chemistry,Chem,"Alcohols, Phenols & Ethers",Ch17,Alcohols & Phenols,T03,Chem-Ch17-T03,NotStarted,Chem-Ch17-T03,,3
+Chemistry,Chem,"Alcohols, Phenols & Ethers",Ch17,Ethers,T04,Chem-Ch17-T04,NotStarted,Chem-Ch17-T04,,4
+Chemistry,Chem,"Aldehydes, Ketones & Carboxyllc Acids",Ch18,Nomenclature & Structure of Carbonyl Group,T01,Chem-Ch18-T01,NotStarted,Chem-Ch18-T01,,1
+Chemistry,Chem,"Aldehydes, Ketones & Carboxyllc Acids",Ch18,Preparation of Aldehydes & Ketones,T02,Chem-Ch18-T02,NotStarted,Chem-Ch18-T02,,2
+Chemistry,Chem,"Aldehydes, Ketones & Carboxyllc Acids",Ch18,Physical Properties,T03,Chem-Ch18-T03,NotStarted,Chem-Ch18-T03,,3
+Chemistry,Chem,"Aldehydes, Ketones & Carboxyllc Acids",Ch18,Chemical Reactions,T04,Chem-Ch18-T04,NotStarted,Chem-Ch18-T04,,4
+Chemistry,Chem,"Aldehydes, Ketones & Carboxyllc Acids",Ch18,Nomenclature & Structure ofCarboxyl Group,T05,Chem-Ch18-T05,NotStarted,Chem-Ch18-T05,,5
+Chemistry,Chem,"Aldehydes, Ketones & Carboxyllc Acids",Ch18,Methods ofPreparation ofCarboxyllc Acid,T06,Chem-Ch18-T06,NotStarted,Chem-Ch18-T06,,6
+Chemistry,Chem,"Aldehydes, Ketones & Carboxyllc Acids",Ch18,Physical Properties,T07,Chem-Ch18-T07,NotStarted,Chem-Ch18-T07,,7
+Chemistry,Chem,"Aldehydes, Ketones & Carboxyllc Acids",Ch18,Chemical Reactions,T08,Chem-Ch18-T08,NotStarted,Chem-Ch18-T08,,8
+Chemistry,Chem,Amines,Ch19,Struaure of Amines,T01,Chem-Ch19-T01,NotStarted,Chem-Ch19-T01,,1
+Chemistry,Chem,Amines,Ch19,"Classification , Nomenclature",T02,Chem-Ch19-T02,NotStarted,Chem-Ch19-T02,,2
+Chemistry,Chem,Amines,Ch19,Preparation of Amines,T03,Chem-Ch19-T03,NotStarted,Chem-Ch19-T03,,3
+Chemistry,Chem,Amines,Ch19,Physical Properties,T04,Chem-Ch19-T04,NotStarted,Chem-Ch19-T04,,4
+Chemistry,Chem,Amines,Ch19,Chemical Reactions,T05,Chem-Ch19-T05,NotStarted,Chem-Ch19-T05,,5
+Chemistry,Chem,Amines,Ch19,Method of Preparation of Diazonium Salts,T06,Chem-Ch19-T06,NotStarted,Chem-Ch19-T06,,6
+Chemistry,Chem,Biomolecules,Ch20,Carbohydrates,T01,Chem-Ch20-T01,NotStarted,Chem-Ch20-T01,,1
+Chemistry,Chem,Biomolecules,Ch20,Proteins,T02,Chem-Ch20-T02,NotStarted,Chem-Ch20-T02,,2
+Chemistry,Chem,Biomolecules,Ch20,Enzymes,T03,Chem-Ch20-T03,NotStarted,Chem-Ch20-T03,,3
+Chemistry,Chem,Biomolecules,Ch20,Vitamins,T04,Chem-Ch20-T04,NotStarted,Chem-Ch20-T04,,4
+Chemistry,Chem,Biomolecules,Ch20,Nucleic Acids,T05,Chem-Ch20-T05,NotStarted,Chem-Ch20-T05,,5
+Physics,Phy,Unit & Measurment,Ch01,Introduction,T01,Phy-Ch01-T01,NotStarted,Phy-Ch01-T01,,1
+Physics,Phy,Unit & Measurment,Ch01,The international system of units,T02,Phy-Ch01-T02,NotStarted,Phy-Ch01-T02,,2
+Physics,Phy,Unit & Measurment,Ch01,"Measurement of length , Mass & Time",T03,Phy-Ch01-T03,NotStarted,Phy-Ch01-T03,,3
+Physics,Phy,Unit & Measurment,Ch01,"Accuracy, precision of instruments & errors in measurement",T04,Phy-Ch01-T04,NotStarted,Phy-Ch01-T04,,4
+Physics,Phy,Unit & Measurment,Ch01,Significant figures,T05,Phy-Ch01-T05,NotStarted,Phy-Ch01-T05,,5
+Physics,Phy,Unit & Measurment,Ch01,Dimensional formulae & dimensional equations,T06,Phy-Ch01-T06,NotStarted,Phy-Ch01-T06,,6
+Physics,Phy,Motion In A Straight Line,Ch02,"Position, path length & displacement",T01,Phy-Ch02-T01,NotStarted,Phy-Ch02-T01,,1
+Physics,Phy,Motion In A Straight Line,Ch02,Average velocity & average speed,T02,Phy-Ch02-T02,NotStarted,Phy-Ch02-T02,,2
+Physics,Phy,Motion In A Straight Line,Ch02,Instantaneous velocity & speed,T03,Phy-Ch02-T03,NotStarted,Phy-Ch02-T03,,3
+Physics,Phy,Motion In A Straight Line,Ch02,Acceleration,T04,Phy-Ch02-T04,NotStarted,Phy-Ch02-T04,,4
+Physics,Phy,Motion In A Straight Line,Ch02,Kinematic equations for uniformly accelerated motion,T05,Phy-Ch02-T05,NotStarted,Phy-Ch02-T05,,5
+Physics,Phy,Motion In A Straight Line,Ch02,Relative velocity,T06,Phy-Ch02-T06,NotStarted,Phy-Ch02-T06,,6
+Physics,Phy,Motion In A Plane,Ch03,Scalars & vectors,T01,Phy-Ch03-T01,NotStarted,Phy-Ch03-T01,,1
+Physics,Phy,Motion In A Plane,Ch03,Resolution of vectors,T02,Phy-Ch03-T02,NotStarted,Phy-Ch03-T02,,2
+Physics,Phy,Motion In A Plane,Ch03,Motion in a plane with constant acceleration,T03,Phy-Ch03-T03,NotStarted,Phy-Ch03-T03,,3
+Physics,Phy,Motion In A Plane,Ch03,Relative velocity in two dimensions,T04,Phy-Ch03-T04,NotStarted,Phy-Ch03-T04,,4
+Physics,Phy,Motion In A Plane,Ch03,Projectile motion,T05,Phy-Ch03-T05,NotStarted,Phy-Ch03-T05,,5
+Physics,Phy,Motion In A Plane,Ch03,Uniform circular motion,T06,Phy-Ch03-T06,NotStarted,Phy-Ch03-T06,,6
+Physics,Phy,Laws Of Motion,Ch04,Aristotle’s fallacy,T01,Phy-Ch04-T01,NotStarted,Phy-Ch04-T01,,1
+Physics,Phy,Laws Of Motion,Ch04,The law of inertia,T02,Phy-Ch04-T02,NotStarted,Phy-Ch04-T02,,2
+Physics,Phy,Laws Of Motion,Ch04,Newton’s first law of motion,T03,Phy-Ch04-T03,NotStarted,Phy-Ch04-T03,,3
+Physics,Phy,Laws Of Motion,Ch04,Newton’s second law of motion,T04,Phy-Ch04-T04,NotStarted,Phy-Ch04-T04,,4
+Physics,Phy,Laws Of Motion,Ch04,Newton’s third law of motion,T05,Phy-Ch04-T05,NotStarted,Phy-Ch04-T05,,5
+Physics,Phy,Laws Of Motion,Ch04,Conservation of momentum,T06,Phy-Ch04-T06,NotStarted,Phy-Ch04-T06,,6
+Physics,Phy,Laws Of Motion,Ch04,Equilibrium of a particle,T07,Phy-Ch04-T07,NotStarted,Phy-Ch04-T07,,7
+Physics,Phy,Laws Of Motion,Ch04,Common forces in mechanics,T08,Phy-Ch04-T08,NotStarted,Phy-Ch04-T08,,8
+Physics,Phy,Laws Of Motion,Ch04,Circular motion,T09,Phy-Ch04-T09,NotStarted,Phy-Ch04-T09,,9
+Physics,Phy,"Work, Energy & Power",Ch05,Work,T01,Phy-Ch05-T01,NotStarted,Phy-Ch05-T01,,1
+Physics,Phy,"Work, Energy & Power",Ch05,Kinetic energy,T02,Phy-Ch05-T02,NotStarted,Phy-Ch05-T02,,2
+Physics,Phy,"Work, Energy & Power",Ch05,Work done by a variable force,T03,Phy-Ch05-T03,NotStarted,Phy-Ch05-T03,,3
+Physics,Phy,"Work, Energy & Power",Ch05,The concept of potential energy,T04,Phy-Ch05-T04,NotStarted,Phy-Ch05-T04,,4
+Physics,Phy,"Work, Energy & Power",Ch05,The conservation of mechanical energy,T05,Phy-Ch05-T05,NotStarted,Phy-Ch05-T05,,5
+Physics,Phy,"Work, Energy & Power",Ch05,Forms of energy \:Law of conservation of energy,T06,Phy-Ch05-T06,NotStarted,Phy-Ch05-T06,,6
+Physics,Phy,"Work, Energy & Power",Ch05,Power,T07,Phy-Ch05-T07,NotStarted,Phy-Ch05-T07,,7
+Physics,Phy,"Work, Energy & Power",Ch05,Collisions,T08,Phy-Ch05-T08,NotStarted,Phy-Ch05-T08,,8
+Physics,Phy,Systems Of Particles & Rotational Motion,Ch06,Centre of mass,T01,Phy-Ch06-T01,NotStarted,Phy-Ch06-T01,,1
+Physics,Phy,Systems Of Particles & Rotational Motion,Ch06,Motion of centre of mass,T02,Phy-Ch06-T02,NotStarted,Phy-Ch06-T02,,2
+Physics,Phy,Systems Of Particles & Rotational Motion,Ch06,Linear momentum of a system of particles,T03,Phy-Ch06-T03,NotStarted,Phy-Ch06-T03,,3
+Physics,Phy,Systems Of Particles & Rotational Motion,Ch06,Vector product of two vectors,T04,Phy-Ch06-T04,NotStarted,Phy-Ch06-T04,,4
+Physics,Phy,Systems Of Particles & Rotational Motion,Ch06,Angular velocity & its relation with linear velocity,T05,Phy-Ch06-T05,NotStarted,Phy-Ch06-T05,,5
+Physics,Phy,Systems Of Particles & Rotational Motion,Ch06,Torque & angular momentum,T06,Phy-Ch06-T06,NotStarted,Phy-Ch06-T06,,6
+Physics,Phy,Systems Of Particles & Rotational Motion,Ch06,Moment of inertia,T07,Phy-Ch06-T07,NotStarted,Phy-Ch06-T07,,7
+Physics,Phy,Systems Of Particles & Rotational Motion,Ch06,Kinematics of rotational motion about a fixed axis,T08,Phy-Ch06-T08,NotStarted,Phy-Ch06-T08,,8
+Physics,Phy,Systems Of Particles & Rotational Motion,Ch06,Angular momentum : rotation about a fixed axis,T09,Phy-Ch06-T09,NotStarted,Phy-Ch06-T09,,9
+Physics,Phy,Systems Of Particles & Rotational Motion,Ch06,Rolling motion,T10,Phy-Ch06-T10,NotStarted,Phy-Ch06-T10,,10
+Physics,Phy,Gravitation,Ch07,Kepler’s laws,T01,Phy-Ch07-T01,NotStarted,Phy-Ch07-T01,,1
+Physics,Phy,Gravitation,Ch07,Universal law of gravitation,T02,Phy-Ch07-T02,NotStarted,Phy-Ch07-T02,,2
+Physics,Phy,Gravitation,Ch07,The gravitational constant,T03,Phy-Ch07-T03,NotStarted,Phy-Ch07-T03,,3
+Physics,Phy,Gravitation,Ch07,Acceleration due to gravity below earth surface,T04,Phy-Ch07-T04,NotStarted,Phy-Ch07-T04,,4
+Physics,Phy,Gravitation,Ch07,Acceleration due to gravity above earth surface,T05,Phy-Ch07-T05,NotStarted,Phy-Ch07-T05,,5
+Physics,Phy,Gravitation,Ch07,Gravitational potential energy,T06,Phy-Ch07-T06,NotStarted,Phy-Ch07-T06,,6
+Physics,Phy,Gravitation,Ch07,Escape speed,T07,Phy-Ch07-T07,NotStarted,Phy-Ch07-T07,,7
+Physics,Phy,Gravitation,Ch07,Energy of an orbiting satellite,T08,Phy-Ch07-T08,NotStarted,Phy-Ch07-T08,,8
+Physics,Phy,Mechanical Properties Of Solids,Ch08,Elastic behaviour of solids,T01,Phy-Ch08-T01,NotStarted,Phy-Ch08-T01,,1
+Physics,Phy,Mechanical Properties Of Solids,Ch08,Stress & strain,T02,Phy-Ch08-T02,NotStarted,Phy-Ch08-T02,,2
+Physics,Phy,Mechanical Properties Of Solids,Ch08,Hooke’s law,T03,Phy-Ch08-T03,NotStarted,Phy-Ch08-T03,,3
+Physics,Phy,Mechanical Properties Of Solids,Ch08,Stress-strain curve,T04,Phy-Ch08-T04,NotStarted,Phy-Ch08-T04,,4
+Physics,Phy,Mechanical Properties Of Solids,Ch08,Elastic moduli,T05,Phy-Ch08-T05,NotStarted,Phy-Ch08-T05,,5
+Physics,Phy,Mechanical Properties Of Solids,Ch08,Applications of elastic behaviour of materials,T06,Phy-Ch08-T06,NotStarted,Phy-Ch08-T06,,6
+Physics,Phy,Mechanical Properties Of Fluids,Ch09,Pressure,T01,Phy-Ch09-T01,NotStarted,Phy-Ch09-T01,,1
+Physics,Phy,Mechanical Properties Of Fluids,Ch09,Streamline flow,T02,Phy-Ch09-T02,NotStarted,Phy-Ch09-T02,,2
+Physics,Phy,Mechanical Properties Of Fluids,Ch09,Bernoulli’s principle,T03,Phy-Ch09-T03,NotStarted,Phy-Ch09-T03,,3
+Physics,Phy,Mechanical Properties Of Fluids,Ch09,Viscosity,T04,Phy-Ch09-T04,NotStarted,Phy-Ch09-T04,,4
+Physics,Phy,Mechanical Properties Of Fluids,Ch09,Surface tension,T05,Phy-Ch09-T05,NotStarted,Phy-Ch09-T05,,5
+Physics,Phy,Thermal Properties Of Matter,Ch10,Temperature & heat,T01,Phy-Ch10-T01,NotStarted,Phy-Ch10-T01,,1
+Physics,Phy,Thermal Properties Of Matter,Ch10,Measurement of temperature,T02,Phy-Ch10-T02,NotStarted,Phy-Ch10-T02,,2
+Physics,Phy,Thermal Properties Of Matter,Ch10,Ideal-gas equation & absolute temperature,T03,Phy-Ch10-T03,NotStarted,Phy-Ch10-T03,,3
+Physics,Phy,Thermal Properties Of Matter,Ch10,Thermal expansion,T04,Phy-Ch10-T04,NotStarted,Phy-Ch10-T04,,4
+Physics,Phy,Thermal Properties Of Matter,Ch10,Specific heat capacity,T05,Phy-Ch10-T05,NotStarted,Phy-Ch10-T05,,5
+Physics,Phy,Thermal Properties Of Matter,Ch10,Calorimetry,T06,Phy-Ch10-T06,NotStarted,Phy-Ch10-T06,,6
+Physics,Phy,Thermal Properties Of Matter,Ch10,Change of state,T07,Phy-Ch10-T07,NotStarted,Phy-Ch10-T07,,7
+Physics,Phy,Thermal Properties Of Matter,Ch10,Heat transfer,T08,Phy-Ch10-T08,NotStarted,Phy-Ch10-T08,,8
+Physics,Phy,Thermal Properties Of Matter,Ch10,Newton’s law of cooling,T09,Phy-Ch10-T09,NotStarted,Phy-Ch10-T09,,9
+Physics,Phy,Thermodynamics,Ch11,Thermal equilibrium,T01,Phy-Ch11-T01,NotStarted,Phy-Ch11-T01,,1
+Physics,Phy,Thermodynamics,Ch11,Zeroth law of Thermodynamics,T02,Phy-Ch11-T02,NotStarted,Phy-Ch11-T02,,2
+Physics,Phy,Thermodynamics,Ch11,"Heat, internal energy & work",T03,Phy-Ch11-T03,NotStarted,Phy-Ch11-T03,,3
+Physics,Phy,Thermodynamics,Ch11,First law of thermodynamics,T04,Phy-Ch11-T04,NotStarted,Phy-Ch11-T04,,4
+Physics,Phy,Thermodynamics,Ch11,Specific heat capacity,T05,Phy-Ch11-T05,NotStarted,Phy-Ch11-T05,,5
+Physics,Phy,Thermodynamics,Ch11,Therdynamic processes,T06,Phy-Ch11-T06,NotStarted,Phy-Ch11-T06,,6
+Physics,Phy,Thermodynamics,Ch11,Heat engines,T07,Phy-Ch11-T07,NotStarted,Phy-Ch11-T07,,7
+Physics,Phy,Thermodynamics,Ch11,Refrigerators & heat pumps,T08,Phy-Ch11-T08,NotStarted,Phy-Ch11-T08,,8
+Physics,Phy,Thermodynamics,Ch11,Second law of thermodynamics,T09,Phy-Ch11-T09,NotStarted,Phy-Ch11-T09,,9
+Physics,Phy,Thermodynamics,Ch11,Reversible & irreversible processes,T10,Phy-Ch11-T10,NotStarted,Phy-Ch11-T10,,10
+Physics,Phy,Thermodynamics,Ch11,Carnot engine,T11,Phy-Ch11-T11,NotStarted,Phy-Ch11-T11,,11
+Physics,Phy,Kinetic Theory,Ch12,Molecular nature of matter,T01,Phy-Ch12-T01,NotStarted,Phy-Ch12-T01,,1
+Physics,Phy,Kinetic Theory,Ch12,Behaviour of gases,T02,Phy-Ch12-T02,NotStarted,Phy-Ch12-T02,,2
+Physics,Phy,Kinetic Theory,Ch12,Kinetic theory of an ideal gas,T03,Phy-Ch12-T03,NotStarted,Phy-Ch12-T03,,3
+Physics,Phy,Kinetic Theory,Ch12,Law of equipartition of energy,T04,Phy-Ch12-T04,NotStarted,Phy-Ch12-T04,,4
+Physics,Phy,Kinetic Theory,Ch12,Specific heat capacity,T05,Phy-Ch12-T05,NotStarted,Phy-Ch12-T05,,5
+Physics,Phy,Kinetic Theory,Ch12,Mean free path,T06,Phy-Ch12-T06,NotStarted,Phy-Ch12-T06,,6
+Physics,Phy,Simple Harmonic Motion,Ch13,Periodic & oscillatory motions,T01,Phy-Ch13-T01,NotStarted,Phy-Ch13-T01,,1
+Physics,Phy,Simple Harmonic Motion,Ch13,Simple harmonic motion & uniform circular motion,T02,Phy-Ch13-T02,NotStarted,Phy-Ch13-T02,,2
+Physics,Phy,Simple Harmonic Motion,Ch13,Velocity & acceleration in simple harmonic motion,T03,Phy-Ch13-T03,NotStarted,Phy-Ch13-T03,,3
+Physics,Phy,Simple Harmonic Motion,Ch13,Forced oscillations & resonance,T04,Phy-Ch13-T04,NotStarted,Phy-Ch13-T04,,4
+Physics,Phy,Waves,Ch14,Transverse & longitudinal waves,T01,Phy-Ch14-T01,NotStarted,Phy-Ch14-T01,,1
+Physics,Phy,Waves,Ch14,Displacement relation in a progressive wave,T02,Phy-Ch14-T02,NotStarted,Phy-Ch14-T02,,2
+Physics,Phy,Waves,Ch14,The speed of a travelling wave,T03,Phy-Ch14-T03,NotStarted,Phy-Ch14-T03,,3
+Physics,Phy,Waves,Ch14,Reflection of waves,T04,Phy-Ch14-T04,NotStarted,Phy-Ch14-T04,,4
+Physics,Phy,Waves,Ch14,Beats,T05,Phy-Ch14-T05,NotStarted,Phy-Ch14-T05,,5
+Physics,Phy,Waves,Ch14,Doppler effect,T06,Phy-Ch14-T06,NotStarted,Phy-Ch14-T06,,6
+Physics,Phy,Electric Charges & Fields,Ch15,Electric Charge,T01,Phy-Ch15-T01,NotStarted,Phy-Ch15-T01,,1
+Physics,Phy,Electric Charges & Fields,Ch15,Conductors & Insulators,T02,Phy-Ch15-T02,NotStarted,Phy-Ch15-T02,,2
+Physics,Phy,Electric Charges & Fields,Ch15,Charging & Induction,T03,Phy-Ch15-T03,NotStarted,Phy-Ch15-T03,,3
+Physics,Phy,Electric Charges & Fields,Ch15,Additivity OF Charges,T04,Phy-Ch15-T04,NotStarted,Phy-Ch15-T04,,4
+Physics,Phy,Electric Charges & Fields,Ch15,Coloumbs law,T05,Phy-Ch15-T05,NotStarted,Phy-Ch15-T05,,5
+Physics,Phy,Electric Charges & Fields,Ch15,Electric Field,T06,Phy-Ch15-T06,NotStarted,Phy-Ch15-T06,,6
+Physics,Phy,Electric Charges & Fields,Ch15,Electric Flux,T07,Phy-Ch15-T07,NotStarted,Phy-Ch15-T07,,7
+Physics,Phy,Electric Charges & Fields,Ch15,Electric Dipole,T08,Phy-Ch15-T08,NotStarted,Phy-Ch15-T08,,8
+Physics,Phy,Electrostatic Potential & Capacitance,Ch16,Electrostatic Potential,T01,Phy-Ch16-T01,NotStarted,Phy-Ch16-T01,,1
+Physics,Phy,Electrostatic Potential & Capacitance,Ch16,Potential due to a Point Charge,T02,Phy-Ch16-T02,NotStarted,Phy-Ch16-T02,,2
+Physics,Phy,Electrostatic Potential & Capacitance,Ch16,Potential due to an Electric Dipole,T03,Phy-Ch16-T03,NotStarted,Phy-Ch16-T03,,3
+Physics,Phy,Electrostatic Potential & Capacitance,Ch16,Potential due to a System of Charges,T04,Phy-Ch16-T04,NotStarted,Phy-Ch16-T04,,4
+Physics,Phy,Electrostatic Potential & Capacitance,Ch16,Equipotential Surfaces,T05,Phy-Ch16-T05,NotStarted,Phy-Ch16-T05,,5
+Physics,Phy,Electrostatic Potential & Capacitance,Ch16,Potential Energy of a System of Charges,T06,Phy-Ch16-T06,NotStarted,Phy-Ch16-T06,,6
+Physics,Phy,Electrostatic Potential & Capacitance,Ch16,Potential Energy in an External Field,T07,Phy-Ch16-T07,NotStarted,Phy-Ch16-T07,,7
+Physics,Phy,Electrostatic Potential & Capacitance,Ch16,Electrostatics of Conductors,T08,Phy-Ch16-T08,NotStarted,Phy-Ch16-T08,,8
+Physics,Phy,Electrostatic Potential & Capacitance,Ch16,Dielectrics & Polarisation,T09,Phy-Ch16-T09,NotStarted,Phy-Ch16-T09,,9
+Physics,Phy,Electrostatic Potential & Capacitance,Ch16,Capacitors & Capacitance,T10,Phy-Ch16-T10,NotStarted,Phy-Ch16-T10,,10
+Physics,Phy,Electrostatic Potential & Capacitance,Ch16,The Parallel Plate Capacitor,T11,Phy-Ch16-T11,NotStarted,Phy-Ch16-T11,,11
+Physics,Phy,Electrostatic Potential & Capacitance,Ch16,Effect of Dielectric on Capacitance,T12,Phy-Ch16-T12,NotStarted,Phy-Ch16-T12,,12
+Physics,Phy,Electrostatic Potential & Capacitance,Ch16,Combination of Capacitors,T13,Phy-Ch16-T13,NotStarted,Phy-Ch16-T13,,13
+Physics,Phy,Electrostatic Potential & Capacitance,Ch16,Energy Stored in a Capacitor,T14,Phy-Ch16-T14,NotStarted,Phy-Ch16-T14,,14
+Physics,Phy,Current Electricity,Ch17,Electric Current,T01,Phy-Ch17-T01,NotStarted,Phy-Ch17-T01,,1
+Physics,Phy,Current Electricity,Ch17,Electric Currents in Conductors,T02,Phy-Ch17-T02,NotStarted,Phy-Ch17-T02,,2
+Physics,Phy,Current Electricity,Ch17,Ohm’s law,T03,Phy-Ch17-T03,NotStarted,Phy-Ch17-T03,,3
+Physics,Phy,Current Electricity,Ch17,Drift of Electrons & the Origin,T04,Phy-Ch17-T04,NotStarted,Phy-Ch17-T04,,4
+Physics,Phy,Current Electricity,Ch17,Limitations of Ohm’s Law,T05,Phy-Ch17-T05,NotStarted,Phy-Ch17-T05,,5
+Physics,Phy,Current Electricity,Ch17,Resistivity of Various Materials,T06,Phy-Ch17-T06,NotStarted,Phy-Ch17-T06,,6
+Physics,Phy,Current Electricity,Ch17,Temperature Dependence of Resistivity,T07,Phy-Ch17-T07,NotStarted,Phy-Ch17-T07,,7
+Physics,Phy,Current Electricity,Ch17,"Electrical Energy, Power",T08,Phy-Ch17-T08,NotStarted,Phy-Ch17-T08,,8
+Physics,Phy,Current Electricity,Ch17,Combination of Resistors — Series &,T09,Phy-Ch17-T09,NotStarted,Phy-Ch17-T09,,9
+Physics,Phy,Current Electricity,Ch17,"Cells, emf, Internal Resistance",T10,Phy-Ch17-T10,NotStarted,Phy-Ch17-T10,,10
+Physics,Phy,Current Electricity,Ch17,Cells in Series & in Parallel,T11,Phy-Ch17-T11,NotStarted,Phy-Ch17-T11,,11
+Physics,Phy,Current Electricity,Ch17,Kirchhoff’s Rules,T12,Phy-Ch17-T12,NotStarted,Phy-Ch17-T12,,12
+Physics,Phy,Current Electricity,Ch17,Wheatstone Bridge,T13,Phy-Ch17-T13,NotStarted,Phy-Ch17-T13,,13
+Physics,Phy,Current Electricity,Ch17,Meter Bridge,T14,Phy-Ch17-T14,NotStarted,Phy-Ch17-T14,,14
+Physics,Phy,Current Electricity,Ch17,Potentiometer,T15,Phy-Ch17-T15,NotStarted,Phy-Ch17-T15,,15
+Physics,Phy,Moving Charges & Magnetism,Ch18,Magnetic Force,T01,Phy-Ch18-T01,NotStarted,Phy-Ch18-T01,,1
+Physics,Phy,Moving Charges & Magnetism,Ch18,Motion in a Magnetic Field,T02,Phy-Ch18-T02,NotStarted,Phy-Ch18-T02,,2
+Physics,Phy,Moving Charges & Magnetism,Ch18,Motion in Combined Electric & Magnetic Fields,T03,Phy-Ch18-T03,NotStarted,Phy-Ch18-T03,,3
+Physics,Phy,Moving Charges & Magnetism,Ch18,"Magnetic Field due to a Current Element, Biot-Savart Law",T04,Phy-Ch18-T04,NotStarted,Phy-Ch18-T04,,4
+Physics,Phy,Moving Charges & Magnetism,Ch18,Magnetic Field on the Axis of a Circular Current Loop,T05,Phy-Ch18-T05,NotStarted,Phy-Ch18-T05,,5
+Physics,Phy,Moving Charges & Magnetism,Ch18,Ampere’s Circuital Law,T06,Phy-Ch18-T06,NotStarted,Phy-Ch18-T06,,6
+Physics,Phy,Moving Charges & Magnetism,Ch18,The Solenoid & the Toroid,T07,Phy-Ch18-T07,NotStarted,Phy-Ch18-T07,,7
+Physics,Phy,Moving Charges & Magnetism,Ch18,"Force between Two Parallel Currents, the Ampere",T08,Phy-Ch18-T08,NotStarted,Phy-Ch18-T08,,8
+Physics,Phy,Moving Charges & Magnetism,Ch18,"Torque on Current Loop, Magnetic Dipole",T09,Phy-Ch18-T09,NotStarted,Phy-Ch18-T09,,9
+Physics,Phy,Moving Charges & Magnetism,Ch18,The Moving Coil Galvanometer,T10,Phy-Ch18-T10,NotStarted,Phy-Ch18-T10,,10
+Physics,Phy,Magnetism & Matter,Ch19,The Bar Magnet,T01,Phy-Ch19-T01,NotStarted,Phy-Ch19-T01,,1
+Physics,Phy,Magnetism & Matter,Ch19,Magnetism & Gauss’s Law,T02,Phy-Ch19-T02,NotStarted,Phy-Ch19-T02,,2
+Physics,Phy,Magnetism & Matter,Ch19,The Earth’s Magnetism,T03,Phy-Ch19-T03,NotStarted,Phy-Ch19-T03,,3
+Physics,Phy,Magnetism & Matter,Ch19,Magnetisation & Magnetic Intensity,T04,Phy-Ch19-T04,NotStarted,Phy-Ch19-T04,,4
+Physics,Phy,Magnetism & Matter,Ch19,Magnetic Properties of Materials,T05,Phy-Ch19-T05,NotStarted,Phy-Ch19-T05,,5
+Physics,Phy,Magnetism & Matter,Ch19,Permanent Magnets & Electromagnets,T06,Phy-Ch19-T06,NotStarted,Phy-Ch19-T06,,6
+Physics,Phy,Electromagnetic Induction,Ch20,The Experiments of Faraday & Henry,T01,Phy-Ch20-T01,NotStarted,Phy-Ch20-T01,,1
+Physics,Phy,Electromagnetic Induction,Ch20,Magnetic Flux,T02,Phy-Ch20-T02,NotStarted,Phy-Ch20-T02,,2
+Physics,Phy,Electromagnetic Induction,Ch20,Faraday’s Law of Induction,T03,Phy-Ch20-T03,NotStarted,Phy-Ch20-T03,,3
+Physics,Phy,Electromagnetic Induction,Ch20,Lenz’s Law & Conservation of Energy,T04,Phy-Ch20-T04,NotStarted,Phy-Ch20-T04,,4
+Physics,Phy,Electromagnetic Induction,Ch20,Motional Electromotive Force,T05,Phy-Ch20-T05,NotStarted,Phy-Ch20-T05,,5
+Physics,Phy,Electromagnetic Induction,Ch20,Energy Consideration: A Quantitative Study,T06,Phy-Ch20-T06,NotStarted,Phy-Ch20-T06,,6
+Physics,Phy,Electromagnetic Induction,Ch20,Eddy Currents,T07,Phy-Ch20-T07,NotStarted,Phy-Ch20-T07,,7
+Physics,Phy,Alternating Current,Ch21,Inductance,T01,Phy-Ch21-T01,NotStarted,Phy-Ch21-T01,,1
+Physics,Phy,Alternating Current,Ch21,AC Generator,T02,Phy-Ch21-T02,NotStarted,Phy-Ch21-T02,,2
+Physics,Phy,Alternating Current,Ch21,AC Voltage Applied to a Resistor,T03,Phy-Ch21-T03,NotStarted,Phy-Ch21-T03,,3
+Physics,Phy,Alternating Current,Ch21,Representation of AC by Rotating Vectors — Phasors,T04,Phy-Ch21-T04,NotStarted,Phy-Ch21-T04,,4
+Physics,Phy,Alternating Current,Ch21,Representation of Voltage by Rotating Vectors — Phasors,T05,Phy-Ch21-T05,NotStarted,Phy-Ch21-T05,,5
+Physics,Phy,Alternating Current,Ch21,AC Voltage Applied to an Inductor & capacitor,T06,Phy-Ch21-T06,NotStarted,Phy-Ch21-T06,,6
+Physics,Phy,Alternating Current,Ch21,AC Voltage Applied to a Series LCR Circuit,T07,Phy-Ch21-T07,NotStarted,Phy-Ch21-T07,,7
+Physics,Phy,Alternating Current,Ch21,Power in AC Circuit: The Power Factor,T08,Phy-Ch21-T08,NotStarted,Phy-Ch21-T08,,8
+Physics,Phy,Alternating Current,Ch21,LC Oscillations,T09,Phy-Ch21-T09,NotStarted,Phy-Ch21-T09,,9
+Physics,Phy,Alternating Current,Ch21,Transformers,T10,Phy-Ch21-T10,NotStarted,Phy-Ch21-T10,,10
+Physics,Phy,Electromagnetic Waves,Ch22,Displacement Current,T01,Phy-Ch22-T01,NotStarted,Phy-Ch22-T01,,1
+Physics,Phy,Electromagnetic Waves,Ch22,Electromagnetic Waves,T02,Phy-Ch22-T02,NotStarted,Phy-Ch22-T02,,2
+Physics,Phy,Electromagnetic Waves,Ch22,Electromagnetic Spectrum,T03,Phy-Ch22-T03,NotStarted,Phy-Ch22-T03,,3
+Physics,Phy,Ray Optics & Optical Instruments,Ch23,Reflection of Light by Spherical Mirrors,T01,Phy-Ch23-T01,NotStarted,Phy-Ch23-T01,,1
+Physics,Phy,Ray Optics & Optical Instruments,Ch23,Refraction,T02,Phy-Ch23-T02,NotStarted,Phy-Ch23-T02,,2
+Physics,Phy,Ray Optics & Optical Instruments,Ch23,Total Internal Reflection,T03,Phy-Ch23-T03,NotStarted,Phy-Ch23-T03,,3
+Physics,Phy,Ray Optics & Optical Instruments,Ch23,Refraction at Spherical Surfaces & by Lenses,T04,Phy-Ch23-T04,NotStarted,Phy-Ch23-T04,,4
+Physics,Phy,Ray Optics & Optical Instruments,Ch23,Refraction through a Prism,T05,Phy-Ch23-T05,NotStarted,Phy-Ch23-T05,,5
+Physics,Phy,Ray Optics & Optical Instruments,Ch23,Some Natural Phenomena due to Sunlight,T06,Phy-Ch23-T06,NotStarted,Phy-Ch23-T06,,6
+Physics,Phy,Ray Optics & Optical Instruments,Ch23,Optical Instruments,T07,Phy-Ch23-T07,NotStarted,Phy-Ch23-T07,,7
+Physics,Phy,Wave Optics,Ch24,Huygens Principle,T01,Phy-Ch24-T01,NotStarted,Phy-Ch24-T01,,1
+Physics,Phy,Wave Optics,Ch24,Refraction & Reflection of Plane Waves using Huygens Principle,T02,Phy-Ch24-T02,NotStarted,Phy-Ch24-T02,,2
+Physics,Phy,Wave Optics,Ch24,Coherent & Incoherent Addition of Waves,T03,Phy-Ch24-T03,NotStarted,Phy-Ch24-T03,,3
+Physics,Phy,Wave Optics,Ch24,Interference of Light Waves & Young’s Experiment,T04,Phy-Ch24-T04,NotStarted,Phy-Ch24-T04,,4
+Physics,Phy,Wave Optics,Ch24,Diffraction,T05,Phy-Ch24-T05,NotStarted,Phy-Ch24-T05,,5
+Physics,Phy,Wave Optics,Ch24,Polarisation,T06,Phy-Ch24-T06,NotStarted,Phy-Ch24-T06,,6
+Physics,Phy,Dual Nature Of Radiation & Matter,Ch25,Electron Emission,T01,Phy-Ch25-T01,NotStarted,Phy-Ch25-T01,,1
+Physics,Phy,Dual Nature Of Radiation & Matter,Ch25,Photoelectric Effect,T02,Phy-Ch25-T02,NotStarted,Phy-Ch25-T02,,2
+Physics,Phy,Dual Nature Of Radiation & Matter,Ch25,Experimental Study of Photoelectric Effect,T03,Phy-Ch25-T03,NotStarted,Phy-Ch25-T03,,3
+Physics,Phy,Dual Nature Of Radiation & Matter,Ch25,Photoelectric Effect & Wave Theory of Light,T04,Phy-Ch25-T04,NotStarted,Phy-Ch25-T04,,4
+Physics,Phy,Dual Nature Of Radiation & Matter,Ch25,Einstein’s Photoelectric Equation: Energy Quantum of Radiation,T05,Phy-Ch25-T05,NotStarted,Phy-Ch25-T05,,5
+Physics,Phy,Dual Nature Of Radiation & Matter,Ch25,Particle Nature of Light: The Photon,T06,Phy-Ch25-T06,NotStarted,Phy-Ch25-T06,,6
+Physics,Phy,Dual Nature Of Radiation & Matter,Ch25,Wave Nature of Matter,T07,Phy-Ch25-T07,NotStarted,Phy-Ch25-T07,,7
+Physics,Phy,Dual Nature Of Radiation & Matter,Ch25,Davisson & Germer Experiment,T08,Phy-Ch25-T08,NotStarted,Phy-Ch25-T08,,8
+Physics,Phy,Atoms,Ch26,Alpha -particle Scattering & Rutherford’s Nuclear Model of Atom,T01,Phy-Ch26-T01,NotStarted,Phy-Ch26-T01,,1
+Physics,Phy,Atoms,Ch26,Atomic Spectra,T02,Phy-Ch26-T02,NotStarted,Phy-Ch26-T02,,2
+Physics,Phy,Atoms,Ch26,Bohr Model of the Hydrogen Atom,T03,Phy-Ch26-T03,NotStarted,Phy-Ch26-T03,,3
+Physics,Phy,Atoms,Ch26,Line Spectra of the Hydrogen Atom,T04,Phy-Ch26-T04,NotStarted,Phy-Ch26-T04,,4
+Physics,Phy,Atoms,Ch26,DE Broglie’s Explanation of Bohr’s Second Postulate of Quantisation,T05,Phy-Ch26-T05,NotStarted,Phy-Ch26-T05,,5
+Physics,Phy,Nuclei,Ch27,Atomic Masses & Composition of Nucleus,T01,Phy-Ch27-T01,NotStarted,Phy-Ch27-T01,,1
+Physics,Phy,Nuclei,Ch27,Size of the Nucleus,T02,Phy-Ch27-T02,NotStarted,Phy-Ch27-T02,,2
+Physics,Phy,Nuclei,Ch27,Mass Energy& Nuclear Binding Energy,T03,Phy-Ch27-T03,NotStarted,Phy-Ch27-T03,,3
+Physics,Phy,Nuclei,Ch27,Nuclear Force,T04,Phy-Ch27-T04,NotStarted,Phy-Ch27-T04,,4
+Physics,Phy,Nuclei,Ch27,Radioactivity,T05,Phy-Ch27-T05,NotStarted,Phy-Ch27-T05,,5
+Physics,Phy,Nuclei,Ch27,Nuclear Energy,T06,Phy-Ch27-T06,NotStarted,Phy-Ch27-T06,,6
+Physics,Phy,"Semiconductor: Materials, Devices & Circuits",Ch28,"Classification of Metals, Conductors & Semiconductors",T01,Phy-Ch28-T01,NotStarted,Phy-Ch28-T01,,1
+Physics,Phy,"Semiconductor: Materials, Devices & Circuits",Ch28,Intrinsic Semiconductor,T02,Phy-Ch28-T02,NotStarted,Phy-Ch28-T02,,2
+Physics,Phy,"Semiconductor: Materials, Devices & Circuits",Ch28,Extrinsic Semiconductor,T03,Phy-Ch28-T03,NotStarted,Phy-Ch28-T03,,3
+Physics,Phy,"Semiconductor: Materials, Devices & Circuits",Ch28,p-n Junction,T04,Phy-Ch28-T04,NotStarted,Phy-Ch28-T04,,4
+Physics,Phy,"Semiconductor: Materials, Devices & Circuits",Ch28,Semiconductor Diode,T05,Phy-Ch28-T05,NotStarted,Phy-Ch28-T05,,5
+Physics,Phy,"Semiconductor: Materials, Devices & Circuits",Ch28,Application of Junction Diode as a Rectifier,T06,Phy-Ch28-T06,NotStarted,Phy-Ch28-T06,,6
+Physics,Phy,"Semiconductor: Materials, Devices & Circuits",Ch28,Special Purpose p-n Junction Diodes,T07,Phy-Ch28-T07,NotStarted,Phy-Ch28-T07,,7
+Physics,Phy,"Semiconductor: Materials, Devices & Circuits",Ch28,Digital Electronics & Logic Gates,T08,Phy-Ch28-T08,NotStarted,Phy-Ch28-T08,,8
