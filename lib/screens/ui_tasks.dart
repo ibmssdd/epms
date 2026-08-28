@@ -20,26 +20,24 @@ class TasksScreen extends StatefulWidget {
         required this.onTaskUpdated,
         this.onTaskStateChanged,
         this.initialExpandedGroup,
-        this.onGenerateRevisionTasks,
+        required this.onGenerateRevisionTasks,
     });
 
     @override
     State<TasksScreen> createState() => _TasksScreenState();
 }
 
-enum _TasksWorkspaceMode { todaysTasks, inProgressTasks, revisionTasks }
+//enum _TasksWorkspaceMode { todaysTasks, inProgressTasks, revisionTasks }
+//enum _TasksWorkspaceMode { todaysTasks, revisionTasks, milestoneTasks }
+enum _TasksWorkspaceMode { todaysTasks, revisionTasks }
 
 class _TasksScreenState extends State<TasksScreen> {
     // ==========================================================================
     // WORKSPACE
     // ==========================================================================
-
     TaskGroup _selectedGroup = TaskGroup.dueToday;
-
     _TasksWorkspaceMode _mode = _TasksWorkspaceMode.todaysTasks;
-
     String? _expandedTaskId;
-
     Future<void> Function()? _commitExpandedTask;
 
     // ==========================================================================
@@ -47,25 +45,19 @@ class _TasksScreenState extends State<TasksScreen> {
     // ==========================================================================
 
     bool _generating = false;
-
     bool _revisionViewLoading = false;
-
     bool _revisionGeneratedToday = false;
-
     String? _generationError;
 
     bool _todayRevisionExpanded = true;
-
     bool _previousRevisionExpanded = false;
 
     List<Map<String, Object?>> _todayRevisionRows = const [];
-
     List<Map<String, Object?>> _previousRevisionRows = const [];
 
     @override
     void initState() {
         super.initState();
-
         _selectedGroup = widget.initialExpandedGroup ?? TaskGroup.dueToday;
     }
 
@@ -133,13 +125,11 @@ class _TasksScreenState extends State<TasksScreen> {
         final colors = Theme.of(context).colorScheme;
 
         return switch (group) {
-            TaskGroup.pastDue => colors.error,
-
-            TaskGroup.dueToday => const Color(0xFFFFC857),
-
-            TaskGroup.inProgress => const Color(0xFF59D98E),
-
-            TaskGroup.completed => const Color(0xFFB8C0CC),
+            TaskGroup.inProgress => const Color(0xFF35D27F),
+            TaskGroup.dueToday   => const Color(0xFFFFB52E),
+ //         TaskGroup.pastDue    => colors.error,
+            TaskGroup.pastDue    => const Color(0xFFFF5C5C),
+            TaskGroup.completed  => const Color(0xFF8E9AAF),
         };
     }
 
@@ -149,7 +139,7 @@ class _TasksScreenState extends State<TasksScreen> {
         final foreground = _groupForeground(context, group);
 
         return Color.alphaBlend(
-            foreground.withValues(alpha: selected ? .22 : .11),
+            foreground.withValues(alpha: selected ? .30 : .18),
             colors.surface,
         );
     }
@@ -348,17 +338,12 @@ class _TasksScreenState extends State<TasksScreen> {
                     _buildModeSelector(context),
 
                     const SizedBox(height: 8),
-
-                    switch (_mode) {
+                    switch (_mode)
+                    {
                         _TasksWorkspaceMode.todaysTasks => _buildStatusWorkspace(context),
-
-                        _TasksWorkspaceMode.inProgressTasks => _buildInProgressPanel(
-                            context,
-                        ),
-
-                        _TasksWorkspaceMode.revisionTasks => _buildRevisionTasksPanel(
-                            context,
-                        ),
+//                      _TasksWorkspaceMode.inProgressTasks => _buildInProgressPanel(context,),
+                        _TasksWorkspaceMode.revisionTasks => _buildRevisionTasksPanel(context,),
+//                      _TasksWorkspaceMode.milestoneTasks => _buildMilestoneTasksPanel(context,),
                     },
                 ],
             ),
@@ -452,9 +437,9 @@ class _TasksScreenState extends State<TasksScreen> {
 
     Widget _buildStatusCards(BuildContext context) {
         final groups = [
+            TaskGroup.inProgress,
             TaskGroup.dueToday,
             TaskGroup.pastDue,
-            TaskGroup.inProgress,
             TaskGroup.completed,
         ];
 
@@ -473,11 +458,8 @@ class _TasksScreenState extends State<TasksScreen> {
 
     Widget _buildStatusCard(BuildContext context, TaskGroup group) {
         final selected = _selectedGroup == group;
-
         final foreground = _groupForeground(context, group);
-
         final background = _groupBackground(context, group, selected);
-
         final count = _tasksFor(group).length;
 
         return Material(
@@ -577,15 +559,17 @@ class _TasksScreenState extends State<TasksScreen> {
                                 _TasksWorkspaceMode.todaysTasks,
                             ),
                         ),
-                        const SizedBox(width: 5),
-                        Expanded(
-                            child: _modeButton(
-                                context,
-                                'In-Progress',
-                                Icons.play_circle_outline,
-                                _TasksWorkspaceMode.inProgressTasks,
-                            ),
-                        ),
+
+//                        const SizedBox(width: 5),
+//                        Expanded(
+//                            child: _modeButton(
+//                                context,
+//                               'In-Progress',
+//                                Icons.play_circle_outline,
+//                                _TasksWorkspaceMode.inProgressTasks,
+//                            ),
+//                        ),
+
                         const SizedBox(width: 5),
                         Expanded(
                             child: _modeButton(
@@ -595,22 +579,26 @@ class _TasksScreenState extends State<TasksScreen> {
                                 _TasksWorkspaceMode.revisionTasks,
                             ),
                         ),
+//                        const SizedBox(width: 5),
+//                        Expanded(
+//                            child: _modeButton(
+//                                context,
+//                                'Milestone Tasks',
+//                                Icons.auto_awesome_outlined,
+//                                _TasksWorkspaceMode.milestoneTasks,
+//                            ),
+//                        ),
                     ],
                 ),
             ),
         );
     }
 
-    Widget _modeButton(
-        BuildContext context,
-        String label,
-        IconData icon,
-        _TasksWorkspaceMode mode,
-        ) {
+    Widget _modeButton( BuildContext context, String label,IconData icon,
+                  _TasksWorkspaceMode mode,)
+    {
         final selected = _mode == mode;
-
         final colors = Theme.of(context).colorScheme;
-
         return Material(
             color: selected ? colors.primaryContainer : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
@@ -677,64 +665,109 @@ class _TasksScreenState extends State<TasksScreen> {
     // IN-PROGRESS PANEL
     // ==========================================================================
 
-    Widget _buildInProgressPanel(BuildContext context) {
-        final items = _tasksFor(TaskGroup.inProgress);
+//    Widget _buildInProgressPanel(BuildContext context) {
+//        final items = _tasksFor(TaskGroup.inProgress);
+//
+//        return Card(
+//            color: Theme.of(context).colorScheme.surfaceContainerLow,
+//            child: Column(
+//                children: [
+//                    Padding(
+//                        padding: const EdgeInsets.all(12),
+//                        child: Row(
+//                            children: [
+//                                const Icon(Icons.play_circle_outline, size: 19),
+//                                const SizedBox(width: 7),
+//                                const Text(
+//                                    'In-Progress Tasks',                                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+//                                ),
+//                                const Spacer(),
+//                                Text(
+//                                    '${items.length}',
+//                                    style: const TextStyle(
+//                                        fontSize: 11,
+//                                        fontWeight: FontWeight.w800,
+//                                   ),
+//                               ),
+//                           ],
+//                       ),
+//                   ),
+//                    if (items.isEmpty)
+//                        const Padding(
+//                            padding: EdgeInsets.all(16),
+//                            child: Text(
+//                                'No tasks are currently in progress.',
+//                                style: TextStyle(fontSize: 12),
+//                            ),
+//                        )
+//                    else
+//                        Column(
+//                            children: [
+//                                for (final task in items)
+//                                    _TaskRow(
+//                                        key: ValueKey(task.id),
+//                                        task: task,
+//                                        expanded: _expandedTaskId == task.id,
+//                                        onExpand: _expandTask,
+//                                        onCollapse: _collapseTask,
+//                                        registerCommit: _registerCommit,
+//                                        onChangeStatus: _changeStatus,
+//                                        onTaskStateChanged: widget.onTaskStateChanged,
+//                                        onTaskUpdated: widget.onTaskUpdated,
+//                                    ),
+//                            ],
+//                        ),
+//               ],
+//            ),
+//        );
+//    }
+
+    // ==========================================================================
+    // Milesotne TASKS PANEL
+    // ==========================================================================
+
+    Widget _buildMilestonesPanel(BuildContext context) {
+        final colors = Theme.of(context).colorScheme;
 
         return Card(
-            color: Theme.of(context).colorScheme.surfaceContainerLow,
-            child: Column(
-                children: [
-                    Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
+            color: colors.surfaceContainerLow,
+            child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                        Row(
                             children: [
-                                const Icon(Icons.play_circle_outline, size: 19),
+                                Icon(
+                                    Icons.flag_outlined,
+                                    size: 19,
+                                    color: colors.primary,
+                                ),
                                 const SizedBox(width: 7),
                                 const Text(
-                                    'In-Progress Tasks',
-                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                                ),
-                                const Spacer(),
-                                Text(
-                                    '${items.length}',
-                                    style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w800,
+                                    'Milestones',
+                                    style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
                                     ),
                                 ),
                             ],
                         ),
-                    ),
-                    if (items.isEmpty)
-                        const Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Text(
-                                'No tasks are currently in progress.',
-                                style: TextStyle(fontSize: 12),
+
+                        const SizedBox(height: 12),
+
+                        Text(
+                            'Milestone tasks will appear here.',
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: colors.onSurfaceVariant,
                             ),
-                        )
-                    else
-                        Column(
-                            children: [
-                                for (final task in items)
-                                    _TaskRow(
-                                        key: ValueKey(task.id),
-                                        task: task,
-                                        expanded: _expandedTaskId == task.id,
-                                        onExpand: _expandTask,
-                                        onCollapse: _collapseTask,
-                                        registerCommit: _registerCommit,
-                                        onChangeStatus: _changeStatus,
-                                        onTaskStateChanged: widget.onTaskStateChanged,
-                                        onTaskUpdated: widget.onTaskUpdated,
-                                    ),
-                            ],
                         ),
-                ],
+                    ],
+                ),
             ),
         );
     }
-
     // ==========================================================================
     // REVISION TASKS PANEL
     // ==========================================================================

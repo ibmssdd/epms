@@ -28,8 +28,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool leftExpanded = true;
 
   int selectedNavigationIndex = 0;
-
   String? selectedLectureSubjectCode;
+  TaskGroup? _selectedTaskGroup;
 
   // ============================================================
   // TASK DATA
@@ -418,6 +418,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       selectedNavigationIndex = 1;
       leftExpanded = false;
+      _selectedTaskGroup = group;
     });
   }
 
@@ -425,6 +426,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       selectedNavigationIndex = 1;
       leftExpanded = false;
+  //    _selectedTaskGroup = group;
     });
   }
 
@@ -595,9 +597,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       content = TasksScreen(
         tasks: tasks,
         onTaskUpdated: _updateTask,
-        initialExpandedGroup: null,
-        onGenerateRevisionTasks:
-        _generateRevisionTasks,
+        initialExpandedGroup: _selectedTaskGroup,
+        onGenerateRevisionTasks: _generateRevisionTasks,
       );
     } else if (selectedNavigationIndex == 2) {
       content = const SyllabusScreen();
@@ -634,21 +635,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   String _getCurrentScreenTitle() {
     switch (selectedNavigationIndex) {
-      case 1:
-        return 'TASKS';
-
-      case 2:
-        return 'SYLLABUS';
-
-      case 4:
-        return 'LECTURES';
-
-      case 5:
-        return 'MILESTONES';
-
-      case 0:
-      default:
-        return 'DASHBOARD';
+      case 1:        return 'TASKS';
+      case 2:        return 'SYLLABUS';
+      case 4:        return 'LECTURES';
+      case 5:        return 'MILESTONES';
+      case 0:      default:  return 'DASHBOARD';
     }
   }
 
@@ -1185,7 +1176,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         crossAxisCount: 3,
         crossAxisSpacing: 7,
         mainAxisSpacing: 7,
-        mainAxisExtent: 66,
+// For virtual emulator
+        mainAxisExtent: 78,
+// For  Tanu Tab SM 200
+//        mainAxisExtent: 90,
       ),
 
       itemBuilder: (_, index) {
@@ -1194,54 +1188,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
             return _taskStatCard(
               context,
               label: "Today's Tasks",
-              count:
-              _dueTodayCount,
-              icon:
-              Icons.today_rounded,
-              onTap: () =>
-                  _openTaskGroup(
-                    TaskGroup.dueToday,
-                  ),
+              count: _dueTodayCount,
+              icon:  Icons.today_rounded,
+              onTap: () => _openTaskGroup( TaskGroup.dueToday, ),
             );
 
           case 1:
             return _taskStatCard(
               context,
               label: 'Past Due',
-              count:
-              _pastDueCount,
-              icon:
-              Icons.pending_actions_rounded,
-              onTap: () =>
-                  _openTaskGroup(
-                    TaskGroup.pastDue,
-                  ),
+              count: _pastDueCount,
+              icon: Icons.pending_actions_rounded,
+              onTap: () => _openTaskGroup( TaskGroup.pastDue,),
             );
 
           case 2:
-            return _taskStatCard(
-              context,
+            return _taskStatCard( context,
               label: 'In Progress',
-              count:
-              _inProgressCount,
-              icon:
-              Icons.play_circle_outline_rounded,
-              onTap: () =>
-                  _openTaskGroup(
-                    TaskGroup.inProgress,
-                  ),
+              count: _inProgressCount,
+              icon: Icons.play_circle_outline_rounded,
+              onTap: () =>  _openTaskGroup(TaskGroup.inProgress, ),
             );
 
           case 3:
             return _taskStatCard(
               context,
               label: 'Revision Tasks',
-              count:
-              _revisionTaskCount,
-              icon:
-              Icons.replay_rounded,
-              onTap:
-              _openRevisionTasks,
+              count: _revisionTaskCount,
+              icon: Icons.replay_rounded,
+              onTap: _openRevisionTasks,
             );
 
           case 4:
@@ -1249,31 +1224,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
               context,
               label: 'Refresh Counters',
               count: null,
-              icon:
-              _taskCountersLoading
+              icon: _taskCountersLoading
                   ? Icons.sync_rounded
                   : Icons.refresh_rounded,
-              onTap:
-              _refreshTaskCounters,
+              onTap: _refreshTaskCounters,
               showChevron: false,
-              showSpinner:
-              _taskCountersLoading,
+              showSpinner: _taskCountersLoading,
             );
 
           case 5:
             return _taskStatCard(
               context,
               label: 'Milestone Tasks',
-              count:
-              _milestoneTaskCount,
-              icon:
-              Icons.flag_rounded,
-              onTap:
-              _openMilestoneTasks,
+              count: _milestoneTaskCount,
+              icon: Icons.flag_rounded,
+              onTap: _openMilestoneTasks,
             );
 
-          default:
-            return const SizedBox.shrink();
+          default: return const SizedBox.shrink();
         }
       },
     );
@@ -1596,7 +1564,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         crossAxisCount: 2,
         crossAxisSpacing: 7,
         mainAxisSpacing: 7,
-        mainAxisExtent: 66,
+// For virtual emulator
+        mainAxisExtent: 78,
+// For  Tanu Tab SM 200
+//      mainAxisExtent: 90,
+
       ),
       itemBuilder: (_, index) =>
       cards[index],
