@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../services/syllabus_coverage_svc.dart';
+import '../services/syllabus_coverage_svc.dart';
 
 class SyllabusScreen extends StatefulWidget {
   const SyllabusScreen({super.key});

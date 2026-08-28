@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
-import '../../models/task.dart';
-import '../../models/task_group.dart';
-import '../../services/milestone_calendar_svc.dart';
-import '../../services/revision_task_generator_svc.dart';
-import '../../services/syllabus_coverage_svc.dart';
-import '../../services/task_enquiry_svc.dart';
-import '../../database/app_database.dart';
-import '../../widgets/navigation/left_navigation.dart';
-import '../../screens/tasks/tasks_screen.dart';
-import '../lectures/lecture_screen.dart';
-import '../syllabus/syllabus_screen.dart';
-import '../milestones/milestone_calendar_screen.dart';
+import '../models/mo_task.dart';
+import '../models/mo_task_group.dart';
+import '../services/milestone_calendar_svc.dart';
+import '../services/revision_task_generator_svc.dart';
+import '../services/syllabus_coverage_svc.dart';
+import '../services/task_enquiry_svc.dart';
+import '../database/app_database.dart';
+import '../widgets/wn_left_navigation.dart';
+import 'ui_tasks.dart';
+import 'ui_lecture.dart';
+import 'ui_syllabus.dart';
+import 'ui_milestone.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});

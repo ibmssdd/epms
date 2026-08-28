@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
-import '../models/task.dart';
+import '../models/mo_task.dart';
 
 class TaskActivityDefinition {
   const TaskActivityDefinition({

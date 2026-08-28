@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../models/milestone.dart';
+import '../models/milestone.dart';
 
 class MilestoneCard extends StatelessWidget {
   final List<Milestone> milestones;

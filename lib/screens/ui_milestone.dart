@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../database/app_database.dart';
-import '../../services/cmt_weekend_task_generator_svc.dart';
-import '../../services/milestone_calendar_svc.dart';
+import '../database/app_database.dart';
+import '../services/cmt_weekend_task_generator_svc.dart';
+import '../services/milestone_calendar_svc.dart';
 
 /// Milestone calendar workspace.
 ///

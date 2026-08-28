@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../models/subject.dart';
+import '../models/mo_subject.dart';
 
 class SubjectProgressCard extends StatelessWidget {
   final Subject subject;

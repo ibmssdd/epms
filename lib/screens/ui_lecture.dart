@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../services/lecture_enquiry_svc.dart';
-import '../../services/lecture_svc.dart';
+import '../services/lecture_enquiry_svc.dart';
+import '../services/lecture_svc.dart';
 
 class LectureScreen extends StatefulWidget {
   final String? initialSubjectCode;
