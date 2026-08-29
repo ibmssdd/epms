@@ -141,9 +141,160 @@ class MilestoneCalendarSvc {
       'started': startedCount,
     };
   }
+  Future<bool> tasksCreationRequired() async {
+    final upcomingSunday = _upcomingSunday();
+
+    final rows = await _db.query(
+      'db_Milestones',
+      where: 'milestone_date = ?',
+      whereArgs: [upcomingSunday],
+      limit: 1,
+    );
+
+    // No milestone record for this Sunday.
+    // This means the Sunday is available for a PMT milestone.
+    if (rows.isEmpty) {
+      return true;
+    }
+
+    final row = rows.first;
+
+    // ------------------------------------------------------------
+    // PHYSICS
+    // ------------------------------------------------------------
+    final phyChapters =
+        row['milestone_phy_chapters']?.toString().trim() ?? '';
+
+    final phyTaskCreated =
+    _toBool(row['milestone_phy_task_created']);
+
+    if (phyChapters.isNotEmpty && !phyTaskCreated) {
+      return true;
+    }
+
+    // ------------------------------------------------------------
+    // CHEMISTRY
+    // ------------------------------------------------------------
+    final chemChapters =
+        row['milestone_chem_chapters']?.toString().trim() ?? '';
+
+    final chemTaskCreated =
+    _toBool(row['milestone_chem_task_created']);
+
+    if (chemChapters.isNotEmpty && !chemTaskCreated) {
+      return true;
+    }
+
+    // ------------------------------------------------------------
+    // BIOLOGY
+    // ------------------------------------------------------------
+    final bioChapters =
+        row['milestone_bio_chapters']?.toString().trim() ?? '';
+
+    final bioTaskCreated =
+    _toBool(row['milestone_bio_task_created']);
+
+    if (bioChapters.isNotEmpty && !bioTaskCreated) {
+      return true;
+    }
+
+    // All subjects that have scope have their tasks created.
+    return false;
+  }
+
+  String _upcomingSunday() {
+    final today = DateTime.now();
+
+    final daysUntilSunday =
+        DateTime.sunday - today.weekday;
+
+    final days = daysUntilSunday <= 0
+        ? daysUntilSunday + 7
+        : daysUntilSunday;
+
+    final sunday = DateTime(
+      today.year,
+      today.month,
+      today.day,
+    ).add(Duration(days: days));
+
+    return '${sunday.year.toString().padLeft(4, '0')}-'
+        '${sunday.month.toString().padLeft(2, '0')}-'
+        '${sunday.day.toString().padLeft(2, '0')}';
+  }
+
+  bool _toBool(Object? value) {
+    if (value is int) {
+      return value == 1;
+    }
+
+    final text = value?.toString().trim().toLowerCase();
+
+    return text == '1' ||
+        text == 'true' ||
+        text == 'yes';
+  }
+
+  Future<List<Map<String, Object?>>> getAllOpenMTasks() async {
+    final rows = await _db.rawQuery(
+      '''
+    SELECT *
+    FROM db_TaskLogWeekEnd
+    WHERE TaskID LIKE 'MT_%'
+      AND UPPER(TaskStatus) NOT IN (
+        'COMPLETED',
+        'CANCELLED',
+        'CANCELLED / NOT REQUIRED'
+      )
+    ORDER BY date(TaskDueDate) DESC,
+             TaskID ASC
+    ''',
+    );
+
+    return rows;
+  }
+  Future<bool> areUpcomingMilestoneTasksPending() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final rows = await _db.rawQuery(
+      '''
+    SELECT
+      milestone_date,
+      milestone_phy_task_created,
+      milestone_chem_task_created,
+      milestone_bio_task_created
+    FROM db_Milestones
+    WHERE date(milestone_date) >= date(?)
+    ORDER BY date(milestone_date) ASC
+    LIMIT 1
+    ''',
+      [
+        today.toIso8601String(),
+      ],
+    );
+
+    if (rows.isEmpty) { return false;  }
+
+    final row = rows.first;
+    final physicsCreated =
+        (row['milestone_phy_task_created'] as num?)?.toInt() ?? 0;
+
+    final chemistryCreated =
+        (row['milestone_chem_task_created'] as num?)?.toInt() ?? 0;
+
+    final biologyCreated =
+        (row['milestone_bio_task_created'] as num?)?.toInt() ?? 0;
+
+    return physicsCreated == 0 ||
+        chemistryCreated == 0 ||
+        biologyCreated == 0;
+  }
+
 
   /// Returns all milestone tasks whose due date falls within
   /// the current Monday-Sunday week.
+  ///
+
   Future<List<Map<String, Object?>>> getThisWeekMTasks() async {
     final now = DateTime.now();
 

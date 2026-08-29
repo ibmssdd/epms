@@ -5,13 +5,17 @@ import '../models/mo_task.dart';
 import '../models/mo_task_group.dart';
 import '../services/svc_Task_Generator_Revision.dart';
 import '../services/svc_Status_Task_Activity.dart';
+import '../services/svc_Milestones.dart';
 
 class TasksScreen extends StatefulWidget {
     final List<Task> tasks;
     final ValueChanged<Task> onTaskUpdated;
     final ValueChanged<Task>? onTaskStateChanged;
     final TaskGroup? initialExpandedGroup;
+    // ==========================================================================
 
+
+// ==========================================================================
     final Future<List<Map<String, Object?>>> Function()? onGenerateRevisionTasks;
 
     const TasksScreen({
@@ -51,10 +55,112 @@ class _TasksScreenState extends State<TasksScreen> {
 
     bool _todayRevisionExpanded = true;
     bool _previousRevisionExpanded = false;
+// ==========================================================================
+// MILESTONE TASKS
+// ==========================================================================
+    bool _milestoneTasksLoading = false;
+    bool _milestoneTasksCreationRequired = false;
+    List<Map<String, Object?>> _openMilestoneTasks = const [];
+    bool _previousMilestoneExpanded = false;
+    bool _upcomingMilestoneExpanded = true;
+    bool _futureMilestoneExpanded = false;
+    String? _milestoneError;
 
+    List<Map<String, Object?>> _milestoneRows = const [];
+    bool _milestoneViewLoading = false;
+    final Map<String, bool> _milestoneExpanded = {};
+
+    bool _isTodaySunday() {
+        return DateTime.now().weekday == DateTime.sunday;
+    }
     List<Map<String, Object?>> _todayRevisionRows = const [];
     List<Map<String, Object?>> _previousRevisionRows = const [];
 
+    ({List<Map<String, Object?>> previous,
+    List<Map<String, Object?>> upcoming,
+    List<Map<String, Object?>> future})
+
+
+    _buildMilestoneTaskGroups() {
+        final today = DateUtils.dateOnly(DateTime.now());
+        DateTime? dateFromRow(Map<String, Object?> row)
+        {
+            final value = row['TaskDueDate']?.toString();
+            if (value == null || value.isEmpty) { return null;  }
+            final parsed = DateTime.tryParse(value);
+            if (parsed == null) { return null; }
+            return DateUtils.dateOnly(parsed);
+        }
+
+        final previous = <Map<String, Object?>>[];
+        final upcoming = <Map<String, Object?>>[];
+        final future   = <Map<String, Object?>>[];
+
+        for (final row in _openMilestoneTasks)
+        {
+            final date = dateFromRow(row);
+            if (date == null) { continue;  }
+            if (date.isBefore(today))
+                { previous.add(row); }
+            else
+                if (date == today)
+                   { upcoming.add(row); }
+                else {future.add(row); }
+        }
+        return ( previous: previous, upcoming: upcoming, future: future, );
+    }
+    Future<void> _loadMilestoneTasksView() async {
+        if (_milestoneTasksLoading) {
+            return;
+        }
+
+        if (!mounted) {
+            return;
+        }
+
+        setState(() {
+            _milestoneTasksLoading = true;
+            _milestoneError = null;
+        });
+
+        try {
+            final db = await AppDatabase.instance.database;
+            final milestoneSvc = MilestoneCalendarSvc(db);
+
+            // 1. Check whether milestone task creation is required.
+            final creationRequired =
+            await milestoneSvc.tasksCreationRequired();
+
+            // 2. Get all currently open milestone tasks.
+            final rows = await milestoneSvc.getAllOpenMTasks();
+
+            if (!mounted) {
+                return;
+            }
+
+            setState(() {
+                _milestoneTasksCreationRequired = creationRequired;
+
+                // Keep both in sync.
+                _openMilestoneTasks = rows;
+                _milestoneRows = rows;
+
+                _milestoneTasksLoading = false;
+            });
+        } catch (e) {
+            if (!mounted) {
+                return;
+            }
+
+            setState(() {
+                _milestoneTasksLoading = false;
+                _milestoneTasksCreationRequired = false;
+                _openMilestoneTasks = const [];
+                _milestoneRows = const [];
+                _milestoneError = 'Unable to load milestone tasks.';
+            });
+        }
+    }
     @override
     void initState() {
         super.initState();
@@ -164,6 +270,28 @@ class _TasksScreenState extends State<TasksScreen> {
         return _isDue(task) &&
             task.status != TaskStatus.completed &&
             task.status != TaskStatus.cancelledNotRequired;
+    }
+    Map<String, List<Task>> _groupMilestoneTasksByDate() {
+        final grouped = <String, List<Task>>{};
+
+        for (final row in _milestoneRows) {
+            final task = _taskFromMilestoneRow(row);
+
+            if (task == null) {
+                continue;
+            }
+
+            final date = DateUtils.dateOnly(task.dueDate);
+
+            final key =
+                '${date.year.toString().padLeft(4, '0')}-'
+                '${date.month.toString().padLeft(2, '0')}-'
+                '${date.day.toString().padLeft(2, '0')}';
+
+            grouped.putIfAbsent(key, () => []).add(task);
+        }
+
+        return grouped;
     }
 
     // ==========================================================================
@@ -348,6 +476,46 @@ class _TasksScreenState extends State<TasksScreen> {
                 ],
             ),
         );
+    }
+
+    Future<void> _loadMilestoneTasks() async {
+        if (_milestoneViewLoading) {
+            return;
+        }
+
+        if (!mounted) {
+            return;
+        }
+
+        setState(() {
+            _milestoneViewLoading = true;
+        });
+
+        try {
+            final db = await AppDatabase.instance.database;
+
+            final svc = MilestoneCalendarSvc(db);
+
+            final rows = await svc.getAllOpenMTasks();
+
+            if (!mounted) {
+                return;
+            }
+
+            setState(() {
+                _milestoneRows = rows ?? const [];
+                _milestoneViewLoading = false;
+            });
+        } catch (_) {
+            if (!mounted) {
+                return;
+            }
+
+            setState(() {
+                _milestoneRows = const [];
+                _milestoneViewLoading = false;
+            });
+        }
     }
 
     // ==========================================================================
@@ -609,21 +777,20 @@ class _TasksScreenState extends State<TasksScreen> {
                         if (mode == _TasksWorkspaceMode.revisionTasks) {
                             await _loadRevisionGenerationView();
                         }
+                        if (mode == _TasksWorkspaceMode.milestoneTasks) {
+                            await _loadMilestoneTasksView();
+                        }
                         return;
                     }
-
                     await _leaveExpandedTask();
+                    if (!mounted) { return; }
 
-                    if (!mounted) {
-                        return;
-                    }
-
-                    setState(() {
-                        _mode = mode;
-                    });
-
+                    setState(() { _mode = mode; });
                     if (mode == _TasksWorkspaceMode.revisionTasks) {
                         await _loadRevisionGenerationView();
+                    }
+                    if (mode == _TasksWorkspaceMode.milestoneTasks) {
+                        await _loadMilestoneTasksView();
                     }
                 },
                 child: Padding(
@@ -872,99 +1039,75 @@ class _TasksScreenState extends State<TasksScreen> {
             ],
         );
     }
-
     Widget _buildMilestoneTasksPanel(BuildContext context) {
-        final colors = Theme.of(context).colorScheme;
+        final grouped = _groupMilestoneTasksByDate();
+
+        final dates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
+
+        if (_milestoneViewLoading) {
+            return const Card(
+                child: Padding(
+                    padding: EdgeInsets.all(14),
+                    child: Center(
+                        child: SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                    ),
+                ),
+            );
+        }
+
+        if (dates.isEmpty) {
+            return const Card(
+                child: Padding(
+                    padding: EdgeInsets.all(14),
+                    child: Text(
+                        'No milestone tasks pending or scheduled.',
+                        style: TextStyle(fontSize: 11),
+                    ),
+                ),
+            );
+        }
 
         return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-                Card(
-                    child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                                Row(
-                                    children: [
-                                        Icon(
-                                            Icons.flag_outlined,
-                                            color: colors.primary,
-                                        ),
-                                        const SizedBox(width: 7),
-                                        const Text(
-                                            'Milestones',
-                                            style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w700,
-                                            ),
-                                        ),
-                                    ],
-                                ),
-
-                                const SizedBox(height: 8),
-
-                                SizedBox(
-                                    width: double.infinity,
-                                    height: 40,
-                                    child: FilledButton.icon(
-                                        onPressed: () {
-                                            // Milestone action will go here
-                                        },
-                                        icon: const Icon(
-                                            Icons.add,
-                                            size: 18,
-                                        ),
-                                        label: const Text(
-                                            'Create Milestone',
-                                        ),
-                                    ),
-                                ),
-
-                                const SizedBox(height: 6),
-
-                                const Text(
-                                    'Create and manage your milestone tasks.',
-                                    style: TextStyle(
-                                        fontSize: 10.5,
-                                    ),
-                                ),
-                            ],
-                        ),
+                for (var i = 0; i < dates.length; i++) ...[
+                    _buildMilestoneDateSection(
+                        context,
+                        dateKey: dates[i],
+                        tasks: grouped[dates[i]]!,
                     ),
-                ),
 
-                const SizedBox(height: 10),
-
-                _buildMilestoneSection(
-                    context,
-                    title: "Upcoming Milestones",
-                    count: 0,
-                    expanded: true,
-                    onTap: () {},
-                ),
-
-                const SizedBox(height: 8),
-
-                _buildMilestoneSection(
-                    context,
-                    title: 'Previous Milestones',
-                    count: 0,
-                    expanded: false,
-                    onTap: () {},
-                ),
+                    if (i < dates.length - 1)
+                        const SizedBox(height: 8),
+                ],
             ],
         );
     }
 
-    Widget _buildMilestoneSection(
+    Widget _buildMilestoneDateSection(
         BuildContext context, {
-            required String title,
-            required int count,
-            required bool expanded,
-            required VoidCallback onTap,
+            required String dateKey,
+            required List<Task> tasks,
         }) {
         final colors = Theme.of(context).colorScheme;
+
+        final date = DateTime.parse(dateKey);
+
+        final today = DateUtils.dateOnly(DateTime.now());
+
+        final isToday = DateUtils.isSameDay(date, today);
+
+        final expanded = _milestoneExpanded[dateKey] ?? true;
+
+        final title =
+            'Coaching Milestone - '
+            '${date.day.toString().padLeft(2, '0')}/'
+            '${date.month.toString().padLeft(2, '0')}/'
+            '${date.year}';
 
         return Card(
             margin: EdgeInsets.zero,
@@ -972,7 +1115,11 @@ class _TasksScreenState extends State<TasksScreen> {
             child: Column(
                 children: [
                     InkWell(
-                        onTap: onTap,
+                        onTap: () {
+                            setState(() {
+                                _milestoneExpanded[dateKey] = !expanded;
+                            });
+                        },
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
                             padding: const EdgeInsets.symmetric(
@@ -982,7 +1129,9 @@ class _TasksScreenState extends State<TasksScreen> {
                             child: Row(
                                 children: [
                                     Icon(
-                                        Icons.flag_outlined,
+                                        isToday
+                                            ? Icons.today_outlined
+                                            : Icons.flag_outlined,
                                         size: 19,
                                         color: colors.primary,
                                     ),
@@ -1001,7 +1150,7 @@ class _TasksScreenState extends State<TasksScreen> {
                                     ),
 
                                     Text(
-                                        '$count',
+                                        '${tasks.length}',
                                         style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.w800,
@@ -1023,19 +1172,178 @@ class _TasksScreenState extends State<TasksScreen> {
                     ),
 
                     if (expanded)
-                        const Padding(
-                            padding: EdgeInsets.all(14),
-                            child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                    'No milestone tasks.',
-                                    style: TextStyle(fontSize: 11),
-                                ),
-                            ),
+                        Column(
+                            children: [
+                                for (final task in tasks)
+                                    _TaskRow(
+                                        key: ValueKey(task.id),
+                                        task: task,
+                                        expanded: _expandedTaskId == task.id,
+                                        onExpand: _expandTask,
+                                        onCollapse: _collapseTask,
+                                        registerCommit: _registerCommit,
+                                        onChangeStatus: _changeStatus,
+                                        onTaskStateChanged: widget.onTaskStateChanged,
+                                        onTaskUpdated: widget.onTaskUpdated,
+                                    ),
+                            ],
                         ),
                 ],
             ),
         );
+    }
+    //comeback here
+    Widget _buildMilestoneTaskSection(
+        BuildContext context, {
+            required String title,
+            required List<Map<String, Object?>> tasks,
+            required bool expanded,
+            required bool highlighted,
+            required VoidCallback onTap,
+        }) {
+        final colors = Theme.of(context).colorScheme;
+
+        final background = highlighted
+            ? Color.alphaBlend(
+            colors.primary.withValues(alpha: .16),
+            colors.surfaceContainerHighest,
+        )
+            : colors.surfaceContainerLow;
+
+        final taskObjects = tasks
+            .map(_taskFromMilestoneRow)
+            .whereType<Task>()
+            .toList();
+
+        return Card(
+            margin: EdgeInsets.zero,
+            color: background,
+            child: Column(
+                children: [
+                    InkWell(
+                        onTap: onTap,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 13,
+                                vertical: 10,
+                            ),
+                            child: Row(
+                                children: [
+                                    Icon(
+                                        highlighted
+                                            ? Icons.today_outlined
+                                            : Icons.flag_outlined,
+                                        size: 19,
+                                        color: highlighted
+                                            ? colors.primary
+                                            : colors.onSurfaceVariant,
+                                    ),
+
+                                    const SizedBox(width: 7),
+
+                                    Expanded(
+                                        child: Text(
+                                            title,
+                                            style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w700,
+                                                color: highlighted
+                                                    ? colors.primary
+                                                    : colors.onSurface,
+                                            ),
+                                        ),
+                                    ),
+
+                                    Text(
+                                        '${taskObjects.length}',
+                                        style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w800,
+                                            color: highlighted
+                                                ? colors.primary
+                                                : colors.onSurfaceVariant,
+                                        ),
+                                    ),
+
+                                    const SizedBox(width: 6),
+
+                                    Icon(
+                                        expanded
+                                            ? Icons.keyboard_arrow_up
+                                            : Icons.keyboard_arrow_down,
+                                        size: 19,
+                                    ),
+                                ],
+                            ),
+                        ),
+                    ),
+
+                    if (expanded)
+                        if (taskObjects.isEmpty)
+                            const Padding(
+                                padding: EdgeInsets.all(14),
+                                child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                        'No milestone tasks.',
+                                        style: TextStyle(fontSize: 11),
+                                    ),
+                                ),
+                            )
+                        else
+                            Column(
+                                children: [
+                                    for (final task in taskObjects)
+                                        _TaskRow(
+                                            key: ValueKey(task.id),
+                                            task: task,
+                                            expanded:
+                                            _expandedTaskId == task.id,
+                                            onExpand: _expandTask,
+                                            onCollapse: _collapseTask,
+                                            registerCommit: _registerCommit,
+                                            onChangeStatus: _changeStatus,
+                                            onTaskStateChanged:
+                                            widget.onTaskStateChanged,
+                                            onTaskUpdated:
+                                            widget.onTaskUpdated,
+                                        ),
+                                ],
+                            ),
+                ],
+            ),
+        );
+    }
+
+    Task? _taskFromMilestoneRow(Map<String, Object?> row) {
+        final id = row['TaskID']?.toString().trim();
+        final description = row['TaskDescription']?.toString() ?? '';
+        final dueText = row['TaskDueDate']?.toString();
+        if (id == null || id.isEmpty || dueText == null || dueText.isEmpty)
+        {   return null;  }
+        final dueDate = DateTime.tryParse(dueText);
+        if (dueDate == null) { return null; }
+        final status = switch (
+        (row['TaskStatus']?.toString() ?? 'PENDING')
+            .toUpperCase()
+        ) {
+            'IN_PROGRESS' || 'STARTED' =>  TaskStatus.started,
+                           'COMPLETED' =>   TaskStatus.completed,
+             'CANCELLED' || 'CANCELLED / NOT REQUIRED' => TaskStatus.cancelledNotRequired,
+            _ => TaskStatus.pending,
+        };
+
+        return Task(
+            id: id,
+            title: description,
+            subject: _subjectFromDescription(description),
+            dueDate: dueDate,
+            status: status,
+        );
+    }
+    Future<void> _createMilestoneTasks() async {
+        // MTTaskGenerator connection will go here.
     }
 
     Future<void> _generateRevisionTasks() async {
@@ -1715,7 +2023,7 @@ class _TaskRowState extends State<_TaskRow> {
 
         // All mandatory activities ON
         // => Completed immediately.
-        if (_allMandatoryCompleted()) {
+        if (_allMandatoryCompleted() && _isDue(widget.task)) {
             await _commitNow();
         }
     }
