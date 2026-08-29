@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../services/lecture_enquiry_svc.dart';
+import '../services/svc_Lecture_Enquiry.dart';
 import '../services/lecture_svc.dart';
 
 class LectureScreen extends StatefulWidget {

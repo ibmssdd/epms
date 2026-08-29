@@ -1,7 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 
 import '../database/app_database.dart';
-import 'syllabus_svc.dart';
+import 'svc_Syllabus.dart';
 
 class LectureSaveResult {
   final String lectureId;

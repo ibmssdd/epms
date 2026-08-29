@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../database/app_database.dart';
 import '../models/mo_task.dart';
 import '../models/mo_task_group.dart';
-import '../services/revision_task_generator_svc.dart';
-import '../services/task_activity_status_svc.dart';
+import '../services/svc_Task_Generator_Revision.dart';
+import '../services/svc_Status_Task_Activity.dart';
 
 class TasksScreen extends StatefulWidget {
     final List<Task> tasks;

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import '../services/svc_CMT_Task_Generator.dart';
 import '../database/app_database.dart';
-import '../services/pmt_weekend_task_generator_svc.dart';
-import '../services/cmt_weekend_task_generator_svc.dart';
-import '../services/milestone_calendar_svc.dart';
+import '../services/svc_Status_Chapters.dart';
+import '../services/svc_Milestones.dart';
+import '../services/svc_Task_Generator_MT.dart';
 
 /// Milestone calendar workspace.
 ///
@@ -34,10 +33,8 @@ final VoidCallback? onReturnToDashboard;
 
 final ValueChanged<DateTime>? onCmtTaskGenerationStarted;
 
-final void Function(
-DateTime,
-List<Map<String, Object?>>,
-)? onCmtTasksGenerated;
+final void Function(DateTime, List<Map<String, Object?>>)?
+onCmtTasksGenerated;
 
 final void Function(DateTime, Object)? onCmtTaskGenerationFailed;
 
@@ -46,50 +43,22 @@ State<MilestoneCalendarScreen> createState() =>
 _MilestoneCalendarScreenState();
 }
 
-enum MilestoneCalendarView {
-view,
-set,
-}
+enum MilestoneCalendarView { view, set }
 
 class _MilestoneCalendarScreenState
 extends State<MilestoneCalendarScreen> {
 static const List<_SubjectInfo> _subjects = [
-_SubjectInfo(
-'PHY',
-'Phy',
-'Physics',
-Icons.bolt_outlined,
-),
-_SubjectInfo(
-'CHEM',
-'Chem',
-'Chemistry',
-Icons.science_outlined,
-),
-_SubjectInfo(
-'BIO',
-'Bio',
-'Biology',
-Icons.eco_outlined,
-),
+_SubjectInfo('PHY', 'Phy', 'Physics', Icons.bolt_outlined),
+_SubjectInfo('CHEM', 'Chem', 'Chemistry', Icons.science_outlined),
+_SubjectInfo('BIO', 'Bio', 'Biology', Icons.eco_outlined),
 ];
 
 // Temporary test flag.
 // Keep true while milestone task generation is required.
 static const bool _createTasksAfterMilestoneSave = true;
 
-static const List<int> _chapterRangeStarts = [
-1,
-11,
-21,
-];
-
 // ---------------------------------------------------------------------------
-// UI ONLY:
-//
-// Two boxes are visible at one time.
-// Each box contains five chapters.
-// One horizontal swipe moves BOTH boxes by ten chapters.
+// UI ONLY
 // ---------------------------------------------------------------------------
 
 static const int _chaptersPerBox = 5;
@@ -142,18 +111,14 @@ void initState() {
 super.initState();
 
 _view = widget.initialView;
-_selectedDate = _normaliseInitialDate(
-widget.initialDate,
-);
+_selectedDate = _normaliseInitialDate(widget.initialDate);
 
 _load();
 }
 
 DateTime _normaliseInitialDate(DateTime? suppliedDate) {
 if (suppliedDate == null) {
-return MilestoneCalendarSvc.nextSunday(
-DateTime.now(),
-);
+return MilestoneCalendarSvc.nextSunday(DateTime.now());
 }
 
 final date = _dateOnly(suppliedDate);
@@ -171,19 +136,14 @@ final svc = _svc;
 if (svc == null || _saving) return;
 
 final today = _dateOnly(DateTime.now());
+final lastDate = today.add(const Duration(days: 730));
 
-final lastDate = today.add(
-const Duration(days: 730),
-);
-
-final occupiedDates =
-await svc.getOccupiedMilestoneDates(
+final occupiedDates = await svc.getOccupiedMilestoneDates(
 from: today,
 to: lastDate,
 );
 
-final nextAvailableSunday =
-await _getNextAvailableSunday(
+final nextAvailableSunday = await _getNextAvailableSunday(
 from: today,
 occupiedDates: occupiedDates,
 );
@@ -195,6 +155,7 @@ _view = MilestoneCalendarView.set;
 
 _selectedDate = nextAvailableSunday;
 
+// New milestone defaults to CMT.
 _milestoneType = 'CMT';
 
 _existingMilestone = null;
@@ -219,32 +180,23 @@ Future<DateTime> _findNextAvailableSunday() async {
 final svc = _svc;
 
 if (svc == null) {
-return MilestoneCalendarSvc.nextSunday(
-DateTime.now(),
-);
+return MilestoneCalendarSvc.nextSunday(DateTime.now());
 }
 
 final today = _dateOnly(DateTime.now());
+final lastDate = today.add(const Duration(days: 730));
 
-final lastDate = today.add(
-const Duration(days: 730),
-);
-
-final occupiedDates =
-await svc.getOccupiedMilestoneDates(
+final occupiedDates = await svc.getOccupiedMilestoneDates(
 from: today,
 to: lastDate,
 );
 
-var candidate =
-MilestoneCalendarSvc.nextSunday(today);
+var candidate = MilestoneCalendarSvc.nextSunday(today);
 
 while (occupiedDates.contains(
 MilestoneCalendarSvc.formatDate(candidate),
 )) {
-candidate = candidate.add(
-const Duration(days: 7),
-);
+candidate = candidate.add(const Duration(days: 7));
 }
 
 return candidate;
@@ -261,16 +213,11 @@ _svc = svc;
 await _loadChapterOptions(db);
 
 if (widget.initialDate == null &&
-widget.initialView ==
-MilestoneCalendarView.set) {
-_selectedDate =
-await _findNextAvailableSunday();
+widget.initialView == MilestoneCalendarView.set) {
+_selectedDate = await _findNextAvailableSunday();
 }
 
-final milestones =
-await svc.getUpcomingMilestones(
-limit: 100,
-);
+final milestones = await svc.getUpcomingMilestones(limit: 100);
 
 await _loadExistingMilestone();
 
@@ -297,38 +244,29 @@ String milestoneType,
 final svc = _svc;
 
 if (svc == null) {
-return MilestoneCalendarSvc.nextSunday(
-DateTime.now(),
-);
+return MilestoneCalendarSvc.nextSunday(DateTime.now());
 }
 
 final today = _dateOnly(DateTime.now());
-
-final lastDate = today.add(
-const Duration(days: 730),
-);
+final lastDate = today.add(const Duration(days: 730));
 
 final occupiedDates = <String>{};
 
-final milestones =
-await svc.getMilestonesInRange(
+final milestones = await svc.getMilestonesInRange(
 from: today,
 to: lastDate,
 );
 
 for (final row in milestones) {
 final type =
-row[MilestoneCalendarSvc.colType]
-    ?.toString();
+row[MilestoneCalendarSvc.colType]?.toString();
 
-if (type?.toUpperCase() !=
-milestoneType.toUpperCase()) {
+if (type?.toUpperCase() != milestoneType.toUpperCase()) {
 continue;
 }
 
 final date =
-row[MilestoneCalendarSvc.colDate]
-    ?.toString();
+row[MilestoneCalendarSvc.colDate]?.toString();
 
 if (date != null && date.isNotEmpty) {
 occupiedDates.add(date);
@@ -345,15 +283,12 @@ Future<DateTime> _getNextAvailableSunday({
 required DateTime from,
 required Set<String> occupiedDates,
 }) async {
-var date =
-MilestoneCalendarSvc.nextSunday(from);
+var date = MilestoneCalendarSvc.nextSunday(from);
 
 while (occupiedDates.contains(
 MilestoneCalendarSvc.formatDate(date),
 )) {
-date = date.add(
-const Duration(days: 7),
-);
+date = date.add(const Duration(days: 7));
 }
 
 return date;
@@ -370,11 +305,8 @@ columns: [
 'chapter_name',
 ],
 where: 'UPPER(subject_code) = ?',
-whereArgs: [
-subjectCode.toUpperCase(),
-],
-orderBy:
-'display_order ASC, chapter_code ASC',
+whereArgs: [subjectCode.toUpperCase()],
+orderBy: 'display_order ASC, chapter_code ASC',
 );
 
 final chapters = <_ChapterOption>[];
@@ -382,21 +314,14 @@ final seen = <String>{};
 
 for (final row in rows) {
 final code =
-row['chapter_code']
-    ?.toString()
-    .trim() ??
-'';
+row['chapter_code']?.toString().trim() ?? '';
 
 final name =
-row['chapter_name']
-    ?.toString()
-    .trim() ??
-'';
+row['chapter_name']?.toString().trim() ?? '';
 
 if (code.isEmpty) continue;
 
-final normalisedCode =
-code.toUpperCase();
+final normalisedCode = code.toUpperCase();
 
 if (!seen.add(normalisedCode)) {
 continue;
@@ -413,14 +338,9 @@ name.isEmpty ? code : name,
 return chapters;
 }
 
-_phyChapters =
-await loadSubject('PHY');
-
-_chemChapters =
-await loadSubject('CHEM');
-
-_bioChapters =
-await loadSubject('BIO');
+_phyChapters = await loadSubject('PHY');
+_chemChapters = await loadSubject('CHEM');
+_bioChapters = await loadSubject('BIO');
 }
 
 Future<void> _loadExistingMilestone() async {
@@ -451,8 +371,7 @@ _selectedPhy
 ..clear()
 ..addAll(
 MilestoneCalendarSvc.splitCodes(
-row?[MilestoneCalendarSvc.colPhy]
-    ?.toString(),
+row?[MilestoneCalendarSvc.colPhy]?.toString(),
 ),
 );
 
@@ -460,8 +379,7 @@ _selectedChem
 ..clear()
 ..addAll(
 MilestoneCalendarSvc.splitCodes(
-row?[MilestoneCalendarSvc.colChem]
-    ?.toString(),
+row?[MilestoneCalendarSvc.colChem]?.toString(),
 ),
 );
 
@@ -469,27 +387,114 @@ _selectedBio
 ..clear()
 ..addAll(
 MilestoneCalendarSvc.splitCodes(
-row?[MilestoneCalendarSvc.colBio]
-    ?.toString(),
+row?[MilestoneCalendarSvc.colBio]?.toString(),
 ),
 );
+}
+
+// ===========================================================================
+// PMT CHAPTER PRESELECTION
+// ===========================================================================
+//
+// PMT scope is initially based on chapters currently InProgress in
+// db_StatusChapters.
+//
+// StatusChapterService returns the complete StatusChapter records.
+// The UI only extracts SubjectChapterCode and uses the chapter portion
+// to preselect the corresponding syllabus chapters.
+//
+// Example:
+//
+//     PHY-1   -> 1
+//     PHY-4   -> 4
+//     CHEM-2  -> 2
+//     BIO-7   -> 7
+//
+// The user can still manually add/remove chapters after preselection.
+// ===========================================================================
+
+Future<void> _preselectPmtInProgressChapters() async {
+if (_milestoneType.toUpperCase() != 'PMT') {
+return;
+}
+
+final statusService = StatusChapterService.instance;
+
+final phyRows =
+await statusService.getInProgressChaptersBySubject('PHY');
+
+final chemRows =
+await statusService.getInProgressChaptersBySubject('CHEM');
+
+final bioRows =
+await statusService.getInProgressChaptersBySubject('BIO');
+
+final phy = <String>{};
+final chem = <String>{};
+final bio = <String>{};
+
+void addChapterCodes(
+List<Map<String, Object?>> rows,
+Set<String> target,
+) {
+for (final row in rows) {
+final subjectChapterCode =
+row['SubjectChapterCode']?.toString().trim() ?? '';
+
+if (subjectChapterCode.isEmpty) {
+continue;
+}
+
+final separatorIndex = subjectChapterCode.indexOf('-');
+
+if (separatorIndex < 0) {
+continue;
+}
+
+final chapterCode = subjectChapterCode
+    .substring(separatorIndex + 1)
+    .trim();
+
+if (chapterCode.isNotEmpty) {
+target.add(chapterCode);
+}
+}
+}
+
+addChapterCodes(phyRows, phy);
+addChapterCodes(chemRows, chem);
+addChapterCodes(bioRows, bio);
+
+if (!mounted) return;
+
+setState(() {
+_selectedPhy
+..clear()
+..addAll(phy);
+
+_selectedChem
+..clear()
+..addAll(chem);
+
+_selectedBio
+..clear()
+..addAll(bio);
+
+_chapterPage = 0;
+});
 }
 
 Future<void> _pickSunday() async {
 if (_saving) return;
 
 final today = _dateOnly(DateTime.now());
-
-final lastDate = today.add(
-const Duration(days: 730),
-);
+final lastDate = today.add(const Duration(days: 730));
 
 final svc = _svc;
 
 if (svc == null) return;
 
-final occupiedDates =
-await svc.getOccupiedMilestoneDates(
+final occupiedDates = await svc.getOccupiedMilestoneDates(
 from: today,
 to: lastDate,
 );
@@ -498,28 +503,18 @@ if (!mounted) return;
 
 DateTime initialDate = today;
 
-while (initialDate.weekday !=
-DateTime.sunday) {
-initialDate = initialDate.add(
-const Duration(days: 1),
-);
+while (initialDate.weekday != DateTime.sunday) {
+initialDate = initialDate.add(const Duration(days: 1));
 }
 
 while (occupiedDates.contains(
-MilestoneCalendarSvc.formatDate(
-initialDate,
-),
+MilestoneCalendarSvc.formatDate(initialDate),
 )) {
-initialDate = initialDate.add(
-const Duration(days: 7),
-);
+initialDate = initialDate.add(const Duration(days: 7));
 }
 
 if (initialDate.isAfter(lastDate)) {
-initialDate =
-MilestoneCalendarSvc.nextSunday(
-today,
-);
+initialDate = MilestoneCalendarSvc.nextSunday(today);
 }
 
 final picked = await showDatePicker(
@@ -528,19 +523,14 @@ initialDate: initialDate,
 firstDate: today,
 lastDate: lastDate,
 selectableDayPredicate: (date) {
-if (date.weekday !=
-DateTime.sunday) {
+if (date.weekday != DateTime.sunday) {
 return false;
 }
 
 final dateKey =
-MilestoneCalendarSvc.formatDate(
-date,
-);
+MilestoneCalendarSvc.formatDate(date);
 
-return !occupiedDates.contains(
-dateKey,
-);
+return !occupiedDates.contains(dateKey);
 },
 helpText: 'Select Milestone Sunday',
 );
@@ -551,9 +541,7 @@ setState(() {
 _selectedDate = _dateOnly(picked);
 
 _existingMilestone = null;
-
 _scopeMessage = null;
-
 _scopeChangePending = false;
 
 _clearSelections();
@@ -571,9 +559,7 @@ setState(() {});
 }
 }
 
-Future<void> _onTypeChanged(
-String type,
-) async {
+Future<void> _onTypeChanged(String type) async {
 if (_saving || type == _milestoneType) {
 return;
 }
@@ -582,11 +568,8 @@ setState(() {
 _milestoneType = type;
 
 _existingMilestone = null;
-
 _expandedMilestone = null;
-
 _scopeMessage = null;
-
 _scopeChangePending = false;
 
 _clearSelections();
@@ -596,6 +579,11 @@ _expandedRanges.clear();
 // UI only.
 _chapterPage = 0;
 });
+
+// PMT automatically starts with currently InProgress chapters.
+if (type.toUpperCase() == 'PMT') {
+await _preselectPmtInProgressChapters();
+}
 }
 
 void _clearSelections() {
@@ -611,21 +599,15 @@ final svc = _svc;
 
 if (svc == null) return;
 
-if (_selectedDate.weekday !=
-DateTime.sunday) {
-_showMessage(
-'Milestone date must be a Sunday.',
-);
+if (_selectedDate.weekday != DateTime.sunday) {
+_showMessage('Milestone date must be a Sunday.');
 return;
 }
 
 final existing =
-await svc.getAnyMilestoneForDate(
-_selectedDate,
-);
+await svc.getAnyMilestoneForDate(_selectedDate);
 
-if (existing != null &&
-!_scopeChangePending) {
+if (existing != null && !_scopeChangePending) {
 setState(() {
 _existingMilestone = existing;
 
@@ -654,9 +636,7 @@ missingSubjects.add('Biology');
 
 if (missingSubjects.isNotEmpty) {
 final proceed =
-await _confirmMissingSubjects(
-missingSubjects,
-);
+await _confirmMissingSubjects(missingSubjects);
 
 if (!proceed) return;
 }
@@ -667,13 +647,10 @@ await _persistMilestone();
 Future<bool> _confirmMissingSubjects(
 List<String> missingSubjects,
 ) async {
-final result =
-await showDialog<bool>(
+final result = await showDialog<bool>(
 context: context,
 builder: (context) => AlertDialog(
-title: const Text(
-'No Chapter Selected',
-),
+title: const Text('No Chapter Selected'),
 content: Text(
 '${missingSubjects.join(', ')} '
 '${missingSubjects.length == 1 ? 'has' : 'have'} '
@@ -684,18 +661,12 @@ content: Text(
 actions: [
 TextButton(
 onPressed: () =>
-Navigator.pop(
-context,
-false,
-),
+Navigator.pop(context, false),
 child: const Text('No'),
 ),
 FilledButton(
 onPressed: () =>
-Navigator.pop(
-context,
-true,
-),
+Navigator.pop(context, true),
 child: const Text('Yes'),
 ),
 ],
@@ -738,16 +709,14 @@ progressDialogShown = true;
 showDialog<void>(
 context: context,
 barrierDismissible: false,
-builder: (context) =>
-const AlertDialog(
+builder: (context) => const AlertDialog(
 title: Text('Task Creation'),
 content: Row(
 children: [
 SizedBox(
 width: 22,
 height: 22,
-child:
-CircularProgressIndicator(
+child: CircularProgressIndicator(
 strokeWidth: 2.5,
 ),
 ),
@@ -778,9 +747,7 @@ progressDialogShown = false;
 }
 
 final milestones =
-await svc.getUpcomingMilestones(
-limit: 100,
-);
+await svc.getUpcomingMilestones(limit: 100);
 
 if (!mounted) return;
 
@@ -790,11 +757,8 @@ await showDialog<void>(
 context: context,
 barrierDismissible: false,
 builder: (context) => AlertDialog(
-title: Text(
-'$savedType Milestone',
-),
-content:
-_createTasksAfterMilestoneSave
+title: Text('$savedType Milestone'),
+content: _createTasksAfterMilestoneSave
 ? Text(
 _buildTaskGenerationMessage(
 taskResults,
@@ -815,12 +779,9 @@ child: const Text('OK'),
 
 if (!mounted) return;
 
-final today =
-_dateOnly(DateTime.now());
-
-final lastDate = today.add(
-const Duration(days: 730),
-);
+final today = _dateOnly(DateTime.now());
+final lastDate =
+today.add(const Duration(days: 730));
 
 final occupiedDates =
 await svc.getOccupiedMilestoneDates(
@@ -839,21 +800,17 @@ if (!mounted) return;
 setState(() {
 _milestones = milestones;
 
-_selectedDate =
-nextAvailableSunday;
+_selectedDate = nextAvailableSunday;
 
 _existingMilestone = null;
-
 _expandedMilestone = null;
 
 _scopeMessage = null;
-
 _scopeChangePending = false;
 
 _clearSelections();
 
 _expandedSubject = 'PHY';
-
 _expandedRanges.clear();
 
 // UI only.
@@ -864,8 +821,7 @@ _saving = false;
 _view = MilestoneCalendarView.view;
 });
 } catch (error) {
-if (progressDialogShown &&
-mounted) {
+if (progressDialogShown && mounted) {
 Navigator.of(
 context,
 rootNavigator: true,
@@ -884,8 +840,7 @@ _error = error.toString();
 await showDialog<void>(
 context: context,
 barrierDismissible: false,
-builder: (context) =>
-AlertDialog(
+builder: (context) => AlertDialog(
 title: const Text(
 'Milestone Save / Task Creation Failed',
 ),
@@ -906,38 +861,27 @@ child: const Text('OK'),
 }
 }
 
+// ===========================================================================
+// TASK GENERATION
+// ===========================================================================
+//
+// Both CMT and PMT now go through MtTaskGenerator.
+//
+// The UI passes the selected milestone type and date.
+// MtTaskGenerator is responsible for deciding what to generate.
+// ===========================================================================
+
 Future<Map<String, int>>
 _generateTasksForSavedMilestone() async {
 final db =
 await AppDatabase.instance.database;
 
-if (_milestoneType.toUpperCase() ==
-'CMT') {
-final generator =
-CmtTaskGenerator(
-db: db,
-);
+final generator = MtTaskGenerator(db: db);
 
-return generator.generateCmtTasks(
+return generator.generateMilestoneTasks(
+mtType: _milestoneType,
 milestoneDate: _selectedDate,
 );
-}
-
-if (_milestoneType.toUpperCase() ==
-'PMT') {
-final generator =
-PmtWeekendTaskGeneratorSvc(
-db: db,
-);
-
-await generator.generatePmtTasks(
-runDate: _selectedDate,
-);
-
-return const {};
-}
-
-return const {};
 }
 
 String _buildTaskGenerationMessage(
@@ -969,68 +913,11 @@ commonTaskStatus == 1
     : 'Milestone Test, Analysis and Improvement tasks: Not Generated';
 
 return [
-statusText(
-'Physics',
-results['PHY'] ?? 0,
-),
-statusText(
-'Chemistry',
-results['CHEM'] ?? 0,
-),
-statusText(
-'Biology',
-results['BIO'] ?? 0,
-),
+statusText('Physics', results['PHY'] ?? 0),
+statusText('Chemistry', results['CHEM'] ?? 0),
+statusText('Biology', results['BIO'] ?? 0),
 commonTaskText,
 ].join('\n');
-}
-
-Future<void> _generateCmtTasksIfRequired()
-async {
-if (_milestoneType.toUpperCase() !=
-'CMT') {
-return;
-}
-
-widget.onCmtTaskGenerationStarted
-    ?.call(_selectedDate);
-
-try {
-final db =
-await AppDatabase.instance.database;
-
-final generator =
-CmtWeekendTaskGeneratorSvc(
-db: db,
-);
-
-await generator.generateCmtTasks(
-milestoneDate: _selectedDate,
-);
-
-final taskRows =
-await generator.getCmtTaskRowsForDate(
-milestoneDate: _selectedDate,
-);
-
-widget.onCmtTasksGenerated?.call(
-_selectedDate,
-taskRows,
-);
-} catch (error) {
-widget.onCmtTaskGenerationFailed
-    ?.call(
-_selectedDate,
-error,
-);
-
-if (mounted) {
-setState(() {
-_scopeMessage =
-'Milestone saved, but CMT task generation failed: $error';
-});
-}
-}
 }
 
 void _openEditScope() {
@@ -1039,8 +926,7 @@ final row = _expandedMilestone;
 if (row == null) return;
 
 final rawDate =
-row[MilestoneCalendarSvc.colDate]
-    ?.toString();
+row[MilestoneCalendarSvc.colDate]?.toString();
 
 final parsedDate =
 rawDate == null
@@ -1049,13 +935,11 @@ rawDate == null
 
 setState(() {
 if (parsedDate != null) {
-_selectedDate =
-_dateOnly(parsedDate);
+_selectedDate = _dateOnly(parsedDate);
 }
 
 _milestoneType =
-row[MilestoneCalendarSvc.colType]
-    ?.toString() ??
+row[MilestoneCalendarSvc.colType]?.toString() ??
 'CMT';
 
 _loadSelectionsFromMilestone(row);
@@ -1070,8 +954,7 @@ _expandedRanges.clear();
 // UI only.
 _chapterPage = 0;
 
-_view =
-MilestoneCalendarView.set;
+_view = MilestoneCalendarView.set;
 });
 }
 
@@ -1082,20 +965,16 @@ Map<String, Object?> second,
 if (first == null) return false;
 
 final firstDate =
-first[MilestoneCalendarSvc.colDate]
-    ?.toString();
+first[MilestoneCalendarSvc.colDate]?.toString();
 
 final secondDate =
-second[MilestoneCalendarSvc.colDate]
-    ?.toString();
+second[MilestoneCalendarSvc.colDate]?.toString();
 
 final firstType =
-first[MilestoneCalendarSvc.colType]
-    ?.toString();
+first[MilestoneCalendarSvc.colType]?.toString();
 
 final secondType =
-second[MilestoneCalendarSvc.colType]
-    ?.toString();
+second[MilestoneCalendarSvc.colType]?.toString();
 
 return firstDate == secondDate &&
 firstType == secondType;
@@ -1106,10 +985,7 @@ Map<String, Object?> row,
 ) {
 setState(() {
 _expandedMilestone =
-_sameMilestone(
-_expandedMilestone,
-row,
-)
+_sameMilestone(_expandedMilestone, row)
 ? null
     : row;
 });
@@ -1136,8 +1012,7 @@ void _toggleRange(
 String subjectCode,
 int start,
 ) {
-final key =
-'$subjectCode:$start';
+final key = '$subjectCode:$start';
 
 setState(() {
 if (_expandedRanges.contains(key)) {
@@ -1224,9 +1099,7 @@ RegExp(r'(\d+)').firstMatch(code);
 
 if (match == null) return null;
 
-return int.tryParse(
-match.group(1)!,
-);
+return int.tryParse(match.group(1)!);
 }
 
 List<_ChapterOption> _rangeChapters(
@@ -1277,11 +1150,8 @@ return type;
 void _showMessage(String message) {
 if (!mounted) return;
 
-ScaffoldMessenger.of(context)
-    .showSnackBar(
-SnackBar(
-content: Text(message),
-),
+ScaffoldMessenger.of(context).showSnackBar(
+SnackBar(content: Text(message)),
 );
 }
 
@@ -1292,8 +1162,7 @@ content: Text(message),
 @override
 Widget build(BuildContext context) {
 return SingleChildScrollView(
-padding:
-const EdgeInsets.only(bottom: 24),
+padding: const EdgeInsets.only(bottom: 24),
 child: Column(
 crossAxisAlignment:
 CrossAxisAlignment.stretch,
@@ -1304,13 +1173,13 @@ if (_loading)
 const Padding(
 padding: EdgeInsets.all(30),
 child: Center(
-child:
-CircularProgressIndicator(),
+child: CircularProgressIndicator(),
 ),
 )
 else if (_error != null)
 _buildError(context)
-else if (_view ==
+else if (
+_view ==
 MilestoneCalendarView.view)
 _buildView(context)
 else
@@ -1357,11 +1226,9 @@ Theme.of(context).colorScheme;
 
 return Container(
 height: 40,
-padding:
-const EdgeInsets.all(2),
+padding: const EdgeInsets.all(2),
 decoration: BoxDecoration(
-color:
-colors.surfaceContainerLow,
+color: colors.surfaceContainerLow,
 borderRadius:
 BorderRadius.circular(10),
 ),
@@ -1483,8 +1350,7 @@ vertical: 30,
 horizontal: 20,
 ),
 decoration: BoxDecoration(
-color:
-Theme.of(context)
+color: Theme.of(context)
     .colorScheme
     .surfaceContainerLow,
 borderRadius:
@@ -1531,8 +1397,7 @@ const EdgeInsets.fromLTRB(
 8,
 ),
 decoration: BoxDecoration(
-color:
-Theme.of(context)
+color: Theme.of(context)
     .colorScheme
     .surfaceContainerLow,
 borderRadius:
@@ -1649,8 +1514,7 @@ FontWeight.w800,
 ),
 ),
 Icon(
-Icons
-    .keyboard_arrow_down,
+Icons.keyboard_arrow_down,
 size: 19,
 color:
 colors.onSurfaceVariant,
@@ -1695,9 +1559,11 @@ Expanded(
 child: Text(
 '$dateText, ${type.toUpperCase()} - '
 '${_typeLabel(type)}',
-style: const TextStyle(
+style:
+const TextStyle(
 fontSize: 13,
-fontWeight: FontWeight.w800,
+fontWeight:
+FontWeight.w800,
 ),
 ),
 ),
@@ -1711,37 +1577,31 @@ const SizedBox(height: 9),
 _viewScope(
 context,
 'Physics',
-row[
-MilestoneCalendarSvc.colPhy],
+row[MilestoneCalendarSvc.colPhy],
 'PHY',
 ),
 _viewScope(
 context,
 'Chemistry',
-row[
-MilestoneCalendarSvc.colChem],
+row[MilestoneCalendarSvc.colChem],
 'CHEM',
 ),
 _viewScope(
 context,
 'Biology',
-row[
-MilestoneCalendarSvc.colBio],
+row[MilestoneCalendarSvc.colBio],
 'BIO',
 ),
 const SizedBox(height: 8),
 Row(
 children: [
-if (widget
-    .onReturnToDashboard !=
-null)
+if (widget.onReturnToDashboard != null)
 Expanded(
 child: TextButton.icon(
 onPressed:
 widget.onReturnToDashboard,
 icon: const Icon(
-Icons
-    .arrow_back_outlined,
+Icons.arrow_back_outlined,
 size: 17,
 ),
 label:
@@ -1749,7 +1609,8 @@ const Text('Return'),
 ),
 ),
 Expanded(
-child: FilledButton.tonalIcon(
+child:
+FilledButton.tonalIcon(
 onPressed:
 _openEditScope,
 icon: const Icon(
@@ -1789,7 +1650,9 @@ Theme.of(context).colorScheme;
 
 return Padding(
 padding:
-const EdgeInsets.only(bottom: 6),
+const EdgeInsets.only(
+bottom: 6,
+),
 child: Row(
 crossAxisAlignment:
 CrossAxisAlignment.start,
@@ -1811,7 +1674,8 @@ child: Column(
 crossAxisAlignment:
 CrossAxisAlignment.start,
 children: [
-for (final code in codes)
+for (final code
+in codes)
 Padding(
 padding:
 const EdgeInsets.only(
@@ -1819,7 +1683,8 @@ bottom: 2,
 left: 2,
 ),
 child: Text(
-'$code - ${_chapterName(chapters, code)}',
+'$code - '
+'${_chapterName(chapters, code)}',
 style: TextStyle(
 fontSize: 11,
 color:
@@ -1839,11 +1704,14 @@ String _chapterName(
 List<_ChapterOption> chapters,
 String code,
 ) {
-for (final chapter in chapters)
-{
-  if (chapter.code.toUpperCase() ==code.toUpperCase())
-    {return chapter.name;}
+for (final chapter
+in chapters) {
+if (chapter.code.toUpperCase() ==
+code.toUpperCase()) {
+return chapter.name;
 }
+}
+
 return code;
 }
 
@@ -1943,7 +1811,8 @@ Icons.person_outline,
 ),
 const SizedBox(width: 2),
 Expanded(
-child: _dateChoice(context),
+child:
+_dateChoice(context),
 ),
 ],
 ),
@@ -2108,16 +1977,14 @@ return '${date.day.toString().padLeft(2, '0')}-'
 Widget _buildSubjectTabs(
 BuildContext context,
 ) {
-final colors =
-Theme.of(context).colorScheme;
-
 return Container(
 height: 40,
 padding:
 const EdgeInsets.all(2),
 decoration: BoxDecoration(
-color:
-colors.surfaceContainerLow,
+color: Theme.of(context)
+    .colorScheme
+    .surfaceContainerLow,
 borderRadius:
 BorderRadius.circular(10),
 ),
@@ -2166,8 +2033,7 @@ borderRadius:
 BorderRadius.circular(8),
 onTap: _saving
 ? null
-    : () =>
-_toggleSubject(
+    : () => _toggleSubject(
 subject.code,
 ),
 child: Container(
@@ -2242,7 +2108,8 @@ _subjects.firstWhere(
 (item) =>
 item.code ==
 _expandedSubject,
-orElse: () => _subjects.first,
+orElse: () =>
+_subjects.first,
 );
 
 final chapters =
@@ -2269,108 +2136,163 @@ chapters,
 
 // ---------------------------------------------------------------------------
 // TWO-BOX CHAPTER SWIPE AREA
-//
-// Box 1 = 5 chapters
-// Box 2 = 5 chapters
-//
-// Swipe left  -> next 10 chapters
-// Swipe right -> previous 10 chapters
 // ---------------------------------------------------------------------------
 
-Widget _chapterSwipeArea( BuildContext context,_SubjectInfo subject,List<_ChapterOption> chapters,)
-{
-  final totalPages = (chapters.length /_chaptersPerSwipe).ceil();
+Widget _chapterSwipeArea(
+BuildContext context,
+_SubjectInfo subject,
+List<_ChapterOption> chapters,
+) {
+final totalPages =
+(chapters.length /
+_chaptersPerSwipe)
+    .ceil();
 
-  if (chapters.isEmpty) {return _emptyChapterArea(context,'No chapters found.',);}
+if (chapters.isEmpty) {
+return _emptyChapterArea(
+context,
+'No chapters found.',
+);
+}
 
-  final safePageCount = totalPages < 1 ? 1 : totalPages;
-  if (_chapterPage >= safePageCount)
-  {
-    WidgetsBinding.instance.addPostFrameCallback((_)
-    {
-      if (!mounted) return;
-      setState(() { _chapterPage = safePageCount - 1;});
-    } );
-  }
+final safePageCount =
+totalPages < 1
+? 1
+    : totalPages;
 
-//sandy
-//return SizedBox( height: 310,
-return SizedBox( height: 260,
-                 child: PageView.builder(key: PageStorageKey(
-                                    'chapter-page-${subject.code}',),
-                 controller: PageController(initialPage: _chapterPage,),
-                 itemCount: safePageCount,
-                 onPageChanged: (page)
-                   {  if (!mounted) return;
-                          setState(() {_chapterPage = page;});},
-                itemBuilder: (context,pageIndex,)
-                  {final start =pageIndex *_chaptersPerSwipe;
-                   final firstBox = chapters.skip(start).take(_chaptersPerBox,).toList();
-                   final secondBox = chapters.skip(start +_chaptersPerBox,)
-                                             .take(_chaptersPerBox,)
-                                             .toList();
-        return Padding
-          (padding:const EdgeInsets.symmetric(horizontal: 1,),
-        child: Row(crossAxisAlignment:CrossAxisAlignment.stretch,
-              children: [
-                Expanded(child: _chapterBox(context,subject,firstBox,),),
-                const SizedBox(width: 5),
-                Expanded(child: _chapterBox(context,subject,secondBox,),),
-                        ],
-                ),
-          );
-          },
-      ),
-    );
-    }
+if (_chapterPage >=
+safePageCount) {
+WidgetsBinding.instance
+    .addPostFrameCallback((_) {
+if (!mounted) return;
 
-  Widget _chapterBox(
-      BuildContext context,
-      _SubjectInfo subject,
-      List<_ChapterOption> chapters,
-      ) {
-    final colors =
-        Theme.of(context).colorScheme;
+setState(() {
+_chapterPage =
+safePageCount - 1;
+});
+});
+}
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(
-        6,
-        6,
-        6,
-        6,
-      ),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerLow,
-        border: Border.all(
-          color: Colors.black,
-          width: 0.7,
-        ),
-        borderRadius:
-        BorderRadius.circular(10),
-      ),
-      child: Column(
-        children: [
-          for (var i = 0;
-          i < _chaptersPerBox;
-          i++) ...[
-            SizedBox(
-              height: 42,
-              child: i < chapters.length
-                  ? _chapterRow(
-                context,
-                subject,
-                chapters[i],
-              )
-                  : const SizedBox(),
-            ),
-            if (i < _chaptersPerBox - 1)
-              const SizedBox(height: 8),
-          ],
-        ],
-      ),
-    );
-  }
-  Widget _emptyChapterArea(
+return SizedBox(
+height: 260,
+child: PageView.builder(
+key: PageStorageKey(
+'chapter-page-${subject.code}',
+),
+controller: PageController(
+initialPage: _chapterPage,
+),
+itemCount: safePageCount,
+onPageChanged: (page) {
+if (!mounted) return;
+
+setState(() {
+_chapterPage = page;
+});
+},
+itemBuilder:
+(context, pageIndex) {
+final start =
+pageIndex *
+_chaptersPerSwipe;
+
+final firstBox = chapters
+    .skip(start)
+    .take(_chaptersPerBox)
+    .toList();
+
+final secondBox = chapters
+    .skip(
+start +
+_chaptersPerBox,
+)
+    .take(_chaptersPerBox)
+    .toList();
+
+return Padding(
+padding:
+const EdgeInsets.symmetric(
+horizontal: 1,
+),
+child: Row(
+crossAxisAlignment:
+CrossAxisAlignment
+    .stretch,
+children: [
+Expanded(
+child: _chapterBox(
+context,
+subject,
+firstBox,
+),
+),
+const SizedBox(width: 5),
+Expanded(
+child: _chapterBox(
+context,
+subject,
+secondBox,
+),
+),
+],
+),
+);
+},
+),
+);
+}
+
+Widget _chapterBox(
+BuildContext context,
+_SubjectInfo subject,
+List<_ChapterOption> chapters,
+) {
+final colors =
+Theme.of(context).colorScheme;
+
+return Container(
+padding:
+const EdgeInsets.fromLTRB(
+6,
+6,
+6,
+6,
+),
+decoration: BoxDecoration(
+color:
+colors.surfaceContainerLow,
+border: Border.all(
+color: Colors.black,
+width: 0.7,
+),
+borderRadius:
+BorderRadius.circular(10),
+),
+child: Column(
+children: [
+for (var i = 0;
+i < _chaptersPerBox;
+i++) ...[
+SizedBox(
+height: 42,
+child: i < chapters.length
+? _chapterRow(
+context,
+subject,
+chapters[i],
+)
+    : const SizedBox(),
+),
+if (i <
+_chaptersPerBox - 1)
+const SizedBox(height: 8),
+],
+],
+),
+);
+}
+
+Widget _emptyChapterArea(
 BuildContext context,
 String message,
 ) {
@@ -2407,103 +2329,111 @@ FontWeight.w600,
 // CHAPTER ROW
 // ---------------------------------------------------------------------------
 
-  Widget _chapterRow(
-      BuildContext context,
-      _SubjectInfo subject,
-      _ChapterOption chapter,
-      ) {
-    final colors =
-        Theme.of(context).colorScheme;
+Widget _chapterRow(
+BuildContext context,
+_SubjectInfo subject,
+_ChapterOption chapter,
+) {
+final colors =
+Theme.of(context).colorScheme;
 
-    final selected = _selectionFor(subject.code)
-        .contains(chapter.code);
+final selected =
+_selectionFor(
+subject.code,
+).contains(chapter.code);
 
-    final locked = _lockedSelectionFor(subject.code)
-        .contains(chapter.code);
+final locked =
+_lockedSelectionFor(
+subject.code,
+).contains(chapter.code);
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.black,
-          width: 0.7,
-        ),
-        borderRadius: BorderRadius.circular(7),
-      ),
-      child: Material(
-        color: selected
-            ? colors.primaryContainer
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(7),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(7),
-          onTap: (_saving || locked)
-              ? null
-              : () => _toggleChapter(
-            subject.code,
-            chapter.code,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 5,
-              vertical: 1.5,
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  selected
-                      ? Icons.check_circle
-                      : Icons.radio_button_unchecked,
-                  size: 18,
-                  color: selected
-                      ? colors.primary
-                      : colors.onSurfaceVariant,
-                ),
-
-                const SizedBox(width: 6),
-
-                Expanded(
-                  child: Text(
-                    '${chapter.code} - '
-                        '${_truncateChapterName(chapter.name)}',
-                    maxLines: 1,
-                    softWrap: false,
-                    overflow: TextOverflow.clip,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: selected
-                          ? FontWeight.w700
-                          : FontWeight.w500,
-                      color: locked
-                          ? colors.onSurfaceVariant
-                          : null,
-                    ),
-                  ),
-                ),
-
-                if (locked)
-                  Padding(
-                    padding:
-                    const EdgeInsets.only(left: 3),
-                    child: Icon(
-                      Icons.lock_outline,
-                      size: 12,
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+return Container(
+decoration: BoxDecoration(
+border: Border.all(
+color: Colors.black,
+width: 0.7,
+),
+borderRadius:
+BorderRadius.circular(7),
+),
+child: Material(
+color: selected
+? colors.primaryContainer
+    : Colors.transparent,
+borderRadius:
+BorderRadius.circular(7),
+child: InkWell(
+borderRadius:
+BorderRadius.circular(7),
+onTap: (_saving || locked)
+? null
+    : () => _toggleChapter(
+subject.code,
+chapter.code,
+),
+child: Padding(
+padding:
+const EdgeInsets.symmetric(
+horizontal: 5,
+vertical: 1.5,
+),
+child: Row(
+children: [
+Icon(
+selected
+? Icons.check_circle
+    : Icons
+    .radio_button_unchecked,
+size: 18,
+color: selected
+? colors.primary
+    : colors
+    .onSurfaceVariant,
+),
+const SizedBox(width: 6),
+Expanded(
+child: Text(
+'${chapter.code} - '
+'${_truncateChapterName(chapter.name)}',
+maxLines: 1,
+softWrap: false,
+overflow:
+TextOverflow.clip,
+style: TextStyle(
+fontSize: 11,
+fontWeight: selected
+? FontWeight.w700
+    : FontWeight.w500,
+color: locked
+? colors
+    .onSurfaceVariant
+    : null,
+),
+),
+),
+if (locked)
+Padding(
+padding:
+const EdgeInsets.only(
+left: 3,
+),
+child: Icon(
+Icons.lock_outline,
+size: 12,
+color: colors
+    .onSurfaceVariant,
+),
+),
+],
+),
+),
+),
+),
+);
+}
 
 // ---------------------------------------------------------------------------
 // CHAPTER NAME TRUNCATION
-//
-// Uses the available width more generously.
-// If the name is still too long, preserve the beginning
-// and use ".." at the end rather than Flutter's larger "...".
 // ---------------------------------------------------------------------------
 
 String _truncateChapterName(
@@ -2511,7 +2441,6 @@ String name,
 ) {
 final trimmed = name.trim();
 
-// Keep normal chapter names completely visible.
 if (trimmed.length <= 32) {
 return trimmed;
 }

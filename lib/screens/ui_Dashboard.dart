@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 
 import '../models/mo_task.dart';
 import '../models/mo_task_group.dart';
-import '../services/milestone_calendar_svc.dart';
-import '../services/revision_task_generator_svc.dart';
-import '../services/syllabus_coverage_svc.dart';
-import '../services/task_enquiry_svc.dart';
+import '../services/svc_Milestones.dart';
+import '../services/svc_Task_Generator_Revision.dart';
+import '../services/svc_Syllabus_Coverage.dart';
+import '../services/svc_Tasks_Enquiry.dart';
 import '../database/app_database.dart';
 import '../widgets/wn_left_navigation.dart';
-import 'ui_tasks.dart';
-import 'ui_lecture.dart';
-import 'ui_syllabus.dart';
-import 'ui_milestone.dart';
+import 'ui_Tasks.dart';
+import 'ui_Lectures.dart';
+import 'ui_Syllabus.dart';
+import 'ui_milestones.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -88,27 +88,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ============================================================
 
   Future<void> _loadTaskCounters() async {
-    if (_taskCountersLoading) {
-      return;
-    }
+    if (_taskCountersLoading) {  return;   }
 
     _taskCountersLoading = true;
 
     try {
       final db = await AppDatabase.instance.database;
-
       final enquiry = TaskEnquirySvc(db);
-
       final counters = await enquiry.getTaskCounters();
-
       final rows = await enquiry.getAllTasks();
 
       int revisionCount = 0;
-      int milestoneCount = 0;
+//    int milestoneCount = 0;
 
       for (final row in rows) {
         final id = row['TaskID']?.toString().trim() ?? '';
-
         final description =
             row['TaskDescription']?.toString().trim() ?? '';
 
@@ -120,17 +114,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           continue;
         }
 
-        final searchableText =
-        '$id $description'.toLowerCase();
-
-        if (searchableText.contains('revision')) {
-          revisionCount++;
-        }
-
-        if (id.startsWith('WE_')) {
-          milestoneCount++;
-        }
+        final searchableText = '$id $description'.toLowerCase();
+        if (searchableText.contains('revision')) { revisionCount++; }
+//        if (id.startsWith('WE_')) { milestoneCount++;}
       }
+// NEW: milestone count from MilestoneCalendarSvc
+      final milestoneSvc = MilestoneCalendarSvc(db);
+      final milestoneCount = await milestoneSvc.getNextAvailableMilestoneTaskCount();
 
       if (!mounted) return;
 
@@ -138,73 +128,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _dueTodayCount = counters['dueToday'] ?? 0;
         _pastDueCount = counters['pastDue'] ?? 0;
         _inProgressCount = counters['inProgress'] ?? 0;
-
         _revisionTaskCount = revisionCount;
         _milestoneTaskCount = milestoneCount;
       });
-    } catch (_) {
-      // Keep dashboard usable if counter loading fails.
-    } finally {
-      _taskCountersLoading = false;
     }
+    catch (_)
+    {
+      // Keep dashboard usable if counter loading fails.
+    } finally { _taskCountersLoading = false; }
   }
 
   Future<void> _refreshTaskCounters() async {
-    if (_taskCountersLoading) {
-      return;
-    }
+    if (_taskCountersLoading) { return; }
 
-    setState(() {
-      _taskCountersLoading = true;
-    });
-
+    setState(() { _taskCountersLoading = true; });
     try {
       await _loadTasks();
-
       final db = await AppDatabase.instance.database;
-
       final enquiry = TaskEnquirySvc(db);
-
       final counters = await enquiry.getTaskCounters();
-
       final rows = await enquiry.getAllTasks();
 
       int revisionCount = 0;
-      int milestoneCount = 0;
+//      int milestoneCount = 0;
 
       for (final row in rows) {
         final id = row['TaskID']?.toString().trim() ?? '';
+        final description = row['TaskDescription']?.toString().trim() ?? '';
+        final status = (row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase();
+        if (status == 'CANCELLED' || status == 'CANCELLED / NOT REQUIRED')
+        {   continue; }
 
-        final description =
-            row['TaskDescription']?.toString().trim() ?? '';
-
-        final status =
-        (row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase();
-
-        if (status == 'CANCELLED' ||
-            status == 'CANCELLED / NOT REQUIRED') {
-          continue;
-        }
-
-        final searchableText =
-        '$id $description'.toLowerCase();
-
-        if (searchableText.contains('revision')) {
-          revisionCount++;
-        }
-
-        if (id.startsWith('WE_')) {
-          milestoneCount++;
-        }
+        final searchableText = '$id $description'.toLowerCase();
+        if (searchableText.contains('revision')) { revisionCount++; }
+//        if (id.startsWith('WE_')) { milestoneCount++; }
       }
-
+// ----------------------------------------------------------
+// MILESTONE TASK COUNT
+      final milestoneSvc = MilestoneCalendarSvc(db);
+      final milestoneCount = await milestoneSvc.getNextAvailableMilestoneTaskCount();
+// ----------------------------------------------------------
       if (!mounted) return;
 
       setState(() {
         _dueTodayCount = counters['dueToday'] ?? 0;
         _pastDueCount = counters['pastDue'] ?? 0;
         _inProgressCount = counters['inProgress'] ?? 0;
-
         _revisionTaskCount = revisionCount;
         _milestoneTaskCount = milestoneCount;
       });

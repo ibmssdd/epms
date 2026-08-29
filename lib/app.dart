@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'core/theme/app_theme.dart';
-import 'screens/ui_dashboard.dart';
+import 'screens/ui_Dashboard.dart';
 
 class EpmsApp extends StatelessWidget {
   const EpmsApp({super.key});

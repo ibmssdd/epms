@@ -30,6 +30,195 @@ class MilestoneCalendarSvc {
   static const String colBioTaskCreated = 'milestone_bio_task_created';
   static const String colCommonTaskCreated = 'milestone_CommonTasksCreated';
 
+
+
+    // ----------------------------------------------------------
+    // Find the upcoming sunday having Milestone
+    // ----------------------------------------------------------
+  Future<int> getNextAvailableMilestoneTaskCount() async {
+    final today = DateTime.now();
+
+    final daysUntilSunday =
+    DateTime.sunday - today.weekday == 0
+        ? 7
+        : DateTime.sunday - today.weekday;
+
+    final upcomingSunday =
+     DateTime(today.year, today.month, today.day,).add(Duration(days: daysUntilSunday), );
+
+    // ----------------------------------------------------------
+    // Find the first future milestone date having
+    // PENDING or STARTED milestone tasks.
+    // ----------------------------------------------------------
+
+    final rows = await _db.rawQuery(
+      '''
+    SELECT  date(TaskDueDate) AS MilestoneDate, COUNT(*) AS TaskCount
+    FROM db_TaskLogWeekEnd 
+     WHERE TaskID LIKE 'MT_%'
+      AND UPPER(TaskStatus) IN ('PENDING', 'STARTED')
+      AND date(TaskDueDate) >= date(?)
+    GROUP BY date(TaskDueDate) ORDER BY date(TaskDueDate) ASC LIMIT 1
+    ''',
+      [ upcomingSunday.toIso8601String(), ],
+    );
+
+    // ----------------------------------------------------------
+    // No future milestone tasks
+    // ----------------------------------------------------------
+    if (rows.isEmpty) {return 0;}
+
+    // ----------------------------------------------------------
+    // Return count for the first available milestone date
+    // ----------------------------------------------------------
+    final count = rows.first['TaskCount'];
+    if (count is int) {return count; }
+    if (count is num) {  return count.toInt(); }
+    return int.tryParse( count?.toString() ?? '', ) ?? 0;
+  }
+  // Returns counts of in-progress milestone tasks for the dashboard.
+  // Only milestone tasks due from today through the upcoming Sunday
+  // (inclusive) are counted.
+  //
+  // Included statuses: PENDING & STARTED
+  // Excluded statuses:  COMPLETED & CANCELLED_NOT_REQUIRED
+  //
+  // Returns:
+  // {
+  //   'total': total pending + started milestone tasks,
+  //   'pending': pending milestone tasks,
+  //   'started': started milestone tasks,
+  // }
+  Future<Map<String, int>> getUpcomingMilestoneTaskCounts() async {
+    final now = DateTime.now();
+
+    final today = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    );
+
+    // Existing helper returns the next Sunday.
+    final upcomingSunday = nextSunday(today);
+
+    final rows = await _db.query(
+      'db_TaskLogWeekEnd',
+      columns: const [
+        'TaskStatus',
+      ],
+      where: '''
+      TaskID LIKE ?
+      AND TaskDueDate >= ?
+      AND TaskDueDate <= ?
+      AND TaskStatus IN (?, ?)
+    ''',
+      whereArgs: [
+        'MT_%',
+        formatDate(today),
+        formatDate(upcomingSunday),
+        'PENDING',
+        'STARTED',
+      ],
+    );
+
+    var pendingCount = 0;
+    var startedCount = 0;
+
+    for (final row in rows) {
+      final status =
+      row['TaskStatus']?.toString().trim().toUpperCase();
+
+      if (status == 'PENDING') {
+        pendingCount++;
+      } else if (status == 'STARTED') {
+        startedCount++;
+      }
+    }
+
+    return {
+      'total': pendingCount + startedCount,
+      'pending': pendingCount,
+      'started': startedCount,
+    };
+  }
+
+  /// Returns all milestone tasks whose due date falls within
+  /// the current Monday-Sunday week.
+  Future<List<Map<String, Object?>>> getThisWeekMTasks() async {
+    final now = DateTime.now();
+
+    final today = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    );
+
+    final startOfWeek = today.subtract(
+      Duration(days: today.weekday - DateTime.monday),
+    );
+
+    final endOfWeek = startOfWeek.add(
+      const Duration(days: 6),
+    );
+
+    return _db.query(
+      'db_TaskLogWeekEnd',
+      where: '''
+      TaskID LIKE ?
+      AND TaskDueDate >= ?
+      AND TaskDueDate <= ?
+    ''',
+      whereArgs: [
+        'MT_%',
+        formatDate(startOfWeek),
+        formatDate(endOfWeek),
+      ],
+      orderBy: 'TaskDueDate ASC',
+    );
+  }
+
+  // Returns all milestone tasks regardless of status.
+  Future<List<Map<String, Object?>>> getAllMTasks() async {
+    return _db.query(
+      'db_TaskLogWeekEnd',
+      where: 'TaskID LIKE ?',
+      whereArgs: [
+        'MT_%',
+      ],
+      orderBy: 'TaskDueDate ASC',
+    );
+  }
+
+  /// Returns milestone tasks filtered by task status.
+  ///
+  /// [status] should match the value stored in db_TaskLogWeekEnd.
+  ///
+  /// Examples:
+  ///   getMTasksByStatus('PENDING')
+  ///   getMTasksByStatus('STARTED')
+  ///   getMTasksByStatus('COMPLETED')
+  Future<List<Map<String, Object?>>> getMTasksByStatus(
+      String status,
+      ) async {
+    final normalizedStatus = status.trim().toUpperCase();
+
+    if (normalizedStatus.isEmpty) {
+      return const [];
+    }
+
+    return _db.query(
+      'db_TaskLogWeekEnd',
+      where: '''
+      TaskID LIKE ?
+      AND TaskStatus = ?
+    ''',
+      whereArgs: [
+        'MT_%',
+        normalizedStatus,
+      ],
+      orderBy: 'TaskDueDate ASC',
+    );
+  }
   Future<void> markCommonTasksCreated({
     required String milestoneType,
     required DateTime date,
@@ -294,8 +483,8 @@ class MilestoneCalendarSvc {
   /// Resolves the comma-separated chapter codes in one milestone row into
   /// display-friendly subject/chapter information from db_SyllabusMaster.
   Future<Map<String, List<Map<String, Object?>>>> resolveScope(
-    Map<String, Object?> milestone,
-  ) async {
+      Map<String, Object?> milestone,
+      ) async {
     final result = <String, List<Map<String, Object?>>>{
       'Phy': [],
       'Chem': [],
@@ -325,11 +514,11 @@ class MilestoneCalendarSvc {
   }
 
   Future<void> _resolveSubjectScope(
-    Map<String, List<Map<String, Object?>>> result, {
-    required String subjectKey,
-    required List<String> subjectCodes,
-    required String? rawCodes,
-  }) async {
+      Map<String, List<Map<String, Object?>>> result, {
+        required String subjectKey,
+        required List<String> subjectCodes,
+        required String? rawCodes,
+      }) async {
     final codes = splitCodes(rawCodes);
     if (codes.isEmpty) return;
 
@@ -416,4 +605,5 @@ class MilestoneCalendarSvc {
     final delta = DateTime.sunday - day.weekday;
     return day.add(Duration(days: delta == 0 ? 7 : delta));
   }
+
 }
