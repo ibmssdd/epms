@@ -1,4 +1,5 @@
 import 'package:sqflite/sqflite.dart';
+import 'package:flutter/foundation.dart';
 
 /// EPMS Weekend CMT Task Generator.
 ///
@@ -40,48 +41,183 @@ class CmtWeekendTaskGeneratorSvc {
   /// The date must be Sunday and a CMT milestone must exist for that date.
   Future<List<String>> generateCmtTasks({DateTime? milestoneDate}) async {
     final date = _dateOnly(milestoneDate ?? _now());
+
+    debugPrint('========== CMT TASK GENERATION START ==========');
+    debugPrint('CMT milestone date: ${_formatDate(date)}');
+
     if (date.weekday != DateTime.sunday) {
+      debugPrint('❌ CMT generation stopped: date is not Sunday.');
       throw ArgumentError(
         'CMT task generation requires a Sunday milestone date.',
       );
     }
 
+    debugPrint('✓ Date is Sunday');
+
     final milestone = await _getCmtMilestone(date);
-    if (milestone == null) return const [];
+
+    if (milestone == null) {
+      debugPrint(
+        '❌ No CMT milestone found for ${_formatDate(date)}',
+      );
+      return const [];
+    }
+
+    debugPrint(
+      '✓ CMT milestone found for ${_formatDate(date)}',
+    );
+
+    debugPrint(
+      'Milestone PHY chapters: ${milestone[_phyColumn]}',
+    );
+    debugPrint(
+      'Milestone CHEM chapters: ${milestone[_chemColumn]}',
+    );
+    debugPrint(
+      'Milestone BIO chapters: ${milestone[_bioColumn]}',
+    );
 
     final rules = await _getCmtRules();
+
+    debugPrint(
+      'CMT rules found: ${rules.length}',
+    );
+
+    for (final rule in rules) {
+      debugPrint(
+        '  RuleID=${rule['RuleID']} '
+            'RuleCode=${rule['RuleCode']} '
+            'TriggerDay=${rule['TriggerDay']} '
+            'TriggerType=${rule['TriggerType']}',
+      );
+    }
+
+    if (rules.isEmpty) {
+      debugPrint('❌ No active CMT Sunday rules found.');
+      return const [];
+    }
+
     final created = <String>[];
 
     for (final rule in rules) {
       final ruleId = _string(rule['RuleID']);
       final ruleCode = _string(rule['RuleCode']);
-      if (ruleId == null || ruleCode == null) continue;
 
-      // The established SubjectTask master uses the same logical code as the
-      // weekend CMT RuleCode: PHY_CMT_FSR, CHE_CMT_FSR, BIO_CMT_FSR.
+      debugPrint(
+        '\n--- Processing CMT Rule --- '
+            'RuleID=$ruleId RuleCode=$ruleCode',
+      );
+
+      if (ruleId == null || ruleCode == null) {
+        debugPrint('❌ Rule skipped: missing RuleID or RuleCode.');
+        continue;
+      }
+
       final subjectTaskId = ruleCode;
+
+      debugPrint(
+        'Looking for active SubjectTask: $subjectTaskId',
+      );
+
       final subjectTask = await _getActiveSubjectTask(subjectTaskId);
-      if (subjectTask == null) continue;
 
-      final subjectCode = _subjectCodeFromCmtSubjectTask(subjectTaskId);
-      if (subjectCode == null) continue;
+      if (subjectTask == null) {
+        debugPrint(
+          '❌ SubjectTask NOT FOUND or inactive: $subjectTaskId',
+        );
+        continue;
+      }
 
-      final chapterCodes = _milestoneScope(milestone, subjectCode);
-      if (chapterCodes.isEmpty) continue;
+      debugPrint(
+        '✓ SubjectTask found: $subjectTaskId',
+      );
+
+      final subjectCode =
+      _subjectCodeFromCmtSubjectTask(subjectTaskId);
+
+      debugPrint(
+        'Resolved subject code: $subjectCode',
+      );
+
+      if (subjectCode == null) {
+        debugPrint(
+          '❌ Could not determine subject from SubjectTaskID: '
+              '$subjectTaskId',
+        );
+        continue;
+      }
+
+      final chapterCodes =
+      _milestoneScope(milestone, subjectCode);
+
+      debugPrint(
+        'Milestone chapters for $subjectCode: $chapterCodes',
+      );
+
+      if (chapterCodes.isEmpty) {
+        debugPrint(
+          '⚠️ No chapters selected for $subjectCode. '
+              'Skipping this subject.',
+        );
+        continue;
+      }
 
       final chapterNames = <String>[];
+
       for (final chapterCode in chapterCodes) {
-        final syllabus = await _findChapter(subjectCode, chapterCode);
-        final name = _string(syllabus?['chapter_name']) ?? chapterCode;
+        debugPrint(
+          'Looking up syllabus chapter: '
+              '$subjectCode / $chapterCode',
+        );
+
+        final syllabus =
+        await _findChapter(subjectCode, chapterCode);
+
+        final name =
+            _string(syllabus?['chapter_name']) ?? chapterCode;
+
+        debugPrint(
+          '  Chapter resolved as: $chapterCode - $name',
+        );
+
         chapterNames.add('$chapterCode - $name');
       }
 
-      final activities = await _getActiveActivities(subjectTaskId);
-      if (activities.isEmpty) continue;
+      final activities =
+      await _getActiveActivities(subjectTaskId);
 
-      final duration = _taskDuration(subjectTask, activities);
-      final description = 'Revise Full Syllabus: ${chapterNames.join('; ')}';
-      final taskId = 'WE_${_compactDate(date)}_$ruleId';
+      debugPrint(
+        'Active activities for $subjectTaskId: '
+            '${activities.length}',
+      );
+
+      if (activities.isEmpty) {
+        debugPrint(
+          '❌ No active activities found for $subjectTaskId',
+        );
+        continue;
+      }
+
+      for (final activity in activities) {
+        debugPrint(
+          '  ActivityID=${activity['ActivityID']} '
+              'Sequence=${activity['ActivitySequence']} '
+              'Duration=${activity['ActivityDurationMinutes']}',
+        );
+      }
+
+      final duration =
+      _taskDuration(subjectTask, activities);
+
+      final description =
+          'Revise Full Syllabus: ${chapterNames.join('; ')}';
+
+      final taskId =
+          'WE_${_compactDate(date)}_$ruleId';
+
+      debugPrint('Task ID: $taskId');
+      debugPrint('Task description: $description');
+      debugPrint('Task duration: $duration minutes');
 
       final inserted = await _insertIfAbsent(
         taskId: taskId,
@@ -90,12 +226,28 @@ class CmtWeekendTaskGeneratorSvc {
         durationMinutes: duration,
       );
 
-      if (inserted) created.add(taskId);
+      if (inserted) {
+        debugPrint('✅ TASK CREATED: $taskId');
+        created.add(taskId);
+      } else {
+        debugPrint(
+          'ℹ️ Task already exists or was ignored: $taskId',
+        );
+      }
     }
+
+    debugPrint(
+        '\n========== CMT TASK GENERATION END =========='
+    );
+    debugPrint(
+      'Total tasks created: ${created.length}',
+    );
+    debugPrint(
+      'Created task IDs: $created',
+    );
 
     return created;
   }
-
   /// Returns all CMT weekend task rows for the milestone date. This is used by
   /// the dashboard/right-panel display after generation so an idempotent
   /// second run still shows the already-existing task rows.
@@ -155,8 +307,9 @@ class CmtWeekendTaskGeneratorSvc {
     );
     return rows.isEmpty ? null : rows.first;
   }
-
   Future<List<Map<String, Object?>>> _getCmtRules() async {
+    debugPrint('========== CHECKING CMT WEEKEND RULES ==========');
+
     final rows = await _db.query(
       _ruleTable,
       where: 'IsActive = ?',
@@ -164,36 +317,79 @@ class CmtWeekendTaskGeneratorSvc {
       orderBy: 'RuleID ASC',
     );
 
-    return rows.where((row) {
-      final triggerDay = _string(row['TriggerDay']);
+    debugPrint(
+      'Total active weekend rules found: ${rows.length}',
+    );
+
+    final result = rows.where((row) {
       final triggerType = _string(row['TriggerType']);
       final ruleCode = _string(row['RuleCode']);
 
-      final sunday =
-          triggerDay
-              ?.split(',')
-              .map((e) => e.trim().toUpperCase())
-              .contains('SUN') ??
-          false;
+      debugPrint(
+        'RULE DB ROW: '
+            'RuleID=${row['RuleID']}, '
+            'RuleCode=$ruleCode, '
+            'TriggerType=$triggerType, '
+            'TriggerDay=${row['TriggerDay']}, '
+            'TriggerCondition=${row['TriggerCondition']}, '
+            'IsActive=${row['IsActive']}',
+      );
 
       final isCmt =
-          (triggerType?.toUpperCase() == 'CMT') ||
-          (ruleCode?.toUpperCase().contains('_CMT_') ?? false);
+          (triggerType?.trim().toUpperCase() == 'CMT') ||
+              (ruleCode?.toUpperCase().contains('_CMT_') ?? false);
 
-      return sunday && isCmt;
+      debugPrint(
+        '  → isCMT=$isCmt',
+      );
+
+      return isCmt;
     }).toList();
-  }
 
-  Future<Map<String, Object?>?> _getActiveSubjectTask(String id) async {
+    debugPrint(
+      'FINAL CMT RULES SELECTED: ${result.length}',
+    );
+
+    for (final rule in result) {
+      debugPrint(
+        '  ✓ Selected Rule: '
+            'RuleID=${rule['RuleID']}, '
+            'RuleCode=${rule['RuleCode']}',
+      );
+    }
+
+    debugPrint('================================================');
+
+    return result;
+  }
+  Future<Map<String, Object?>?> _getActiveSubjectTask(
+      String id,
+      ) async {
+    debugPrint(
+      'Checking db_SubjectTasks: '
+          'SubjectTaskID=$id, Active=Yes',
+    );
+
     final rows = await _db.query(
       _subjectTaskTable,
       where: 'SubjectTaskID = ? AND SubjectTaskIsActive = ?',
       whereArgs: [id, 'Yes'],
       limit: 1,
     );
-    return rows.isEmpty ? null : rows.first;
-  }
 
+    if (rows.isEmpty) {
+      debugPrint(
+        '❌ No active SubjectTask found for $id',
+      );
+      return null;
+    }
+
+    debugPrint(
+      '✓ Active SubjectTask found for $id',
+    );
+
+    return rows.first;
+  }
   Future<List<Map<String, Object?>>> _getActiveActivities(
     String subjectTaskId,
   ) async {

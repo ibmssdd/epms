@@ -28,8 +28,8 @@ class TasksScreen extends StatefulWidget {
 }
 
 //enum _TasksWorkspaceMode { todaysTasks, inProgressTasks, revisionTasks }
-//enum _TasksWorkspaceMode { todaysTasks, revisionTasks, milestoneTasks }
-enum _TasksWorkspaceMode { todaysTasks, revisionTasks }
+  enum _TasksWorkspaceMode { todaysTasks, revisionTasks, milestoneTasks }
+//enum _TasksWorkspaceMode { todaysTasks, revisionTasks }
 
 class _TasksScreenState extends State<TasksScreen> {
     // ==========================================================================
@@ -343,7 +343,7 @@ class _TasksScreenState extends State<TasksScreen> {
                         _TasksWorkspaceMode.todaysTasks => _buildStatusWorkspace(context),
 //                      _TasksWorkspaceMode.inProgressTasks => _buildInProgressPanel(context,),
                         _TasksWorkspaceMode.revisionTasks => _buildRevisionTasksPanel(context,),
-//                      _TasksWorkspaceMode.milestoneTasks => _buildMilestoneTasksPanel(context,),
+                        _TasksWorkspaceMode.milestoneTasks => _buildMilestoneTasksPanel(context,),
                     },
                 ],
             ),
@@ -579,15 +579,15 @@ class _TasksScreenState extends State<TasksScreen> {
                                 _TasksWorkspaceMode.revisionTasks,
                             ),
                         ),
-//                        const SizedBox(width: 5),
-//                        Expanded(
-//                            child: _modeButton(
-//                                context,
-//                                'Milestone Tasks',
-//                                Icons.auto_awesome_outlined,
-//                                _TasksWorkspaceMode.milestoneTasks,
-//                            ),
-//                        ),
+                        const SizedBox(width: 5),
+                        Expanded(
+                            child: _modeButton(
+                                context,
+                                'Milestone Tasks',
+                                Icons.auto_awesome_outlined,
+                               _TasksWorkspaceMode.milestoneTasks,
+                            ),
+                        ),
                     ],
                 ),
             ),
@@ -721,53 +721,7 @@ class _TasksScreenState extends State<TasksScreen> {
 //            ),
 //        );
 //    }
-
     // ==========================================================================
-    // Milesotne TASKS PANEL
-    // ==========================================================================
-
-    Widget _buildMilestonesPanel(BuildContext context) {
-        final colors = Theme.of(context).colorScheme;
-
-        return Card(
-            color: colors.surfaceContainerLow,
-            child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                        Row(
-                            children: [
-                                Icon(
-                                    Icons.flag_outlined,
-                                    size: 19,
-                                    color: colors.primary,
-                                ),
-                                const SizedBox(width: 7),
-                                const Text(
-                                    'Milestones',
-                                    style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                    ),
-                                ),
-                            ],
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        Text(
-                            'Milestone tasks will appear here.',
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: colors.onSurfaceVariant,
-                            ),
-                        ),
-                    ],
-                ),
-            ),
-        );
-    }
     // ==========================================================================
     // REVISION TASKS PANEL
     // ==========================================================================
@@ -916,6 +870,171 @@ class _TasksScreenState extends State<TasksScreen> {
                         ),
                     ),
             ],
+        );
+    }
+
+    Widget _buildMilestoneTasksPanel(BuildContext context) {
+        final colors = Theme.of(context).colorScheme;
+
+        return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+                Card(
+                    child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                                Row(
+                                    children: [
+                                        Icon(
+                                            Icons.flag_outlined,
+                                            color: colors.primary,
+                                        ),
+                                        const SizedBox(width: 7),
+                                        const Text(
+                                            'Milestones',
+                                            style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w700,
+                                            ),
+                                        ),
+                                    ],
+                                ),
+
+                                const SizedBox(height: 8),
+
+                                SizedBox(
+                                    width: double.infinity,
+                                    height: 40,
+                                    child: FilledButton.icon(
+                                        onPressed: () {
+                                            // Milestone action will go here
+                                        },
+                                        icon: const Icon(
+                                            Icons.add,
+                                            size: 18,
+                                        ),
+                                        label: const Text(
+                                            'Create Milestone',
+                                        ),
+                                    ),
+                                ),
+
+                                const SizedBox(height: 6),
+
+                                const Text(
+                                    'Create and manage your milestone tasks.',
+                                    style: TextStyle(
+                                        fontSize: 10.5,
+                                    ),
+                                ),
+                            ],
+                        ),
+                    ),
+                ),
+
+                const SizedBox(height: 10),
+
+                _buildMilestoneSection(
+                    context,
+                    title: "Upcoming Milestones",
+                    count: 0,
+                    expanded: true,
+                    onTap: () {},
+                ),
+
+                const SizedBox(height: 8),
+
+                _buildMilestoneSection(
+                    context,
+                    title: 'Previous Milestones',
+                    count: 0,
+                    expanded: false,
+                    onTap: () {},
+                ),
+            ],
+        );
+    }
+
+    Widget _buildMilestoneSection(
+        BuildContext context, {
+            required String title,
+            required int count,
+            required bool expanded,
+            required VoidCallback onTap,
+        }) {
+        final colors = Theme.of(context).colorScheme;
+
+        return Card(
+            margin: EdgeInsets.zero,
+            color: colors.surfaceContainerLow,
+            child: Column(
+                children: [
+                    InkWell(
+                        onTap: onTap,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 13,
+                                vertical: 10,
+                            ),
+                            child: Row(
+                                children: [
+                                    Icon(
+                                        Icons.flag_outlined,
+                                        size: 19,
+                                        color: colors.primary,
+                                    ),
+
+                                    const SizedBox(width: 7),
+
+                                    Expanded(
+                                        child: Text(
+                                            title,
+                                            style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w700,
+                                                color: colors.onSurface,
+                                            ),
+                                        ),
+                                    ),
+
+                                    Text(
+                                        '$count',
+                                        style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w800,
+                                            color: colors.primary,
+                                        ),
+                                    ),
+
+                                    const SizedBox(width: 6),
+
+                                    Icon(
+                                        expanded
+                                            ? Icons.keyboard_arrow_up
+                                            : Icons.keyboard_arrow_down,
+                                        size: 19,
+                                    ),
+                                ],
+                            ),
+                        ),
+                    ),
+
+                    if (expanded)
+                        const Padding(
+                            padding: EdgeInsets.all(14),
+                            child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                    'No milestone tasks.',
+                                    style: TextStyle(fontSize: 11),
+                                ),
+                            ),
+                        ),
+                ],
+            ),
         );
     }
 

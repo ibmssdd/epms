@@ -23,19 +23,51 @@ class MilestoneCalendarSvc {
   static const String colType = 'milestone_type';
   static const String colDate = 'milestone_date';
   static const String colPhy = 'milestone_phy_chapters';
+  static const String colPhyTaskCreated = 'milestone_phy_task_created';
   static const String colChem = 'milestone_chem_chapters';
+  static const String colChemTaskCreated = 'milestone_chem_task_created';
   static const String colBio = 'milestone_bio_chapters';
+  static const String colBioTaskCreated = 'milestone_bio_task_created';
+  static const String colCommonTaskCreated = 'milestone_CommonTasksCreated';
 
-  Future<Map<String, Object?>?> getMilestone({
+  Future<void> markCommonTasksCreated({
     required String milestoneType,
     required DateTime date,
   }) async {
-    final rows = await _db.query(
+    await _db.update(
       table,
+      {
+        colCommonTaskCreated: 1,
+      },
       where: '$colType = ? AND $colDate = ?',
+      whereArgs: [
+        milestoneType.trim(),
+        formatDate(date),
+      ],
+    );
+  }
+  Future<Map<String, Object?>?> getMilestone({
+    required String milestoneType, required DateTime date,  }) async
+  {
+    final rows = await _db.query(
+      table,  where: '$colType = ? AND $colDate = ?',
       whereArgs: [milestoneType.trim(), formatDate(date)],
       limit: 1,
     );
+    return rows.isEmpty ? null : rows.first;
+  }
+
+  Future<Map<String, Object?>?> getAnyMilestoneForDate(
+      DateTime date,
+      ) async {
+    final rows = await _db.query(
+      table,
+      where: '$colDate = ?',
+      whereArgs: [formatDate(date)],
+      orderBy: '$colType ASC',
+      limit: 1,
+    );
+
     return rows.isEmpty ? null : rows.first;
   }
 
@@ -61,11 +93,14 @@ class MilestoneCalendarSvc {
       limit: limit,
     );
   }
+  Future<bool> hasMilestoneOnDate(DateTime date) async {
+    final rows = await getMilestonesForDate(date);
+    return rows.isNotEmpty;
+  }
 
-  Future<List<Map<String, Object?>>> getMilestonesInRange({
-    required DateTime from,
-    required DateTime to,
-  }) {
+  Future<List<Map<String, Object?>>> getMilestonesInRange(
+      { required DateTime from, required DateTime to,  })
+  {
     return _db.query(
       table,
       where: '$colDate >= ? AND $colDate <= ?',
@@ -73,7 +108,21 @@ class MilestoneCalendarSvc {
       orderBy: '$colDate ASC, $colType ASC',
     );
   }
+  Future<Set<String>> getOccupiedMilestoneDates({
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    final rows = await getMilestonesInRange(
+      from: from,
+      to: to,
+    );
 
+    return rows
+        .map((row) => row[colDate]?.toString())
+        .whereType<String>()
+        .where((date) => date.isNotEmpty)
+        .toSet();
+  }
   Future<List<Map<String, Object?>>> getNextSundayMilestones() {
     return getMilestonesForDate(nextSunday(DateTime.now()));
   }
@@ -115,23 +164,106 @@ class MilestoneCalendarSvc {
     required String bioChapters,
   }) async {
     final type = milestoneType.trim();
+
     if (type.isEmpty) {
       throw ArgumentError('Milestone type is required.');
     }
+
     if (!isMilestoneSunday(date)) {
       throw ArgumentError('Milestone date must be a Sunday.');
     }
 
-    await _db.insert(table, {
-      colType: type,
-      colDate: formatDate(date),
-      colPhy: normalizeCodes(phyChapters),
-      colChem: normalizeCodes(chemChapters),
-      colBio: normalizeCodes(bioChapters),
-      'milestone_timestamp': DateTime.now().toIso8601String(),
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    final formattedDate = formatDate(date);
+
+    // Check whether this milestone already exists.
+    final existing = await getMilestone(
+      milestoneType: type,
+      date: date,
+    );
+
+    if (existing == null) {
+      // NEW milestone:
+      // task-created flags start at 0.
+      await _db.insert(
+        table,
+        {
+          colType: type,
+          colDate: formattedDate,
+          colPhy: normalizeCodes(phyChapters),
+          colPhyTaskCreated: 0,
+          colChem: normalizeCodes(chemChapters),
+          colChemTaskCreated: 0,
+          colBio: normalizeCodes(bioChapters),
+          colBioTaskCreated: 0,
+          'milestone_timestamp': DateTime.now().toIso8601String(),
+        },
+      );
+    } else {
+      // EXISTING milestone:
+      // update the chapter scope but PRESERVE task-created flags.
+      await _db.update(
+        table,
+        {
+          colPhy: normalizeCodes(phyChapters),
+          colChem: normalizeCodes(chemChapters),
+          colBio: normalizeCodes(bioChapters),
+          'milestone_timestamp': DateTime.now().toIso8601String(),
+        },
+        where: '$colType = ? AND $colDate = ?',
+        whereArgs: [type, formattedDate],
+      );
+    }
+  }
+  Future<void> markPhyTasksCreated({
+    required String milestoneType,
+    required DateTime date,
+  }) async {
+    await _db.update(
+      table,
+      {
+        colPhyTaskCreated: 1,
+      },
+      where: '$colType = ? AND $colDate = ?',
+      whereArgs: [
+        milestoneType.trim(),
+        formatDate(date),
+      ],
+    );
   }
 
+  Future<void> markChemTasksCreated({
+    required String milestoneType,
+    required DateTime date,
+  }) async {
+    await _db.update(
+      table,
+      {
+        colChemTaskCreated: 1,
+      },
+      where: '$colType = ? AND $colDate = ?',
+      whereArgs: [
+        milestoneType.trim(),
+        formatDate(date),
+      ],
+    );
+  }
+
+  Future<void> markBioTasksCreated({
+    required String milestoneType,
+    required DateTime date,
+  }) async {
+    await _db.update(
+      table,
+      {
+        colBioTaskCreated: 1,
+      },
+      where: '$colType = ? AND $colDate = ?',
+      whereArgs: [
+        milestoneType.trim(),
+        formatDate(date),
+      ],
+    );
+  }
   Future<void> updateMilestoneScope({
     required String milestoneType,
     required DateTime date,
