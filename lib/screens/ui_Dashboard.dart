@@ -15,7 +15,6 @@ import 'ui_milestones.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
-
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
@@ -25,8 +24,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // SHELL STATE
   // ============================================================
 
-  bool leftExpanded = true;
-
+  // bool leftExpanded = false;
   int selectedNavigationIndex = 0;
   String? selectedLectureSubjectCode;
   TaskGroup? _selectedTaskGroup;
@@ -36,14 +34,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ============================================================
 
   List<Task> tasks = [];
-
   int _dueTodayCount = 0;
   int _pastDueCount = 0;
   int _inProgressCount = 0;
-
   int _revisionTaskCount = 0;
   int _milestoneTaskCount = 0;
-
   bool _taskCountersLoading = false;
 
   // ============================================================
@@ -88,7 +83,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ============================================================
 
   Future<void> _loadTaskCounters() async {
-    if (_taskCountersLoading) {  return;   }
+    if (_taskCountersLoading) {
+      return;
+    }
 
     _taskCountersLoading = true;
 
@@ -99,28 +96,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final rows = await enquiry.getAllTasks();
 
       int revisionCount = 0;
-//    int milestoneCount = 0;
+      //    int milestoneCount = 0;
 
       for (final row in rows) {
         final id = row['TaskID']?.toString().trim() ?? '';
-        final description =
-            row['TaskDescription']?.toString().trim() ?? '';
+        final description = row['TaskDescription']?.toString().trim() ?? '';
 
-        final status =
-        (row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase();
+        final status = (row['TaskStatus']?.toString() ?? 'PENDING')
+            .toUpperCase();
 
-        if (status == 'CANCELLED' ||
-            status == 'CANCELLED / NOT REQUIRED') {
+        if (status == 'CANCELLED' || status == 'CANCELLED / NOT REQUIRED') {
           continue;
         }
 
         final searchableText = '$id $description'.toLowerCase();
-        if (searchableText.contains('revision')) { revisionCount++; }
-//        if (id.startsWith('WE_')) { milestoneCount++;}
+        if (searchableText.contains('revision')) {
+          revisionCount++;
+        }
+        //        if (id.startsWith('WE_')) { milestoneCount++;}
       }
-// NEW: milestone count from MilestoneCalendarSvc
+      // NEW: milestone count from MilestoneCalendarSvc
       final milestoneSvc = MilestoneCalendarSvc(db);
-      final milestoneCount = await milestoneSvc.getNextAvailableMilestoneTaskCount();
+      final milestoneCount = await milestoneSvc
+          .getNextAvailableMilestoneTaskCount();
 
       if (!mounted) return;
 
@@ -131,17 +129,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _revisionTaskCount = revisionCount;
         _milestoneTaskCount = milestoneCount;
       });
-    }
-    catch (_)
-    {
+    } catch (_) {
       // Keep dashboard usable if counter loading fails.
-    } finally { _taskCountersLoading = false; }
+    } finally {
+      _taskCountersLoading = false;
+    }
   }
 
   Future<void> _refreshTaskCounters() async {
-    if (_taskCountersLoading) { return; }
+    if (_taskCountersLoading) {
+      return;
+    }
 
-    setState(() { _taskCountersLoading = true; });
+    setState(() {
+      _taskCountersLoading = true;
+    });
     try {
       await _loadTasks();
       final db = await AppDatabase.instance.database;
@@ -150,24 +152,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final rows = await enquiry.getAllTasks();
 
       int revisionCount = 0;
-//      int milestoneCount = 0;
+      //      int milestoneCount = 0;
 
       for (final row in rows) {
         final id = row['TaskID']?.toString().trim() ?? '';
         final description = row['TaskDescription']?.toString().trim() ?? '';
-        final status = (row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase();
-        if (status == 'CANCELLED' || status == 'CANCELLED / NOT REQUIRED')
-        {   continue; }
+        final status = (row['TaskStatus']?.toString() ?? 'PENDING')
+            .toUpperCase();
+        if (status == 'CANCELLED' || status == 'CANCELLED / NOT REQUIRED') {
+          continue;
+        }
 
         final searchableText = '$id $description'.toLowerCase();
-        if (searchableText.contains('revision')) { revisionCount++; }
-//        if (id.startsWith('WE_')) { milestoneCount++; }
+        if (searchableText.contains('revision')) {
+          revisionCount++;
+        }
+        //        if (id.startsWith('WE_')) { milestoneCount++; }
       }
-// ----------------------------------------------------------
-// MILESTONE TASK COUNT
+      // ----------------------------------------------------------
+      // MILESTONE TASK COUNT
       final milestoneSvc = MilestoneCalendarSvc(db);
-      final milestoneCount = await milestoneSvc.getNextAvailableMilestoneTaskCount();
-// ----------------------------------------------------------
+      final milestoneCount = await milestoneSvc
+          .getNextAvailableMilestoneTaskCount();
+      // ----------------------------------------------------------
       if (!mounted) return;
 
       setState(() {
@@ -200,8 +207,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       final rows = await TaskEnquirySvc(db).getAllTasks();
 
-      final loaded =
-      rows.map(_taskFromRow).whereType<Task>().toList();
+      final loaded = rows.map(_taskFromRow).whereType<Task>().toList();
 
       if (!mounted) return;
 
@@ -229,11 +235,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Task? _taskFromRow(Map<String, Object?> row) {
     final id = row['TaskID']?.toString().trim();
 
-    final description =
-        row['TaskDescription']?.toString() ?? '';
+    final description = row['TaskDescription']?.toString() ?? '';
 
-    final dueText =
-    row['TaskDueDate']?.toString();
+    final dueText = row['TaskDueDate']?.toString();
 
     if (id == null || id.isEmpty || dueText == null) {
       return null;
@@ -245,15 +249,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return null;
     }
 
-    final status = switch (
-    (row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase()) {
+    final status = switch ((row['TaskStatus']?.toString() ?? 'PENDING')
+        .toUpperCase()) {
       'IN_PROGRESS' || 'STARTED' => TaskStatus.started,
 
       'COMPLETED' => TaskStatus.completed,
 
       'CANCELLED' ||
-      'CANCELLED / NOT REQUIRED' =>
-      TaskStatus.cancelledNotRequired,
+      'CANCELLED / NOT REQUIRED' => TaskStatus.cancelledNotRequired,
 
       _ => TaskStatus.pending,
     };
@@ -274,9 +277,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final trimmed = line.trim();
 
       if (trimmed.toLowerCase().startsWith('subject -')) {
-        return trimmed
-            .substring('subject -'.length)
-            .trim();
+        return trimmed.substring('subject -'.length).trim();
       }
     }
 
@@ -289,8 +290,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadSyllabusCoverage() async {
     try {
-      final coverage =
-      await _syllabusService.getOverallCoverage();
+      final coverage = await _syllabusService.getOverallCoverage();
 
       if (!mounted) return;
 
@@ -314,14 +314,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _loadMilestones() async {
     try {
-      final db =
-      await AppDatabase.instance.database;
+      final db = await AppDatabase.instance.database;
+      final svc = MilestoneCalendarSvc(db);
 
-      final svc =
-      MilestoneCalendarSvc(db);
-
-      final rows =
-      await svc.getNextSundayMilestonesWithNames();
+      final rows = await svc.getUpcomingMilestonesForWidget(DateTime.now());
 
       if (!mounted) return;
 
@@ -338,7 +334,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       });
     }
   }
-
   // ============================================================
   // NAVIGATION
   // ============================================================
@@ -347,9 +342,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       selectedNavigationIndex = index;
 
-      if (index != 0) {
-        leftExpanded = false;
-      }
+      // if (index != 0) {
+      //   leftExpanded = false;
+      // }
 
       if (index != 4) {
         selectedLectureSubjectCode = null;
@@ -361,11 +356,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  void _toggleLeftNavigation() {
-    setState(() {
-      leftExpanded = !leftExpanded;
-    });
-  }
+  // void _toggleLeftNavigation() {
+  //   setState(() {
+  //     leftExpanded = !leftExpanded;
+  //   });
+  // }
 
   // ============================================================
   // MILESTONE NAVIGATION
@@ -375,7 +370,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       selectedNavigationIndex = 5;
       selectedLectureSubjectCode = null;
-      leftExpanded = false;
+      // leftExpanded = false;
     });
   }
 
@@ -386,7 +381,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _openTaskGroup(TaskGroup group) {
     setState(() {
       selectedNavigationIndex = 1;
-      leftExpanded = false;
+      // leftExpanded = false;
       _selectedTaskGroup = group;
     });
   }
@@ -394,8 +389,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _openRevisionTasks() {
     setState(() {
       selectedNavigationIndex = 1;
-      leftExpanded = false;
-  //    _selectedTaskGroup = group;
+      // leftExpanded = false;
+      //    _selectedTaskGroup = group;
     });
   }
 
@@ -411,7 +406,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       selectedNavigationIndex = 2;
       selectedLectureSubjectCode = null;
-      leftExpanded = false;
+      // leftExpanded = false;
     });
   }
 
@@ -423,7 +418,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       selectedLectureSubjectCode = subjectCode;
       selectedNavigationIndex = 4;
-      leftExpanded = false;
+      // leftExpanded = false;
     });
   }
 
@@ -436,37 +431,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _persistTaskUpdate(Task updated) async {
-    final index =
-    tasks.indexWhere((t) => t.id == updated.id);
+    final index = tasks.indexWhere((t) => t.id == updated.id);
 
     if (index == -1) return;
 
-    final db =
-    await AppDatabase.instance.database;
+    final db = await AppDatabase.instance.database;
 
     final table = updated.id.startsWith('WE_')
         ? 'db_TaskLogWeekEnd'
         : 'db_TaskLogWeekDay';
 
-    final now =
-    DateTime.now().toIso8601String();
+    final now = DateTime.now().toIso8601String();
 
     final values = <String, Object?>{
       'TaskStatus': switch (updated.status) {
         TaskStatus.pending => 'PENDING',
         TaskStatus.started => 'IN_PROGRESS',
         TaskStatus.completed => 'COMPLETED',
-        TaskStatus.cancelledNotRequired =>
-        'CANCELLED / NOT REQUIRED',
+        TaskStatus.cancelledNotRequired => 'CANCELLED / NOT REQUIRED',
       },
     };
 
     if (updated.status == TaskStatus.completed) {
       values['TaskCompletedDate'] = now;
       values['TaskCancelledDate'] = null;
-    } else if (
-    updated.status ==
-        TaskStatus.cancelledNotRequired) {
+    } else if (updated.status == TaskStatus.cancelledNotRequired) {
       values['TaskCancelledDate'] = now;
       values['TaskCompletedDate'] = null;
     } else {
@@ -493,7 +482,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ============================================================
   // BUILD
   // ============================================================
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -501,52 +489,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: SafeArea(
         child: Row(
           children: [
-            // ==================================================
+            // ------------------------------------------------------
             // LEFT NAVIGATION
-            // ==================================================
-
-            AnimatedContainer(
-              duration:
-              const Duration(milliseconds: 250),
-              curve: Curves.easeInOut,
-              width: leftExpanded ? 190 : 60,
+            // ------------------------------------------------------
+            SizedBox(
+              width: 60,
               child: LeftNavigation(
-                expanded: leftExpanded,
-                selectedIndex:
-                selectedNavigationIndex,
+                expanded: false,
+                selectedIndex: selectedNavigationIndex,
                 onSelected: _selectNavigation,
               ),
             ),
 
-            // ==================================================
-            // MAIN AREA
-            // ==================================================
+            // ------------------------------------------------------
+            // MAIN WORKSPACE
+            // ------------------------------------------------------
+            Expanded(child: _buildMain(context)),
 
-            Expanded(
-              child: _buildMain(context),
-            ),
-
-            // ==================================================
-            // RIGHT PANEL
-            //
-            // IMPORTANT:
-            // This panel is now ALWAYS visible.
-            // There is no rightExpanded state and no
-            // right-side expand/collapse button.
-            // ==================================================
-
+            // ------------------------------------------------------
+            // FIXED RIGHT MILESTONE PANEL
+            // ------------------------------------------------------
             SizedBox(
               width: 270,
               child: Padding(
-                padding:
-                const EdgeInsets.fromLTRB(
-                  0,
-                  12,
-                  12,
-                  12,
-                ),
-                child:
-                _buildRightPanel(context),
+                padding: const EdgeInsets.only(top: 12, right: 12, bottom: 12),
+                child: _buildRightPanel(context),
               ),
             ),
           ],
@@ -554,7 +521,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-
   // ============================================================
   // MAIN WORKSPACE
   // ============================================================
@@ -572,16 +538,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } else if (selectedNavigationIndex == 2) {
       content = const SyllabusScreen();
     } else if (selectedNavigationIndex == 4) {
-      content = LectureScreen(
-        initialSubjectCode:
-        selectedLectureSubjectCode,
-      );
+      content = LectureScreen(initialSubjectCode: selectedLectureSubjectCode);
     } else if (selectedNavigationIndex == 5) {
-      content =
-      const MilestoneCalendarScreen();
+      content = const MilestoneCalendarScreen();
     } else {
-      content =
-          _buildDashboardContent(context);
+      content = _buildDashboardContent(context);
     }
 
     return Padding(
@@ -590,9 +551,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           _buildTopHeader(context),
           const SizedBox(height: 12),
-          Expanded(
-            child: content,
-          ),
+          Expanded(child: content),
         ],
       ),
     );
@@ -604,11 +563,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   String _getCurrentScreenTitle() {
     switch (selectedNavigationIndex) {
-      case 1:        return 'TASKS';
-      case 2:        return 'SYLLABUS';
-      case 4:        return 'LECTURES';
-      case 5:        return 'MILESTONES';
-      case 0:      default:  return 'DASHBOARD';
+      case 1:
+        return 'TASKS';
+      case 2:
+        return 'SYLLABUS';
+      case 4:
+        return 'LECTURES';
+      case 5:
+        return 'MILESTONES';
+      case 0:
+      default:
+        return 'DASHBOARD';
     }
   }
 
@@ -619,20 +584,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _calculateDaysLeft() {
     final today = DateTime.now();
 
-    final targetDate = DateTime(
-      2027,
-      5,
-      1,
-    );
+    final targetDate = DateTime(2027, 5, 1);
 
-    final todayOnly = DateTime(
-      today.year,
-      today.month,
-      today.day,
-    );
+    final todayOnly = DateTime(today.year, today.month, today.day);
 
-    final days =
-        targetDate.difference(todayOnly).inDays;
+    final days = targetDate.difference(todayOnly).inDays;
 
     return days < 0 ? 0 : days;
   }
@@ -642,56 +598,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ============================================================
 
   Widget _buildTopHeader(BuildContext context) {
-    final daysLeft =
-    _calculateDaysLeft();
-
-    final screenTitle =
-    _getCurrentScreenTitle();
-
-    const gold =
-    Color(0xFFD4AF37);
-
-    const mutedGold =
-    Color(0xFFB99A45);
-
+    final daysLeft = _calculateDaysLeft();
+    final screenTitle = _getCurrentScreenTitle();
+    const gold = Color(0xFFD4AF37);
+    const mutedGold = Color(0xFFB99A45);
     return Container(
-      constraints:
-      const BoxConstraints(
-        minHeight: 70,
-        maxHeight: 76,
-      ),
-      padding:
-      const EdgeInsets.symmetric(
-        horizontal: 12,
-      ),
+      constraints: const BoxConstraints(minHeight: 70, maxHeight: 76),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        gradient:
-        const LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF171717),
-            Color(0xFF0D0D0D),
-            Color(0xFF17120A),
-          ],
+          colors: [Color(0xFF171717), Color(0xFF0D0D0D), Color(0xFF17120A)],
         ),
-        borderRadius:
-        BorderRadius.circular(14),
-        border: Border.all(
-          color:
-          gold.withValues(alpha: .45),
-        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: gold.withValues(alpha: .45)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black
-                .withValues(alpha: .55),
+            color: Colors.black.withValues(alpha: .55),
             blurRadius: 16,
-            offset:
-            const Offset(0, 6),
+            offset: const Offset(0, 6),
           ),
           BoxShadow(
-            color: gold
-                .withValues(alpha: .08),
+            color: gold.withValues(alpha: .08),
             blurRadius: 18,
             spreadRadius: 1,
           ),
@@ -700,62 +629,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Row(
         children: [
           // ----------------------------------------------------
-          // NAVIGATION BUTTON
-          // ----------------------------------------------------
-
-          SizedBox(
-            width: 38,
-            child: IconButton(
-              padding:
-              EdgeInsets.zero,
-              tooltip: leftExpanded
-                  ? 'Collapse navigation'
-                  : 'Expand navigation',
-              onPressed:
-              _toggleLeftNavigation,
-              icon: const Icon(
-                Icons
-                    .keyboard_double_arrow_left,
-                color: gold,
-                size: 20,
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 4),
-
-          // ----------------------------------------------------
           // GREETING
           // ----------------------------------------------------
-
           Expanded(
             flex: 3,
             child: Row(
-              mainAxisSize:
-              MainAxisSize.min,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
                   '✦',
                   style: TextStyle(
                     color: gold,
                     fontSize: 18,
-                    fontWeight:
-                    FontWeight.w800,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
-                    'HELLO, MR TANUSH',
+                    'Hello Dr. TANUSH',
                     maxLines: 1,
-                    overflow:
-                    TextOverflow.ellipsis,
-                    style:
-                    const TextStyle(
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 13,
-                      fontWeight:
-                      FontWeight.w800,
+                      fontWeight: FontWeight.w800,
                       letterSpacing: .5,
                     ),
                   ),
@@ -764,54 +662,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
 
-          // ----------------------------------------------------
           // SYSTEM / DASHBOARD
-          // ----------------------------------------------------
-
           Expanded(
             flex: 4,
             child: Column(
-              mainAxisAlignment:
-              MainAxisAlignment.center,
-              mainAxisSize:
-              MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 FittedBox(
-                  fit:
-                  BoxFit.scaleDown,
+                  fit: BoxFit.scaleDown,
                   child: Text(
                     'EXAM PREPARATION SYSTEM',
-                    textAlign:
-                    TextAlign.center,
-                    style:
-                    const TextStyle(
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
                       color: mutedGold,
                       fontSize: 11,
-                      fontWeight:
-                      FontWeight.w700,
+                      fontWeight: FontWeight.w700,
                       letterSpacing: 1.1,
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 2,
-                ),
+                const SizedBox(height: 2),
                 FittedBox(
-                  fit:
-                  BoxFit.scaleDown,
+                  fit: BoxFit.scaleDown,
                   child: Text(
                     screenTitle,
-                    textAlign:
-                    TextAlign.center,
+                    textAlign: TextAlign.center,
                     maxLines: 1,
-                    overflow:
-                    TextOverflow.ellipsis,
-                    style:
-                    const TextStyle(
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
                       color: gold,
                       fontSize: 20,
-                      fontWeight:
-                      FontWeight.w900,
+                      fontWeight: FontWeight.w900,
                       letterSpacing: 1.0,
                     ),
                   ),
@@ -823,29 +705,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
           // ----------------------------------------------------
           // METRICS
           // ----------------------------------------------------
-
           Expanded(
             flex: 3,
             child: Row(
-              mainAxisAlignment:
-              MainAxisAlignment.end,
-              mainAxisSize:
-              MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Flexible(
-                  child:
-                  _headerMetric(
+                  child: _headerMetric(
                     label: 'DAYS LEFT',
                     value: '$daysLeft',
                     gold: gold,
                   ),
                 ),
-                const SizedBox(
-                  width: 12,
-                ),
+                const SizedBox(width: 12),
                 Flexible(
-                  child:
-                  _headerMetric(
+                  child: _headerMetric(
                     label: 'READINESS',
                     value: '20%',
                     gold: gold,
@@ -865,12 +740,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required Color gold,
   }) {
     return Column(
-      mainAxisAlignment:
-      MainAxisAlignment.center,
-      crossAxisAlignment:
-      CrossAxisAlignment.end,
-      mainAxisSize:
-      MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
       children: [
         FittedBox(
           fit: BoxFit.scaleDown,
@@ -878,11 +750,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             label,
             maxLines: 1,
             style: TextStyle(
-              color: Colors.white
-                  .withValues(alpha: .65),
+              color: Colors.white.withValues(alpha: .65),
               fontSize: 8,
-              fontWeight:
-              FontWeight.w700,
+              fontWeight: FontWeight.w700,
               letterSpacing: .6,
             ),
           ),
@@ -895,8 +765,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             style: TextStyle(
               color: gold,
               fontSize: 17,
-              fontWeight:
-              FontWeight.w900,
+              fontWeight: FontWeight.w900,
             ),
           ),
         ),
@@ -908,62 +777,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // DASHBOARD CONTENT
   // ============================================================
 
-  Widget _buildDashboardContent(
-      BuildContext context) {
+  Widget _buildDashboardContent(BuildContext context) {
     return LayoutBuilder(
-      builder:
-          (context, constraints) {
+      builder: (context, constraints) {
         return SingleChildScrollView(
-          padding:
-          const EdgeInsets.only(
-            bottom: 8,
-          ),
+          padding: const EdgeInsets.only(bottom: 8),
           child: Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildLectureSection(
-                  context),
+              _buildLectureSection(context),
 
-              const SizedBox(
-                height: 10,
-              ),
+              const SizedBox(height: 10),
 
               // ------------------------------------------------
               // TASKS + SYLLABUS
               // ------------------------------------------------
-
-              if (constraints.maxWidth <
-                  620)
+              if (constraints.maxWidth < 620)
                 Column(
                   children: [
-                    _buildTasksSection(
-                        context),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    _buildSyllabusSection(
-                        context),
+                    _buildTasksSection(context),
+                    const SizedBox(height: 10),
+                    _buildSyllabusSection(context),
                   ],
                 )
               else
                 Row(
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child:
-                      _buildTasksSection(
-                          context),
-                    ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Expanded(
-                      child:
-                      _buildSyllabusSection(
-                          context),
-                    ),
+                    Expanded(child: _buildTasksSection(context)),
+                    const SizedBox(width: 10),
+                    Expanded(child: _buildSyllabusSection(context)),
                   ],
                 ),
             ],
@@ -977,136 +820,84 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // LECTURES
   // ============================================================
 
-  Widget _buildLectureSection(
-      BuildContext context) {
+  Widget _buildLectureSection(BuildContext context) {
     return _dashboardPanel(
       context,
       title: 'LECTURES',
-      child:
-      _buildLectureSubjectCards(
-          context),
+      child: _buildLectureSubjectCards(context),
     );
   }
 
-  Widget _buildLectureSubjectCards(
-      BuildContext context) {
+  Widget _buildLectureSubjectCards(BuildContext context) {
     final lectureSubjects = [
-      (
-      'Phy',
-      'Physics',
-      Icons.science_outlined,
-      ),
-      (
-      'Chem',
-      'Chemistry',
-      Icons.biotech_outlined,
-      ),
-      (
-      'Bio',
-      'Biology',
-      Icons.eco_outlined,
-      ),
+      ('Phy', 'Physics', Icons.science_outlined),
+      ('Chem', 'Chemistry', Icons.biotech_outlined),
+      ('Bio', 'Biology', Icons.eco_outlined),
     ];
 
     return Row(
       children: [
-        for (var i = 0;
-        i < lectureSubjects.length;
-        i++) ...[
+        for (var i = 0; i < lectureSubjects.length; i++) ...[
           Expanded(
-            child:
-            _lectureSubjectCard(
+            child: _lectureSubjectCard(
               context,
-              code:
-              lectureSubjects[i].$1,
-              name:
-              lectureSubjects[i].$2,
-              icon:
-              lectureSubjects[i].$3,
+              code: lectureSubjects[i].$1,
+              name: lectureSubjects[i].$2,
+              icon: lectureSubjects[i].$3,
             ),
           ),
-          if (i <
-              lectureSubjects.length - 1)
-            const SizedBox(width: 8),
+          if (i < lectureSubjects.length - 1) const SizedBox(width: 8),
         ],
       ],
     );
   }
 
   Widget _lectureSubjectCard(
-      BuildContext context, {
-        required String code,
-        required String name,
-        required IconData icon,
-      }) {
-    const gold =
-    Color(0xFFD4AF37);
+    BuildContext context, {
+    required String code,
+    required String name,
+    required IconData icon,
+  }) {
+    const gold = Color(0xFFD4AF37);
 
     return Material(
       color: Colors.transparent,
-      borderRadius:
-      BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(10),
       child: InkWell(
-        borderRadius:
-        BorderRadius.circular(10),
-        onTap: () =>
-            _openLectureSubject(
-                code),
+        borderRadius: BorderRadius.circular(10),
+        onTap: () => _openLectureSubject(code),
         child: Ink(
           height: 68,
-          decoration:
-          BoxDecoration(
-            gradient:
-            const LinearGradient(
-              begin:
-              Alignment.topLeft,
-              end:
-              Alignment.bottomRight,
-              colors: [
-                Color(0xFF202020),
-                Color(0xFF0E0E0E),
-              ],
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF202020), Color(0xFF0E0E0E)],
             ),
-            borderRadius:
-            BorderRadius.circular(10),
-            border: Border.all(
-              color: gold.withValues(
-                  alpha: .28),
-            ),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: gold.withValues(alpha: .28)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black
-                    .withValues(alpha: .45),
+                color: Colors.black.withValues(alpha: .45),
                 blurRadius: 8,
-                offset:
-                const Offset(0, 3),
+                offset: const Offset(0, 3),
               ),
             ],
           ),
           child: Row(
-            mainAxisAlignment:
-            MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                size: 21,
-                color: gold,
-              ),
-              const SizedBox(
-                width: 7,
-              ),
+              Icon(icon, size: 21, color: gold),
+              const SizedBox(width: 7),
               Flexible(
                 child: Text(
                   name,
                   maxLines: 1,
-                  overflow:
-                  TextOverflow.ellipsis,
-                  style:
-                  const TextStyle(
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
-                    fontWeight:
-                    FontWeight.w700,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -1121,34 +912,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // TASKS SECTION
   // ============================================================
 
-  Widget _buildTasksSection(
-      BuildContext context) {
+  Widget _buildTasksSection(BuildContext context) {
     return _dashboardPanel(
       context,
       title: 'TASKS',
-      child: _buildTaskCards(
-          context),
+      child: _buildTaskCards(context),
     );
   }
 
-  Widget _buildTaskCards(
-      BuildContext context) {
+  Widget _buildTaskCards(BuildContext context) {
     return GridView.builder(
       shrinkWrap: true,
-      physics:
-      const NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
 
       itemCount: 6,
 
-      gridDelegate:
-      const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 7,
         mainAxisSpacing: 7,
-// For virtual emulator
+        // For virtual emulator
         mainAxisExtent: 78,
-// For  Tanu Tab SM 200
-//        mainAxisExtent: 90,
+        // For  Tanu Tab SM 200
+        //        mainAxisExtent: 90,
       ),
 
       itemBuilder: (_, index) {
@@ -1158,8 +944,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               context,
               label: "Today's Tasks",
               count: _dueTodayCount,
-              icon:  Icons.today_rounded,
-              onTap: () => _openTaskGroup( TaskGroup.dueToday, ),
+              icon: Icons.today_rounded,
+              onTap: () => _openTaskGroup(TaskGroup.dueToday),
             );
 
           case 1:
@@ -1168,15 +954,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               label: 'Past Due',
               count: _pastDueCount,
               icon: Icons.pending_actions_rounded,
-              onTap: () => _openTaskGroup( TaskGroup.pastDue,),
+              onTap: () => _openTaskGroup(TaskGroup.pastDue),
             );
 
           case 2:
-            return _taskStatCard( context,
+            return _taskStatCard(
+              context,
               label: 'In Progress',
               count: _inProgressCount,
               icon: Icons.play_circle_outline_rounded,
-              onTap: () =>  _openTaskGroup(TaskGroup.inProgress, ),
+              onTap: () => _openTaskGroup(TaskGroup.inProgress),
             );
 
           case 3:
@@ -1210,165 +997,111 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onTap: _openMilestoneTasks,
             );
 
-          default: return const SizedBox.shrink();
+          default:
+            return const SizedBox.shrink();
         }
       },
     );
   }
 
   Widget _taskStatCard(
-      BuildContext context, {
-        required String label,
-        required int? count,
-        required IconData icon,
-        required VoidCallback onTap,
-        bool showChevron = true,
-        bool showSpinner = false,
-      }) {
-    const gold =
-    Color(0xFFD4AF37);
+    BuildContext context, {
+    required String label,
+    required int? count,
+    required IconData icon,
+    required VoidCallback onTap,
+    bool showChevron = true,
+    bool showSpinner = false,
+  }) {
+    const gold = Color(0xFFD4AF37);
 
     return Material(
       color: Colors.transparent,
-      borderRadius:
-      BorderRadius.circular(9),
+      borderRadius: BorderRadius.circular(9),
       child: InkWell(
-        borderRadius:
-        BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(9),
         onTap: onTap,
         child: Ink(
-          decoration:
-          BoxDecoration(
-            gradient:
-            const LinearGradient(
-              begin:
-              Alignment.topLeft,
-              end:
-              Alignment.bottomRight,
-              colors: [
-                Color(0xFF242424),
-                Color(0xFF0C0C0C),
-              ],
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF242424), Color(0xFF0C0C0C)],
             ),
-            borderRadius:
-            BorderRadius.circular(9),
-            border: Border.all(
-              color:
-              gold.withValues(alpha: .30),
-            ),
+            borderRadius: BorderRadius.circular(9),
+            border: Border.all(color: gold.withValues(alpha: .30)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black
-                    .withValues(alpha: .45),
+                color: Colors.black.withValues(alpha: .45),
                 blurRadius: 7,
-                offset:
-                const Offset(0, 3),
+                offset: const Offset(0, 3),
               ),
             ],
           ),
-          padding:
-          const EdgeInsets.symmetric(
-            horizontal: 8,
-            vertical: 7,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
           child: Row(
             children: [
               Container(
                 width: 28,
                 height: 28,
-                decoration:
-                BoxDecoration(
-                  color: gold.withValues(
-                      alpha: .10),
-                  shape:
-                  BoxShape.circle,
-                  border: Border.all(
-                    color:
-                    gold.withValues(
-                        alpha: .22),
-                  ),
+                decoration: BoxDecoration(
+                  color: gold.withValues(alpha: .10),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: gold.withValues(alpha: .22)),
                 ),
-                child:
-                showSpinner
+                child: showSpinner
                     ? const SizedBox(
-                  width: 15,
-                  height: 15,
-                  child:
-                  CircularProgressIndicator(
-                    strokeWidth:
-                    1.8,
-                  ),
-                )
-                    : Icon(
-                  icon,
-                  color: gold,
-                  size: 15,
-                ),
+                        width: 15,
+                        height: 15,
+                        child: CircularProgressIndicator(strokeWidth: 1.8),
+                      )
+                    : Icon(icon, color: gold, size: 15),
               ),
 
-              const SizedBox(
-                width: 7,
-              ),
+              const SizedBox(width: 7),
 
               Expanded(
                 child: Column(
-                  mainAxisAlignment:
-                  MainAxisAlignment.center,
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
-                  mainAxisSize:
-                  MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     if (count != null)
                       Text(
                         '$count',
                         maxLines: 1,
-                        style:
-                        const TextStyle(
+                        style: const TextStyle(
                           color: gold,
                           fontSize: 17,
-                          fontWeight:
-                          FontWeight.w900,
+                          fontWeight: FontWeight.w900,
                         ),
                       )
                     else
-                      const SizedBox(
-                        height: 20,
-                      ),
+                      const SizedBox(height: 20),
 
-                    const SizedBox(
-                      height: 1,
-                    ),
+                    const SizedBox(height: 1),
 
                     Text(
                       label,
                       maxLines: 2,
-                      overflow:
-                      TextOverflow.ellipsis,
-                      style:
-                      const TextStyle(
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 9.5,
-                        fontWeight:
-                        FontWeight.w700,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
                 ),
               ),
 
-              if (showChevron)
-                const SizedBox(
-                  width: 2,
-                ),
+              if (showChevron) const SizedBox(width: 2),
 
               if (showChevron)
                 Icon(
-                  Icons
-                      .chevron_right_rounded,
+                  Icons.chevron_right_rounded,
                   size: 15,
-                  color: Colors.white
-                      .withValues(alpha: .40),
+                  color: Colors.white.withValues(alpha: .40),
                 ),
             ],
           ),
@@ -1381,19 +1114,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // SYLLABUS SECTION
   // ============================================================
 
-  Widget _buildSyllabusSection(
-      BuildContext context) {
+  Widget _buildSyllabusSection(BuildContext context) {
     return _dashboardPanel(
       context,
-      title:
-      'SYLLABUS COVERAGE',
-      child:
-      _buildSyllabusCards(context),
+      title: 'SYLLABUS COVERAGE',
+      child: _buildSyllabusCards(context),
     );
   }
 
-  Widget _buildSyllabusCards(
-      BuildContext context) {
+  Widget _buildSyllabusCards(BuildContext context) {
     if (_syllabusLoading) {
       return const SizedBox(
         height: 139,
@@ -1401,10 +1130,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: SizedBox(
             width: 20,
             height: 20,
-            child:
-            CircularProgressIndicator(
-              strokeWidth: 2,
-            ),
+            child: CircularProgressIndicator(strokeWidth: 2),
           ),
         ),
       );
@@ -1416,11 +1142,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Center(
           child: Text(
             'Unable to load syllabus coverage.',
-            textAlign:
-            TextAlign.center,
+            textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white
-                  .withValues(alpha: .60),
+              color: Colors.white.withValues(alpha: .60),
               fontSize: 10,
             ),
           ),
@@ -1429,83 +1153,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     final subjects =
-        (_syllabusCoverage![
-        'subjects']
-        as List<
-            Map<String,
-                Object?>>?) ??
-            <Map<String,
-                Object?>>[];
+        (_syllabusCoverage!['subjects'] as List<Map<String, Object?>>?) ??
+        <Map<String, Object?>>[];
 
-    final overallProgress =
-    _asDouble(
-      _syllabusCoverage![
-      'progress'],
+    final overallProgress = _asDouble(_syllabusCoverage!['progress']);
+
+    final overallCompletedChapters = _asInt(
+      _syllabusCoverage!['completedChapters'],
     );
 
-    final overallCompletedChapters =
-    _asInt(
-      _syllabusCoverage![
-      'completedChapters'],
-    );
-
-    final overallTotalChapters =
-    _asInt(
-      _syllabusCoverage![
-      'totalChapters'],
-    );
+    final overallTotalChapters = _asInt(_syllabusCoverage!['totalChapters']);
 
     final cards = <Widget>[
       _syllabusStatCard(
         context,
-        label:
-        'Total Syllabus',
-        value:
-        '${(overallProgress * 100).round()}%',
-        detail:
-        '$overallCompletedChapters/$overallTotalChapters chapters',
-        icon:
-        Icons.auto_graph_rounded,
+        label: 'Total Syllabus',
+        value: '${(overallProgress * 100).round()}%',
+        detail: '$overallCompletedChapters/$overallTotalChapters chapters',
+        icon: Icons.auto_graph_rounded,
       ),
     ];
 
-    for (final subject
-    in subjects.take(3)) {
-      final subjectName =
-          subject['subjectName']
-              ?.toString()
-              .trim() ??
-              '';
+    for (final subject in subjects.take(3)) {
+      final subjectName = subject['subjectName']?.toString().trim() ?? '';
 
-      final completedTopics =
-      _asInt(
-        subject[
-        'completedTopics'],
-      );
+      final completedTopics = _asInt(subject['completedTopics']);
 
-      final totalTopics =
-      _asInt(
-        subject['totalTopics'],
-      );
+      final totalTopics = _asInt(subject['totalTopics']);
 
-      final progress =
-      _asDouble(
-        subject['progress'],
-      );
+      final progress = _asDouble(subject['progress']);
 
       cards.add(
         _syllabusStatCard(
           context,
-          label: subjectName
-              .isEmpty
-              ? 'Subject'
-              : subjectName,
-          value:
-          '${(progress * 100).round()}%',
-          detail:
-          '$completedTopics/$totalTopics topics',
-          icon:
-          Icons.menu_book_rounded,
+          label: subjectName.isEmpty ? 'Subject' : subjectName,
+          value: '${(progress * 100).round()}%',
+          detail: '$completedTopics/$totalTopics topics',
+          icon: Icons.menu_book_rounded,
         ),
       );
     }
@@ -1517,181 +1201,124 @@ class _DashboardScreenState extends State<DashboardScreen> {
           label: 'Syllabus',
           value: '0%',
           detail: 'No data',
-          icon:
-          Icons.menu_book_outlined,
+          icon: Icons.menu_book_outlined,
         ),
       );
     }
 
     return GridView.builder(
       shrinkWrap: true,
-      physics:
-      const NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: 4,
-      gridDelegate:
-      const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         crossAxisSpacing: 7,
         mainAxisSpacing: 7,
-// For virtual emulator
+        // For virtual emulator
         mainAxisExtent: 78,
-// For  Tanu Tab SM 200
-//      mainAxisExtent: 90,
 
+        // For  Tanu Tab SM 200
+        //      mainAxisExtent: 90,
       ),
-      itemBuilder: (_, index) =>
-      cards[index],
+      itemBuilder: (_, index) => cards[index],
     );
   }
 
   Widget _syllabusStatCard(
-      BuildContext context, {
-        required String label,
-        required String value,
-        required String detail,
-        required IconData icon,
-      }) {
-    const gold =
-    Color(0xFFD4AF37);
+    BuildContext context, {
+    required String label,
+    required String value,
+    required String detail,
+    required IconData icon,
+  }) {
+    const gold = Color(0xFFD4AF37);
 
     return Material(
       color: Colors.transparent,
-      borderRadius:
-      BorderRadius.circular(9),
+      borderRadius: BorderRadius.circular(9),
       child: InkWell(
-        borderRadius:
-        BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(9),
         onTap: _openSyllabus,
         child: Ink(
-          decoration:
-          BoxDecoration(
-            gradient:
-            const LinearGradient(
-              begin:
-              Alignment.topLeft,
-              end:
-              Alignment.bottomRight,
-              colors: [
-                Color(0xFF242424),
-                Color(0xFF0D0D0D),
-              ],
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF242424), Color(0xFF0D0D0D)],
             ),
-            borderRadius:
-            BorderRadius.circular(9),
-            border: Border.all(
-              color:
-              gold.withValues(alpha: .30),
-            ),
+            borderRadius: BorderRadius.circular(9),
+            border: Border.all(color: gold.withValues(alpha: .30)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black
-                    .withValues(alpha: .45),
+                color: Colors.black.withValues(alpha: .45),
                 blurRadius: 7,
-                offset:
-                const Offset(0, 3),
+                offset: const Offset(0, 3),
               ),
             ],
           ),
-          padding:
-          const EdgeInsets.symmetric(
-            horizontal: 8,
-            vertical: 7,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
           child: Row(
             children: [
               Container(
                 width: 28,
                 height: 28,
-                decoration:
-                BoxDecoration(
-                  color: gold.withValues(
-                      alpha: .10),
-                  shape:
-                  BoxShape.circle,
-                  border: Border.all(
-                    color:
-                    gold.withValues(
-                        alpha: .22),
-                  ),
+                decoration: BoxDecoration(
+                  color: gold.withValues(alpha: .10),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: gold.withValues(alpha: .22)),
                 ),
-                child: Icon(
-                  icon,
-                  color: gold,
-                  size: 15,
-                ),
+                child: Icon(icon, color: gold, size: 15),
               ),
 
-              const SizedBox(
-                width: 7,
-              ),
+              const SizedBox(width: 7),
 
               Expanded(
                 child: Column(
-                  mainAxisAlignment:
-                  MainAxisAlignment.center,
-                  crossAxisAlignment:
-                  CrossAxisAlignment.start,
-                  mainAxisSize:
-                  MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       value,
                       maxLines: 1,
-                      style:
-                      const TextStyle(
+                      style: const TextStyle(
                         color: gold,
                         fontSize: 16,
-                        fontWeight:
-                        FontWeight.w900,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(
-                      height: 1,
-                    ),
+                    const SizedBox(height: 1),
                     Text(
                       label,
                       maxLines: 1,
-                      overflow:
-                      TextOverflow.ellipsis,
-                      style:
-                      const TextStyle(
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 9.5,
-                        fontWeight:
-                        FontWeight.w700,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(
-                      height: 1,
-                    ),
+                    const SizedBox(height: 1),
                     Text(
                       detail,
                       maxLines: 1,
-                      overflow:
-                      TextOverflow.ellipsis,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Colors.white
-                            .withValues(
-                            alpha: .52),
+                        color: Colors.white.withValues(alpha: .52),
                         fontSize: 8,
-                        fontWeight:
-                        FontWeight.w600,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(
-                width: 2,
-              ),
+              const SizedBox(width: 2),
 
               Icon(
-                Icons
-                    .chevron_right_rounded,
+                Icons.chevron_right_rounded,
                 size: 15,
-                color: Colors.white
-                    .withValues(alpha: .40),
+                color: Colors.white.withValues(alpha: .40),
               ),
             ],
           ),
@@ -1705,71 +1332,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ============================================================
 
   Widget _dashboardPanel(
-      BuildContext context, {
-        required String title,
-        required Widget child,
-      }) {
-    const gold =
-    Color(0xFFD4AF37);
+    BuildContext context, {
+    required String title,
+    required Widget child,
+  }) {
+    const gold = Color(0xFFD4AF37);
 
     return Container(
-      padding:
-      const EdgeInsets.fromLTRB(
-        10,
-        9,
-        10,
-        10,
-      ),
-      decoration:
-      BoxDecoration(
-        gradient:
-        const LinearGradient(
-          begin:
-          Alignment.topLeft,
-          end:
-          Alignment.bottomRight,
-          colors: [
-            Color(0xFF151515),
-            Color(0xFF0B0B0B),
-          ],
+      padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF151515), Color(0xFF0B0B0B)],
         ),
-        borderRadius:
-        BorderRadius.circular(12),
-        border: Border.all(
-          color:
-          gold.withValues(alpha: .28),
-        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: gold.withValues(alpha: .28)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black
-                .withValues(alpha: .55),
+            color: Colors.black.withValues(alpha: .55),
             blurRadius: 12,
-            offset:
-            const Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             title,
             maxLines: 1,
-            overflow:
-            TextOverflow.ellipsis,
-            style:
-            const TextStyle(
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
               color: gold,
               fontSize: 11,
-              fontWeight:
-              FontWeight.w900,
+              fontWeight: FontWeight.w900,
               letterSpacing: 1.0,
             ),
           ),
-          const SizedBox(
-            height: 7,
-          ),
+          const SizedBox(height: 7),
           child,
         ],
       ),
@@ -1779,113 +1380,66 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ============================================================
   // RIGHT PANEL
   // ============================================================
-
-  Widget _buildRightPanel(
-      BuildContext context) {
+  Widget _buildRightPanel(BuildContext context) {
     return Container(
-      decoration:
-      BoxDecoration(
-        gradient:
-        const LinearGradient(
-          begin:
-          Alignment.topLeft,
-          end:
-          Alignment.bottomRight,
-          colors: [
-            Color(0xFF121212),
-            Color(0xFF080808),
-          ],
+      height: double.infinity,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF121212), Color(0xFF080808)],
         ),
-        borderRadius:
-        BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color:
-          const Color(0xFFD4AF37)
-              .withValues(
-              alpha: .25),
+          color: const Color(0xFFD4AF37).withValues(alpha: .25),
         ),
       ),
-      child:
-      SingleChildScrollView(
-        padding:
-        const EdgeInsets.all(9),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(9),
         child: Column(
-          crossAxisAlignment:
-          CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildUpcomingSundaySection(
-                context),
-            const SizedBox(
-              height: 9,
-            ),
-            _buildActiveWorkspaceSection(
-                context),
-            const SizedBox(
-              height: 9,
-            ),
-            _buildReservedRightPanelSection(
-                context),
+            _buildUpcomingSundaySection(context),
+
+            const SizedBox(height: 9),
+            _buildActiveWorkspaceSection(context),
+            const SizedBox(height: 9),
+            _buildReservedRightPanelSection(context),
           ],
         ),
       ),
     );
   }
-
   // ============================================================
   // UPCOMING SUNDAY MILESTONES
   // ============================================================
 
-  Widget _buildUpcomingSundaySection(
-      BuildContext context) {
-    const gold =
-    Color(0xFFD4AF37);
+  Widget _buildUpcomingSundaySection(BuildContext context) {
+    const gold = Color(0xFFD4AF37);
 
     return Material(
       color: Colors.transparent,
-      borderRadius:
-      BorderRadius.circular(11),
+      borderRadius: BorderRadius.circular(11),
       child: InkWell(
-        borderRadius:
-        BorderRadius.circular(11),
-        onTap:
-        _openMilestoneCalendar,
+        borderRadius: BorderRadius.circular(11),
+        onTap: _openMilestoneCalendar,
         child: Ink(
-          padding:
-          const EdgeInsets.fromLTRB(
-            9,
-            8,
-            9,
-            7,
-          ),
-          decoration:
-          BoxDecoration(
-            gradient:
-            const LinearGradient(
-              colors: [
-                Color(0xFF1C1C1C),
-                Color(0xFF0B0B0B),
-              ],
+          padding: const EdgeInsets.fromLTRB(9, 8, 9, 7),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF1C1C1C), Color(0xFF0B0B0B)],
             ),
-            borderRadius:
-            BorderRadius.circular(11),
-            border: Border.all(
-              color:
-              gold.withValues(
-                  alpha: .22),
-            ),
+            borderRadius: BorderRadius.circular(11),
+            border: Border.all(color: gold.withValues(alpha: .22)),
           ),
-          child:
-          _buildMilestonePanelContent(
-              context),
+          child: _buildMilestonePanelContent(context),
         ),
       ),
     );
   }
 
-  Widget _buildMilestonePanelContent(
-      BuildContext context) {
-    const gold =
-    Color(0xFFD4AF37);
+  Widget _buildMilestonePanelContent(BuildContext context) {
+    const gold = Color(0xFFD4AF37);
 
     if (_milestonesLoading) {
       return const SizedBox(
@@ -1894,75 +1448,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: SizedBox(
             width: 17,
             height: 17,
-            child:
-            CircularProgressIndicator(
-              strokeWidth: 2,
-            ),
+            child: CircularProgressIndicator(strokeWidth: 2),
           ),
         ),
       );
     }
 
     if (_upcomingMilestones.isEmpty) {
-      return Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Upcoming Coaching Milestones',
-            maxLines: 1,
-            overflow:
-            TextOverflow.ellipsis,
-            style:
-            TextStyle(
-              color: gold,
-              fontSize: 11,
-              fontWeight:
-              FontWeight.w800,
-            ),
-          ),
-          const SizedBox(
-            height: 4,
-          ),
-          Text(
-            'No milestone has been defined for the upcoming Sunday.',
-            style: TextStyle(
-              color: Colors.white
-                  .withValues(
-                  alpha: .55),
-              fontSize: 9.5,
-            ),
-          ),
-        ],
+      return Text(
+        'No upcoming milestone found.',
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: .55),
+          fontSize: 9.5,
+        ),
       );
     }
 
     return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         const Text(
           'Upcoming Coaching Milestones',
-          maxLines: 1,
-          overflow:
-          TextOverflow.ellipsis,
-          style:
-          TextStyle(
+          style: TextStyle(
             color: gold,
             fontSize: 11,
-            fontWeight:
-            FontWeight.w800,
+            fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(
-          height: 4,
+
+        const SizedBox(height: 6),
+
+        ..._upcomingMilestones.map(
+          (milestone) => _buildMilestoneRow(context, milestone),
         ),
-        for (final milestone
-        in _upcomingMilestones)
-          _buildMilestoneRow(
-            context,
-            milestone,
-          ),
       ],
     );
   }
@@ -1970,17 +1489,67 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ============================================================
   // MILESTONE ROW
   // ============================================================
-
   Widget _buildMilestoneRow(
-      BuildContext context,
-      Map<String, Object?> milestone,
-      ) {
-    final scope =
-    milestone['scope'];
+    BuildContext context,
+    Map<String, Object?> milestone,
+  ) {
+    const gold = Color(0xFFD4AF37);
+
+    final scope = milestone['scope'];
 
     if (scope is! Map) {
       return const SizedBox.shrink();
     }
+
+    final rawDate =
+        milestone['milestone_date'] ??
+        milestone['MilestoneDate'] ??
+        milestone['date'] ??
+        milestone['Date'];
+
+    String dateText = '';
+
+    if (rawDate != null) {
+      final date = DateTime.tryParse(rawDate.toString());
+
+      if (date != null) {
+        const months = [
+          'Jan',
+          'Feb',
+          'Mar',
+          'Apr',
+          'May',
+          'Jun',
+          'Jul',
+          'Aug',
+          'Sep',
+          'Oct',
+          'Nov',
+          'Dec',
+        ];
+
+        const weekdays = [
+          'Monday',
+          'Tuesday',
+          'Wednesday',
+          'Thursday',
+          'Friday',
+          'Saturday',
+          'Sunday',
+        ];
+
+        dateText =
+            '${weekdays[date.weekday - 1]}, '
+            '${date.day.toString().padLeft(2, '0')}-'
+            '${months[date.month - 1]}-${date.year}';
+      }
+    }
+
+    final milestoneName =
+        milestone['milestone_name']?.toString() ??
+        milestone['MilestoneName']?.toString() ??
+        milestone['name']?.toString() ??
+        '';
 
     final children = <Widget>[];
 
@@ -2008,122 +1577,103 @@ class _DashboardScreenState extends State<DashboardScreen> {
       subjectName: 'Biology',
     );
 
-    if (children.isEmpty) {
-      return Padding(
-        padding:
-        const EdgeInsets.only(
-          top: 4,
-        ),
-        child: Text(
-          'No chapter scope defined.',
-          style: TextStyle(
-            color: Colors.white
-                .withValues(
-                alpha: .50),
-            fontSize: 9.5,
-          ),
-        ),
-      );
-    }
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (dateText.isNotEmpty || milestoneName.isNotEmpty)
+            Text(
+              [
+                if (dateText.isNotEmpty) dateText,
+                if (milestoneName.isNotEmpty) milestoneName,
+              ].join(' • '),
+              softWrap: true,
+              style: const TextStyle(
+                color: gold,
+                fontSize: 9.5,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
 
-    return Column(
-      crossAxisAlignment:
-      CrossAxisAlignment.start,
-      children: children,
+          const SizedBox(height: 5),
+
+          if (children.isEmpty)
+            Text(
+              'No chapter scope defined.',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: .50),
+                fontSize: 9.5,
+              ),
+            )
+          else
+            ...children,
+        ],
+      ),
     );
   }
 
   void _appendMilestoneSubject(
-      BuildContext context,
-      List<Widget> children,
-      Map scope, {
-        required String subjectCode,
-        required String subjectName,
-      }) {
-    final entries =
-    scope[subjectCode];
+    BuildContext context,
+    List<Widget> children,
+    Map scope, {
+    required String subjectCode,
+    required String subjectName,
+  }) {
+    final entries = scope[subjectCode];
 
-    if (entries is! List ||
-        entries.isEmpty) {
+    if (entries is! List || entries.isEmpty) {
       return;
     }
-
-    final chapterNames =
-    entries
+    final chapterNames = entries
         .whereType<Map>()
         .map(
-          (entry) =>
-      entry['chapter_name']
-          ?.toString()
-          .trim()
-          .isNotEmpty ==
-          true
-          ? entry[
-      'chapter_name']
-          .toString()
-          : entry[
-      'chapter_code']
-          ?.toString() ??
-          '',
-    )
-        .where(
-            (name) => name.isNotEmpty)
+          (entry) => entry['chapter_name']?.toString().trim().isNotEmpty == true
+              ? entry['chapter_name'].toString()
+              : entry['chapter_code']?.toString() ?? '',
+        )
+        .where((name) => name.isNotEmpty)
         .join(', ');
 
     if (chapterNames.isEmpty) {
       return;
     }
-
-    children.add(
-      _milestoneSubjectRow(
-        context,
-        subjectName,
-        chapterNames,
-      ),
-    );
+    children.add(_milestoneSubjectRow(context, subjectName, chapterNames));
   }
 
   Widget _milestoneSubjectRow(
-      BuildContext context,
-      String subject,
-      String chapters,
-      ) {
+    BuildContext context,
+    String subject,
+    String chapters,
+  ) {
     return Padding(
-      padding:
-      const EdgeInsets.symmetric(
-        vertical: 2.5,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 2.5),
       child: Row(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
             width: 68,
             child: Text(
               subject,
-              maxLines: 1,
-              overflow:
-              TextOverflow.ellipsis,
-              style:
-              const TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 9.5,
-                fontWeight:
-                FontWeight.w700,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
+
+          const SizedBox(width: 4),
+
           Expanded(
             child: Text(
               chapters,
-              maxLines: 3,
-              overflow:
-              TextOverflow.ellipsis,
+              softWrap: true,
               style: TextStyle(
-                color: Colors.white
-                    .withValues(
-                    alpha: .55),
+                color: Colors.white.withValues(alpha: .55),
                 fontSize: 9.5,
+                height: 1.35,
               ),
             ),
           ),
@@ -2136,97 +1686,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ACTIVE WORKSPACE
   // ============================================================
 
-  Widget _buildActiveWorkspaceSection(
-      BuildContext context) {
-    const gold =
-    Color(0xFFD4AF37);
+  Widget _buildActiveWorkspaceSection(BuildContext context) {
+    const gold = Color(0xFFD4AF37);
 
     String workspaceName;
 
-    if (selectedNavigationIndex ==
-        1) {
+    if (selectedNavigationIndex == 1) {
       workspaceName = 'Tasks';
-    } else if (selectedNavigationIndex ==
-        2) {
+    } else if (selectedNavigationIndex == 2) {
       workspaceName = 'Syllabus';
-    } else if (selectedNavigationIndex ==
-        4) {
+    } else if (selectedNavigationIndex == 4) {
       workspaceName = 'Lectures';
-    } else if (selectedNavigationIndex ==
-        5) {
+    } else if (selectedNavigationIndex == 5) {
       workspaceName = 'Milestones';
     } else {
       workspaceName = 'Dashboard';
     }
 
     return Container(
-      decoration:
-      BoxDecoration(
-        gradient:
-        const LinearGradient(
-          colors: [
-            Color(0xFF1B1B1B),
-            Color(0xFF0C0C0C),
-          ],
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1B1B1B), Color(0xFF0C0C0C)],
         ),
-        borderRadius:
-        BorderRadius.circular(11),
-        border: Border.all(
-          color:
-          gold.withValues(
-              alpha: .20),
-        ),
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(color: gold.withValues(alpha: .20)),
       ),
-      padding:
-      const EdgeInsets.fromLTRB(
-        9,
-        8,
-        9,
-        9,
-      ),
+      padding: const EdgeInsets.fromLTRB(9, 8, 9, 9),
       child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             'Active Workspace',
             maxLines: 1,
-            overflow:
-            TextOverflow.ellipsis,
-            style:
-            TextStyle(
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
               color: gold,
               fontSize: 11,
-              fontWeight:
-              FontWeight.w800,
+              fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(
-            height: 4,
-          ),
+          const SizedBox(height: 4),
           Row(
             children: [
               const Icon(
-                Icons
-                    .dashboard_customize_outlined,
+                Icons.dashboard_customize_outlined,
                 size: 15,
                 color: gold,
               ),
-              const SizedBox(
-                width: 5,
-              ),
+              const SizedBox(width: 5),
               Expanded(
                 child: Text(
                   workspaceName,
                   maxLines: 1,
-                  overflow:
-                  TextOverflow.ellipsis,
-                  style:
-                  const TextStyle(
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 10,
-                    fontWeight:
-                    FontWeight.w700,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -2241,62 +1757,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // RESERVED RIGHT PANEL
   // ============================================================
 
-  Widget _buildReservedRightPanelSection(
-      BuildContext context) {
-    const gold =
-    Color(0xFFD4AF37);
+  Widget _buildReservedRightPanelSection(BuildContext context) {
+    const gold = Color(0xFFD4AF37);
 
     return Container(
-      decoration:
-      BoxDecoration(
-        gradient:
-        const LinearGradient(
-          colors: [
-            Color(0xFF181818),
-            Color(0xFF0B0B0B),
-          ],
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF181818), Color(0xFF0B0B0B)],
         ),
-        borderRadius:
-        BorderRadius.circular(11),
-        border: Border.all(
-          color:
-          gold.withValues(
-              alpha: .16),
-        ),
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(color: gold.withValues(alpha: .16)),
       ),
-      padding:
-      const EdgeInsets.fromLTRB(
-        9,
-        8,
-        9,
-        9,
-      ),
+      padding: const EdgeInsets.fromLTRB(9, 8, 9, 9),
       child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
             'Reserved',
             maxLines: 1,
-            overflow:
-            TextOverflow.ellipsis,
-            style:
-            TextStyle(
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
               color: gold,
               fontSize: 11,
-              fontWeight:
-              FontWeight.w800,
+              fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(
-            height: 3,
-          ),
+          const SizedBox(height: 3),
           Text(
             'Additional contextual information will be added here later.',
             style: TextStyle(
-              color: Colors.white
-                  .withValues(
-                  alpha: .45),
+              color: Colors.white.withValues(alpha: .45),
               fontSize: 9.5,
             ),
           ),
@@ -2318,10 +1808,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return value.toInt();
     }
 
-    return int.tryParse(
-      value?.toString() ?? '',
-    ) ??
-        0;
+    return int.tryParse(value?.toString() ?? '') ?? 0;
   }
 
   double _asDouble(Object? value) {
@@ -2333,9 +1820,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return value.toDouble();
     }
 
-    return double.tryParse(
-      value?.toString() ?? '',
-    ) ??
-        0.0;
+    return double.tryParse(value?.toString() ?? '') ?? 0.0;
   }
 }

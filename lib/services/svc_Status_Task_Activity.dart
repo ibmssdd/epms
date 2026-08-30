@@ -42,8 +42,8 @@ class TaskActivityStatusSvc {
   // ==========================================================================
 
   Future<List<TaskActivityDefinition>> getActivitiesForTask(
-      String taskId,
-      ) async {
+    String taskId,
+  ) async {
     final subjectTaskId = await _findSubjectTaskId(taskId);
 
     if (subjectTaskId == null) {
@@ -70,19 +70,19 @@ class TaskActivityStatusSvc {
 
     return rows
         .map((row) {
-      return TaskActivityDefinition(
-        activityId: row['ActivityID']?.toString() ?? '',
-        activityCode: row['ActivityCode']?.toString() ?? '',
-        activityName: row['ActivityDisplayName']?.toString() ?? '',
-        sequence: _toInt(row['ActivitySequence']) ?? 0,
-        isMandatory: _toBool(row['IsMandatory']),
-      );
-    })
+          return TaskActivityDefinition(
+            activityId: row['ActivityID']?.toString() ?? '',
+            activityCode: row['ActivityCode']?.toString() ?? '',
+            activityName: row['ActivityDisplayName']?.toString() ?? '',
+            sequence: _toInt(row['ActivitySequence']) ?? 0,
+            isMandatory: _toBool(row['IsMandatory']),
+          );
+        })
         .where((item) {
-      return item.activityCode.isNotEmpty &&
-          item.activityName.isNotEmpty &&
-          item.sequence > 0;
-    })
+          return item.activityCode.isNotEmpty &&
+              item.activityName.isNotEmpty &&
+              item.sequence > 0;
+        })
         .toList();
   }
 
@@ -135,9 +135,9 @@ class TaskActivityStatusSvc {
 
     final allRequiredCompleted =
         completionActivities.isNotEmpty &&
-            completionActivities.every(
-                  (activity) => normalized[activity.activityCode] == true,
-            );
+        completionActivities.every(
+          (activity) => normalized[activity.activityCode] == true,
+        );
 
     var nextStatus = task.status;
 
@@ -174,16 +174,11 @@ class TaskActivityStatusSvc {
           whereArgs: [task.id],
         );
       } else {
-        await txn.insert(
-          _activityStatusTable,
-          {
-            'TaskID': task.id,
-            'ActivityStatusJSON': jsonEncode(normalized),
-            'TaskActivityUpdatedDate':
-            DateTime.now().toIso8601String(),
-          },
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        await txn.insert(_activityStatusTable, {
+          'TaskID': task.id,
+          'ActivityStatusJSON': jsonEncode(normalized),
+          'TaskActivityUpdatedDate': DateTime.now().toIso8601String(),
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
       }
 
       // ----------------------------------------------------------------------
@@ -260,22 +255,17 @@ class TaskActivityStatusSvc {
       taskStatusChanged: taskStatusChanged,
     );
   }
-// ==========================================================================
-// UPDATE TASK STATUS
-//
-// Used when TasksScreen changes the task status directly.
-// This saves the status to the actual task-log table.
-// ==========================================================================
+  // ==========================================================================
+  // UPDATE TASK STATUS
+  //
+  // Used when TasksScreen changes the task status directly.
+  // This saves the status to the actual task-log table.
+  // ==========================================================================
 
-  Future<void> updateTaskStatus(
-      String taskId,
-      TaskStatus status,
-      ) async {
+  Future<void> updateTaskStatus(String taskId, TaskStatus status) async {
     final now = DateTime.now().toIso8601String();
 
-    final values = <String, Object?>{
-      'TaskStatus': _taskStatusValue(status),
-    };
+    final values = <String, Object?>{'TaskStatus': _taskStatusValue(status)};
 
     if (status == TaskStatus.completed) {
       values['TaskCompletedDate'] = now;
@@ -384,9 +374,7 @@ class TaskActivityStatusSvc {
           final normalized = raw.trim().toLowerCase();
 
           result[key] =
-              normalized == 'true' ||
-                  normalized == 'yes' ||
-                  normalized == '1';
+              normalized == 'true' || normalized == 'yes' || normalized == '1';
         }
       }
 
@@ -403,9 +391,7 @@ class TaskActivityStatusSvc {
 
     final normalized = value?.toString().trim().toLowerCase();
 
-    return normalized == 'yes' ||
-        normalized == 'true' ||
-        normalized == '1';
+    return normalized == 'yes' || normalized == 'true' || normalized == '1';
   }
 
   static int? _toInt(Object? value) {

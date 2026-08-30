@@ -22,18 +22,17 @@ class TaskEnquirySvc {
     required int dueToday,
     required int pastDue,
     required int inProgress,
-    required int completed,})
-  {
-      dueTodayCount = dueToday;
-      pastDueCount = pastDue;
-      inProgressCount = inProgress;
-      completedCount = completed;
-      taskCountStateChecker = 2;
+    required int completed,
+  }) {
+    dueTodayCount = dueToday;
+    pastDueCount = pastDue;
+    inProgressCount = inProgress;
+    completedCount = completed;
+    taskCountStateChecker = 2;
   }
 
   static const _weekdayTable = 'db_TaskLogWeekDay';
   static const _weekendTable = 'db_TaskLogWeekEnd';
-
 
   Future<List<Map<String, Object?>>> getAllTasks() =>
       _queryBoth(orderBy: 'TaskDueDate ASC, TaskCreatedDate ASC');
@@ -134,10 +133,7 @@ AND UPPER(TaskStatus) NOT IN
 
     // Today's actionable tasks only.
     final dueToday = todaysTasks.where((task) {
-      final status = task['TaskStatus']
-          ?.toString()
-          .trim()
-          .toUpperCase();
+      final status = task['TaskStatus']?.toString().trim().toUpperCase();
 
       return status != 'COMPLETED' &&
           status != 'CANCELLED' &&
@@ -209,8 +205,8 @@ UPPER(TaskID) LIKE ? OR UPPER(TaskDescription) LIKE ?
   }
 
   Future<List<Map<String, Object?>>> getTasksByActivityName(
-      String activityName,
-      ) => getTasksByActivity(activityName);
+    String activityName,
+  ) => getTasksByActivity(activityName);
 
   Future<List<Map<String, Object?>>> getTasksByChapter(String chapter) {
     final value = chapter.trim().toLowerCase();
@@ -332,9 +328,9 @@ AND LOWER(TaskDescription) LIKE ?
   // INTERNAL -----------------------------------------------------------------
 
   Future<List<Map<String, Object?>>> _queryByDate(
-      DateTime date, {
-        required String operator,
-      }) {
+    DateTime date, {
+    required String operator,
+  }) {
     final value = _formatDate(_dateOnly(date));
 
     return _queryBoth(

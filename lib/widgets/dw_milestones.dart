@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-
-import '../models/milestone.dart';
+import '../models/mo_milestone.dart';
 
 class MilestoneCard extends StatelessWidget {
-  final List<Milestone> milestones;
+  final Milestone? milestone;
 
-  const MilestoneCard({super.key, required this.milestones});
+  const MilestoneCard({super.key, required this.milestone});
 
   @override
   Widget build(BuildContext context) {
@@ -16,27 +15,75 @@ class MilestoneCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Milestones this week',
-              style: TextStyle(fontWeight: FontWeight.w700),
+              'Next Milestone',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
             ),
             const SizedBox(height: 12),
-            if (milestones.isEmpty)
-              const Text('No milestones this week.')
+
+            if (milestone == null)
+              const Text('No upcoming milestone.')
             else
-              ...milestones.map(
-                (milestone) => ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(
-                    milestone.completed
-                        ? Icons.check_circle
-                        : Icons.flag_outlined,
-                  ),
-                  title: Text(milestone.title),
-                  subtitle: Text(milestone.description),
-                ),
-              ),
+              _buildMilestoneContent(milestone!),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMilestoneContent(Milestone milestone) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          milestone.milestoneDate,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+
+        const SizedBox(height: 4),
+
+        Text(
+          milestone.milestoneType,
+          style: const TextStyle(fontWeight: FontWeight.w500),
+        ),
+
+        const SizedBox(height: 12),
+
+        if (milestone.milestonePhyChapters.isNotEmpty)
+          _buildSubjectRow(
+            subject: 'Physics',
+            chapters: milestone.milestonePhyChapters,
+          ),
+
+        if (milestone.milestoneChemChapters.isNotEmpty)
+          _buildSubjectRow(
+            subject: 'Chemistry',
+            chapters: milestone.milestoneChemChapters,
+          ),
+
+        if (milestone.milestoneBioChapters.isNotEmpty)
+          _buildSubjectRow(
+            subject: 'Biology',
+            chapters: milestone.milestoneBioChapters,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSubjectRow({required String subject, required String chapters}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 85,
+            child: Text(
+              subject,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          Expanded(child: Text(chapters)),
+        ],
       ),
     );
   }

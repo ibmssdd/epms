@@ -1,4 +1,5 @@
 import 'package:sqflite/sqflite.dart';
+import '../models/mo_milestone.dart';
 
 /// Data-access service for the db_Milestones table.
 ///
@@ -28,23 +29,33 @@ class MilestoneCalendarSvc {
   static const String colChemTaskCreated = 'milestone_chem_task_created';
   static const String colBio = 'milestone_bio_chapters';
   static const String colBioTaskCreated = 'milestone_bio_task_created';
-  static const String colCommonTaskCreated = 'milestone_CommonTasksCreated';
+  static const String colCommonTaskCreated = 'milestone_common_tasks_created';
 
+  Future<List<Map<String, Object?>>> getUpcomingMilestonesForWidget(
+    DateTime fromDate,
+  ) async {
+    // Get the next available/upcoming milestone
+    // starting from the supplied date.
 
+    final milestones = await getNextSundayMilestonesWithNames();
+    return milestones;
+  }
 
-    // ----------------------------------------------------------
-    // Find the upcoming sunday having Milestone
-    // ----------------------------------------------------------
+  // ----------------------------------------------------------
+  // Find the upcoming sunday having Milestone
+  // ----------------------------------------------------------
   Future<int> getNextAvailableMilestoneTaskCount() async {
     final today = DateTime.now();
 
-    final daysUntilSunday =
-    DateTime.sunday - today.weekday == 0
+    final daysUntilSunday = DateTime.sunday - today.weekday == 0
         ? 7
         : DateTime.sunday - today.weekday;
 
-    final upcomingSunday =
-     DateTime(today.year, today.month, today.day,).add(Duration(days: daysUntilSunday), );
+    final upcomingSunday = DateTime(
+      today.year,
+      today.month,
+      today.day,
+    ).add(Duration(days: daysUntilSunday));
 
     // ----------------------------------------------------------
     // Find the first future milestone date having
@@ -60,22 +71,29 @@ class MilestoneCalendarSvc {
       AND date(TaskDueDate) >= date(?)
     GROUP BY date(TaskDueDate) ORDER BY date(TaskDueDate) ASC LIMIT 1
     ''',
-      [ upcomingSunday.toIso8601String(), ],
+      [upcomingSunday.toIso8601String()],
     );
 
     // ----------------------------------------------------------
     // No future milestone tasks
     // ----------------------------------------------------------
-    if (rows.isEmpty) {return 0;}
+    if (rows.isEmpty) {
+      return 0;
+    }
 
     // ----------------------------------------------------------
     // Return count for the first available milestone date
     // ----------------------------------------------------------
     final count = rows.first['TaskCount'];
-    if (count is int) {return count; }
-    if (count is num) {  return count.toInt(); }
-    return int.tryParse( count?.toString() ?? '', ) ?? 0;
+    if (count is int) {
+      return count;
+    }
+    if (count is num) {
+      return count.toInt();
+    }
+    return int.tryParse(count?.toString() ?? '') ?? 0;
   }
+
   // Returns counts of in-progress milestone tasks for the dashboard.
   // Only milestone tasks due from today through the upcoming Sunday
   // (inclusive) are counted.
@@ -92,20 +110,14 @@ class MilestoneCalendarSvc {
   Future<Map<String, int>> getUpcomingMilestoneTaskCounts() async {
     final now = DateTime.now();
 
-    final today = DateTime(
-      now.year,
-      now.month,
-      now.day,
-    );
+    final today = DateTime(now.year, now.month, now.day);
 
     // Existing helper returns the next Sunday.
     final upcomingSunday = nextSunday(today);
 
     final rows = await _db.query(
       'db_TaskLogWeekEnd',
-      columns: const [
-        'TaskStatus',
-      ],
+      columns: const ['TaskStatus'],
       where: '''
       TaskID LIKE ?
       AND TaskDueDate >= ?
@@ -125,8 +137,7 @@ class MilestoneCalendarSvc {
     var startedCount = 0;
 
     for (final row in rows) {
-      final status =
-      row['TaskStatus']?.toString().trim().toUpperCase();
+      final status = row['TaskStatus']?.toString().trim().toUpperCase();
 
       if (status == 'PENDING') {
         pendingCount++;
@@ -141,6 +152,7 @@ class MilestoneCalendarSvc {
       'started': startedCount,
     };
   }
+
   Future<bool> tasksCreationRequired() async {
     final upcomingSunday = _upcomingSunday();
 
@@ -162,11 +174,9 @@ class MilestoneCalendarSvc {
     // ------------------------------------------------------------
     // PHYSICS
     // ------------------------------------------------------------
-    final phyChapters =
-        row['milestone_phy_chapters']?.toString().trim() ?? '';
+    final phyChapters = row['milestone_phy_chapters']?.toString().trim() ?? '';
 
-    final phyTaskCreated =
-    _toBool(row['milestone_phy_task_created']);
+    final phyTaskCreated = _toBool(row['milestone_phy_task_created']);
 
     if (phyChapters.isNotEmpty && !phyTaskCreated) {
       return true;
@@ -178,8 +188,7 @@ class MilestoneCalendarSvc {
     final chemChapters =
         row['milestone_chem_chapters']?.toString().trim() ?? '';
 
-    final chemTaskCreated =
-    _toBool(row['milestone_chem_task_created']);
+    final chemTaskCreated = _toBool(row['milestone_chem_task_created']);
 
     if (chemChapters.isNotEmpty && !chemTaskCreated) {
       return true;
@@ -188,11 +197,9 @@ class MilestoneCalendarSvc {
     // ------------------------------------------------------------
     // BIOLOGY
     // ------------------------------------------------------------
-    final bioChapters =
-        row['milestone_bio_chapters']?.toString().trim() ?? '';
+    final bioChapters = row['milestone_bio_chapters']?.toString().trim() ?? '';
 
-    final bioTaskCreated =
-    _toBool(row['milestone_bio_task_created']);
+    final bioTaskCreated = _toBool(row['milestone_bio_task_created']);
 
     if (bioChapters.isNotEmpty && !bioTaskCreated) {
       return true;
@@ -205,12 +212,9 @@ class MilestoneCalendarSvc {
   String _upcomingSunday() {
     final today = DateTime.now();
 
-    final daysUntilSunday =
-        DateTime.sunday - today.weekday;
+    final daysUntilSunday = DateTime.sunday - today.weekday;
 
-    final days = daysUntilSunday <= 0
-        ? daysUntilSunday + 7
-        : daysUntilSunday;
+    final days = daysUntilSunday <= 0 ? daysUntilSunday + 7 : daysUntilSunday;
 
     final sunday = DateTime(
       today.year,
@@ -230,14 +234,11 @@ class MilestoneCalendarSvc {
 
     final text = value?.toString().trim().toLowerCase();
 
-    return text == '1' ||
-        text == 'true' ||
-        text == 'yes';
+    return text == '1' || text == 'true' || text == 'yes';
   }
 
   Future<List<Map<String, Object?>>> getAllOpenMTasks() async {
-    final rows = await _db.rawQuery(
-      '''
+    final rows = await _db.rawQuery('''
     SELECT *
     FROM db_TaskLogWeekEnd
     WHERE TaskID LIKE 'MT_%'
@@ -248,11 +249,11 @@ class MilestoneCalendarSvc {
       )
     ORDER BY date(TaskDueDate) DESC,
              TaskID ASC
-    ''',
-    );
+    ''');
 
     return rows;
   }
+
   Future<bool> areUpcomingMilestoneTasksPending() async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -268,12 +269,12 @@ class MilestoneCalendarSvc {
     ORDER BY date(milestone_date) ASC
     LIMIT 1
     ''',
-      [
-        today.toIso8601String(),
-      ],
+      [today.toIso8601String()],
     );
 
-    if (rows.isEmpty) { return false;  }
+    if (rows.isEmpty) {
+      return false;
+    }
 
     final row = rows.first;
     final physicsCreated =
@@ -285,11 +286,8 @@ class MilestoneCalendarSvc {
     final biologyCreated =
         (row['milestone_bio_task_created'] as num?)?.toInt() ?? 0;
 
-    return physicsCreated == 0 ||
-        chemistryCreated == 0 ||
-        biologyCreated == 0;
+    return physicsCreated == 0 || chemistryCreated == 0 || biologyCreated == 0;
   }
-
 
   /// Returns all milestone tasks whose due date falls within
   /// the current Monday-Sunday week.
@@ -298,19 +296,13 @@ class MilestoneCalendarSvc {
   Future<List<Map<String, Object?>>> getThisWeekMTasks() async {
     final now = DateTime.now();
 
-    final today = DateTime(
-      now.year,
-      now.month,
-      now.day,
-    );
+    final today = DateTime(now.year, now.month, now.day);
 
     final startOfWeek = today.subtract(
       Duration(days: today.weekday - DateTime.monday),
     );
 
-    final endOfWeek = startOfWeek.add(
-      const Duration(days: 6),
-    );
+    final endOfWeek = startOfWeek.add(const Duration(days: 6));
 
     return _db.query(
       'db_TaskLogWeekEnd',
@@ -319,11 +311,7 @@ class MilestoneCalendarSvc {
       AND TaskDueDate >= ?
       AND TaskDueDate <= ?
     ''',
-      whereArgs: [
-        'MT_%',
-        formatDate(startOfWeek),
-        formatDate(endOfWeek),
-      ],
+      whereArgs: ['MT_%', formatDate(startOfWeek), formatDate(endOfWeek)],
       orderBy: 'TaskDueDate ASC',
     );
   }
@@ -333,9 +321,7 @@ class MilestoneCalendarSvc {
     return _db.query(
       'db_TaskLogWeekEnd',
       where: 'TaskID LIKE ?',
-      whereArgs: [
-        'MT_%',
-      ],
+      whereArgs: ['MT_%'],
       orderBy: 'TaskDueDate ASC',
     );
   }
@@ -348,9 +334,7 @@ class MilestoneCalendarSvc {
   ///   getMTasksByStatus('PENDING')
   ///   getMTasksByStatus('STARTED')
   ///   getMTasksByStatus('COMPLETED')
-  Future<List<Map<String, Object?>>> getMTasksByStatus(
-      String status,
-      ) async {
+  Future<List<Map<String, Object?>>> getMTasksByStatus(String status) async {
     final normalizedStatus = status.trim().toUpperCase();
 
     if (normalizedStatus.isEmpty) {
@@ -363,43 +347,37 @@ class MilestoneCalendarSvc {
       TaskID LIKE ?
       AND TaskStatus = ?
     ''',
-      whereArgs: [
-        'MT_%',
-        normalizedStatus,
-      ],
+      whereArgs: ['MT_%', normalizedStatus],
       orderBy: 'TaskDueDate ASC',
     );
   }
+
   Future<void> markCommonTasksCreated({
     required String milestoneType,
     required DateTime date,
   }) async {
     await _db.update(
       table,
-      {
-        colCommonTaskCreated: 1,
-      },
+      {colCommonTaskCreated: 1},
       where: '$colType = ? AND $colDate = ?',
-      whereArgs: [
-        milestoneType.trim(),
-        formatDate(date),
-      ],
+      whereArgs: [milestoneType.trim(), formatDate(date)],
     );
   }
+
   Future<Map<String, Object?>?> getMilestone({
-    required String milestoneType, required DateTime date,  }) async
-  {
+    required String milestoneType,
+    required DateTime date,
+  }) async {
     final rows = await _db.query(
-      table,  where: '$colType = ? AND $colDate = ?',
+      table,
+      where: '$colType = ? AND $colDate = ?',
       whereArgs: [milestoneType.trim(), formatDate(date)],
       limit: 1,
     );
     return rows.isEmpty ? null : rows.first;
   }
 
-  Future<Map<String, Object?>?> getAnyMilestoneForDate(
-      DateTime date,
-      ) async {
+  Future<Map<String, Object?>?> getAnyMilestoneForDate(DateTime date) async {
     final rows = await _db.query(
       table,
       where: '$colDate = ?',
@@ -433,14 +411,16 @@ class MilestoneCalendarSvc {
       limit: limit,
     );
   }
+
   Future<bool> hasMilestoneOnDate(DateTime date) async {
     final rows = await getMilestonesForDate(date);
     return rows.isNotEmpty;
   }
 
-  Future<List<Map<String, Object?>>> getMilestonesInRange(
-      { required DateTime from, required DateTime to,  })
-  {
+  Future<List<Map<String, Object?>>> getMilestonesInRange({
+    required DateTime from,
+    required DateTime to,
+  }) {
     return _db.query(
       table,
       where: '$colDate >= ? AND $colDate <= ?',
@@ -448,14 +428,12 @@ class MilestoneCalendarSvc {
       orderBy: '$colDate ASC, $colType ASC',
     );
   }
+
   Future<Set<String>> getOccupiedMilestoneDates({
     required DateTime from,
     required DateTime to,
   }) async {
-    final rows = await getMilestonesInRange(
-      from: from,
-      to: to,
-    );
+    final rows = await getMilestonesInRange(from: from, to: to);
 
     return rows
         .map((row) => row[colDate]?.toString())
@@ -463,6 +441,28 @@ class MilestoneCalendarSvc {
         .where((date) => date.isNotEmpty)
         .toSet();
   }
+
+  /// Returns the next available milestone for the dashboard widget.
+  ///
+  /// Starts from [from] date. If [from] is not supplied, today's date
+  /// is used.
+  ///
+  /// Returns null when there is no upcoming milestone.
+  Future<Milestone?> getUpcomingMilestoneForWidget({DateTime? from}) async {
+    final startDate = formatDate(from ?? DateTime.now());
+    final rows = await _db.query(
+      table,
+      where: '$colDate >= ?',
+      whereArgs: [startDate],
+      orderBy: '$colDate ASC, $colType ASC',
+      limit: 1,
+    );
+    if (rows.isEmpty) {
+      return null;
+    }
+    return Milestone.fromMap(rows.first);
+  }
+
   Future<List<Map<String, Object?>>> getNextSundayMilestones() {
     return getMilestonesForDate(nextSunday(DateTime.now()));
   }
@@ -516,28 +516,22 @@ class MilestoneCalendarSvc {
     final formattedDate = formatDate(date);
 
     // Check whether this milestone already exists.
-    final existing = await getMilestone(
-      milestoneType: type,
-      date: date,
-    );
+    final existing = await getMilestone(milestoneType: type, date: date);
 
     if (existing == null) {
       // NEW milestone:
       // task-created flags start at 0.
-      await _db.insert(
-        table,
-        {
-          colType: type,
-          colDate: formattedDate,
-          colPhy: normalizeCodes(phyChapters),
-          colPhyTaskCreated: 0,
-          colChem: normalizeCodes(chemChapters),
-          colChemTaskCreated: 0,
-          colBio: normalizeCodes(bioChapters),
-          colBioTaskCreated: 0,
-          'milestone_timestamp': DateTime.now().toIso8601String(),
-        },
-      );
+      await _db.insert(table, {
+        colType: type,
+        colDate: formattedDate,
+        colPhy: normalizeCodes(phyChapters),
+        colPhyTaskCreated: 0,
+        colChem: normalizeCodes(chemChapters),
+        colChemTaskCreated: 0,
+        colBio: normalizeCodes(bioChapters),
+        colBioTaskCreated: 0,
+        'milestone_timestamp': DateTime.now().toIso8601String(),
+      });
     } else {
       // EXISTING milestone:
       // update the chapter scope but PRESERVE task-created flags.
@@ -554,20 +548,16 @@ class MilestoneCalendarSvc {
       );
     }
   }
+
   Future<void> markPhyTasksCreated({
     required String milestoneType,
     required DateTime date,
   }) async {
     await _db.update(
       table,
-      {
-        colPhyTaskCreated: 1,
-      },
+      {colPhyTaskCreated: 1},
       where: '$colType = ? AND $colDate = ?',
-      whereArgs: [
-        milestoneType.trim(),
-        formatDate(date),
-      ],
+      whereArgs: [milestoneType.trim(), formatDate(date)],
     );
   }
 
@@ -577,14 +567,9 @@ class MilestoneCalendarSvc {
   }) async {
     await _db.update(
       table,
-      {
-        colChemTaskCreated: 1,
-      },
+      {colChemTaskCreated: 1},
       where: '$colType = ? AND $colDate = ?',
-      whereArgs: [
-        milestoneType.trim(),
-        formatDate(date),
-      ],
+      whereArgs: [milestoneType.trim(), formatDate(date)],
     );
   }
 
@@ -594,16 +579,12 @@ class MilestoneCalendarSvc {
   }) async {
     await _db.update(
       table,
-      {
-        colBioTaskCreated: 1,
-      },
+      {colBioTaskCreated: 1},
       where: '$colType = ? AND $colDate = ?',
-      whereArgs: [
-        milestoneType.trim(),
-        formatDate(date),
-      ],
+      whereArgs: [milestoneType.trim(), formatDate(date)],
     );
   }
+
   Future<void> updateMilestoneScope({
     required String milestoneType,
     required DateTime date,
@@ -634,8 +615,8 @@ class MilestoneCalendarSvc {
   /// Resolves the comma-separated chapter codes in one milestone row into
   /// display-friendly subject/chapter information from db_SyllabusMaster.
   Future<Map<String, List<Map<String, Object?>>>> resolveScope(
-      Map<String, Object?> milestone,
-      ) async {
+    Map<String, Object?> milestone,
+  ) async {
     final result = <String, List<Map<String, Object?>>>{
       'Phy': [],
       'Chem': [],
@@ -665,11 +646,11 @@ class MilestoneCalendarSvc {
   }
 
   Future<void> _resolveSubjectScope(
-      Map<String, List<Map<String, Object?>>> result, {
-        required String subjectKey,
-        required List<String> subjectCodes,
-        required String? rawCodes,
-      }) async {
+    Map<String, List<Map<String, Object?>>> result, {
+    required String subjectKey,
+    required List<String> subjectCodes,
+    required String? rawCodes,
+  }) async {
     final codes = splitCodes(rawCodes);
     if (codes.isEmpty) return;
 
@@ -756,5 +737,4 @@ class MilestoneCalendarSvc {
     final delta = DateTime.sunday - day.weekday;
     return day.add(Duration(days: delta == 0 ? 7 : delta));
   }
-
 }
