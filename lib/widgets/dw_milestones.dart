@@ -19,7 +19,6 @@ class MilestoneCard extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
             ),
             const SizedBox(height: 12),
-
             if (milestone == null)
               const Text('No upcoming milestone.')
             else
@@ -38,28 +37,22 @@ class MilestoneCard extends StatelessWidget {
           milestone.milestoneDate,
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
-
         const SizedBox(height: 4),
-
         Text(
           milestone.milestoneType,
           style: const TextStyle(fontWeight: FontWeight.w500),
         ),
-
         const SizedBox(height: 12),
-
         if (milestone.milestonePhyChapters.isNotEmpty)
           _buildSubjectRow(
             subject: 'Physics',
             chapters: milestone.milestonePhyChapters,
           ),
-
         if (milestone.milestoneChemChapters.isNotEmpty)
           _buildSubjectRow(
             subject: 'Chemistry',
             chapters: milestone.milestoneChemChapters,
           ),
-
         if (milestone.milestoneBioChapters.isNotEmpty)
           _buildSubjectRow(
             subject: 'Biology',

@@ -14,8 +14,8 @@ import 'package:sqflite/sqflite.dart';
 /// Calendar integration is outside this service.
 class PmtWeekendTaskGeneratorSvc {
   PmtWeekendTaskGeneratorSvc({required Database db, DateTime Function()? now})
-    : _db = db,
-      _now = now ?? DateTime.now;
+      : _db = db,
+        _now = now ?? DateTime.now;
 
   final Database _db;
   final DateTime Function() _now;
@@ -99,8 +99,7 @@ class PmtWeekendTaskGeneratorSvc {
         if (chapterCode == null) continue;
 
         final syllabus = await _findChapter(subjectCode, chapterCode);
-        final chapterName =
-            _string(syllabus?['chapter_name']) ??
+        final chapterName = _string(syllabus?['chapter_name']) ??
             _string(chapter['chapterName']) ??
             chapterCode;
 
@@ -152,15 +151,13 @@ class PmtWeekendTaskGeneratorSvc {
       final triggerType = _string(row['TriggerType']);
       final ruleCode = _string(row['RuleCode']);
 
-      final sunday =
-          triggerDay
+      final sunday = triggerDay
               ?.split(',')
               .map((e) => e.trim().toUpperCase())
               .contains('SUN') ??
           false;
 
-      final isPmt =
-          (triggerType?.toUpperCase() == 'PMT') ||
+      final isPmt = (triggerType?.toUpperCase() == 'PMT') ||
           (ruleCode?.toUpperCase().contains('_PMT_') ?? false);
 
       return sunday && isPmt;
@@ -220,10 +217,8 @@ class PmtWeekendTaskGeneratorSvc {
 
   Future<Map<String, String>> _resolveStatusChapterColumns() async {
     final rows = await _db.rawQuery('PRAGMA table_info($_statusChapterTable)');
-    final actual = rows
-        .map((row) => _string(row['name']))
-        .whereType<String>()
-        .toList();
+    final actual =
+        rows.map((row) => _string(row['name'])).whereType<String>().toList();
 
     String resolve(List<String> candidates, String purpose) {
       for (final candidate in candidates) {
@@ -327,16 +322,19 @@ class PmtWeekendTaskGeneratorSvc {
     );
     if (existing.isNotEmpty) return false;
 
-    await _db.insert(_taskLogTable, <String, Object?>{
-      'TaskID': taskId,
-      'TaskDescription': description,
-      'TaskDueDate': _formatDate(dueDate),
-      'TaskStartTime': null,
-      'TaskDurationMinutes': durationMinutes,
-      'TaskCalendarEventID': null,
-      'TaskReminderMinutes': null,
-      'TaskStatus': 'PENDING',
-    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+    await _db.insert(
+        _taskLogTable,
+        <String, Object?>{
+          'TaskID': taskId,
+          'TaskDescription': description,
+          'TaskDueDate': _formatDate(dueDate),
+          'TaskStartTime': null,
+          'TaskDurationMinutes': durationMinutes,
+          'TaskCalendarEventID': null,
+          'TaskReminderMinutes': null,
+          'TaskStatus': 'PENDING',
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore);
 
     final verify = await _db.query(
       _taskLogTable,

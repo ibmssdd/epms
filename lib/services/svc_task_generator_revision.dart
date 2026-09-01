@@ -19,9 +19,14 @@ import 'package:sqflite/sqflite.dart';
 ///
 /// Task activity completion is handled by TaskActivityStatusSvc.
 class RevisionTaskGeneratorSvc {
-  RevisionTaskGeneratorSvc({required this._db, DateTime Function()? now})
-    : _now = now ?? DateTime.now;
+  // RevisionTaskGeneratorSvc({required this._db, DateTime Function()? now})
+  //     : _now = now ?? DateTime.now;
 
+  RevisionTaskGeneratorSvc({
+    required Database db,
+    DateTime Function()? now,
+  })  : _db = db,
+        _now = now ?? DateTime.now;
   final Database _db;
   final DateTime Function() _now;
 
@@ -401,8 +406,7 @@ class RevisionTaskGeneratorSvc {
         continue;
       }
 
-      final activityName =
-          _string(activity['ActivityDisplayName']) ??
+      final activityName = _string(activity['ActivityDisplayName']) ??
           _string(activity['ActivityName']) ??
           activityId;
 
@@ -540,16 +544,19 @@ class RevisionTaskGeneratorSvc {
       return false;
     }
 
-    await _db.insert('db_TaskLogWeekDay', {
-      'TaskID': task.taskId,
-      'TaskDescription': task.taskDescription,
-      'TaskDueDate': task.taskDueDate,
-      'TaskStartTime': null,
-      'TaskDurationMinutes': task.taskDurationMinutes,
-      'TaskCalendarEventID': null,
-      'TaskReminderMinutes': null,
-      'TaskStatus': 'PENDING',
-    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+    await _db.insert(
+        'db_TaskLogWeekDay',
+        {
+          'TaskID': task.taskId,
+          'TaskDescription': task.taskDescription,
+          'TaskDueDate': task.taskDueDate,
+          'TaskStartTime': null,
+          'TaskDurationMinutes': task.taskDurationMinutes,
+          'TaskCalendarEventID': null,
+          'TaskReminderMinutes': null,
+          'TaskStatus': 'PENDING',
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore);
 
     return true;
   }

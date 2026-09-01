@@ -125,9 +125,8 @@ class SyllabusCoverageService {
 
       final totalTopics = topics.length;
 
-      final completedTopics = topics
-          .where((topic) => topic['topicState'] == 'Completed')
-          .length;
+      final completedTopics =
+          topics.where((topic) => topic['topicState'] == 'Completed').length;
 
       final progress = totalTopics == 0 ? 0.0 : completedTopics / totalTopics;
 
@@ -139,35 +138,20 @@ class SyllabusCoverageService {
 
       return <String, Object?>{
         'subjectCode': chapter['subjectCode'],
-
         'subjectName': chapter['subjectName'],
-
         'chapterCode': chapterCode,
-
         'chapterName': chapter['chapterName'],
-
         'chapterState': status?['ChapterState']?.toString() ?? 'NotStarted',
-
         'lecturesStartDate': status?['LecturesStartDate'],
-
         'lecturesEndDate': status?['LecturesEndDate'],
-
         'allTopicsCompleted': _isYes(status?['AllTopicsCompleted']),
-
         'pmtCompleted': _isYes(status?['PMTCompleted']),
-
         'cmtCompleted': _isYes(status?['CMTCompleted']),
-
         'weakAreasCleared': _isYes(status?['WeakAreasCleared']),
-
         'finalExamReady': _isYes(status?['FinalExamReady']),
-
         'totalTopics': totalTopics,
-
         'completedTopics': completedTopics,
-
         'progress': progress,
-
         'topics': topics,
       };
     }).toList();
@@ -196,19 +180,12 @@ class SyllabusCoverageService {
 
     return <String, Object?>{
       'subjectCode': cleanSubject,
-
       'subjectName': subjectName,
-
       'completedChapters': completedChapters,
-
       'totalChapters': totalChapters,
-
       'completedTopics': completedTopics,
-
       'totalTopics': totalTopics,
-
       'progress': progress,
-
       'chapters': chapterList,
     };
   }
@@ -270,15 +247,10 @@ class SyllabusCoverageService {
 
     return <String, Object?>{
       'completedChapters': completedChapters,
-
       'totalChapters': totalChapters,
-
       'completedTopics': completedTopics,
-
       'totalTopics': totalTopics,
-
       'progress': progress,
-
       'subjects': subjects,
     };
   }

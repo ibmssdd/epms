@@ -206,7 +206,8 @@ UPPER(TaskID) LIKE ? OR UPPER(TaskDescription) LIKE ?
 
   Future<List<Map<String, Object?>>> getTasksByActivityName(
     String activityName,
-  ) => getTasksByActivity(activityName);
+  ) =>
+      getTasksByActivity(activityName);
 
   Future<List<Map<String, Object?>>> getTasksByChapter(String chapter) {
     final value = chapter.trim().toLowerCase();

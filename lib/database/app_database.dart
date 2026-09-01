@@ -67,15 +67,12 @@ class AppDatabase {
     return openDatabase(
       databasePath,
       version: _databaseVersion,
-
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
-
       onCreate: (db, version) async {
         await _createTaskActivityStatusTable(db);
       },
-
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           await _createTaskActivityStatusTable(db);

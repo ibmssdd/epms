@@ -84,18 +84,21 @@ class StatusChapterService {
     required String chapterName,
     required String startDate,
   }) async {
-    return txn.insert('db_StatusChapters', {
-      'SubjectChapterCode': subjectChapterCode.trim(),
-      'ChapterName': chapterName.trim(),
-      'ChapterState': 'InProgress',
-      'LecturesStartDate': startDate,
-      'LecturesEndDate': null,
-      'AllTopicsCompleted': 'No',
-      'PMTCompleted': 'No',
-      'CMTCompleted': 'No',
-      'WeakAreasCleared': 'No',
-      'FinalExamReady': 'No',
-    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+    return txn.insert(
+        'db_StatusChapters',
+        {
+          'SubjectChapterCode': subjectChapterCode.trim(),
+          'ChapterName': chapterName.trim(),
+          'ChapterState': 'InProgress',
+          'LecturesStartDate': startDate,
+          'LecturesEndDate': null,
+          'AllTopicsCompleted': 'No',
+          'PMTCompleted': 'No',
+          'CMTCompleted': 'No',
+          'WeakAreasCleared': 'No',
+          'FinalExamReady': 'No',
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
   // ============================================================

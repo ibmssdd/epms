@@ -48,23 +48,22 @@ class AppTheme {
   // ============================================================
 
   static ThemeData get darkTheme {
-    final colorScheme =
-        ColorScheme.fromSeed(
-          seedColor: gold,
-          brightness: Brightness.dark,
-        ).copyWith(
-          primary: gold,
-          onPrimary: Colors.black,
-          secondary: champagne,
-          onSecondary: Colors.black,
-          tertiary: brightGold,
-          onTertiary: Colors.black,
-          surface: darkSurface,
-          onSurface: darkText,
-          error: statusRed,
-          onError: Colors.black,
-          outline: darkBorder,
-        );
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: gold,
+      brightness: Brightness.dark,
+    ).copyWith(
+      primary: gold,
+      onPrimary: Colors.black,
+      secondary: champagne,
+      onSecondary: Colors.black,
+      tertiary: brightGold,
+      onTertiary: Colors.black,
+      surface: darkSurface,
+      onSurface: darkText,
+      error: statusRed,
+      onError: Colors.black,
+      outline: darkBorder,
+    );
 
     return ThemeData(
       useMaterial3: true,
@@ -112,35 +111,28 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: darkSurfaceAlt,
-
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: darkBorder),
         ),
-
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: darkBorder),
         ),
-
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: gold, width: 2),
         ),
-
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: statusRed, width: 1.5),
         ),
-
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: statusRed, width: 2),
         ),
-
         hintStyle: const TextStyle(color: darkSecondaryText),
         labelStyle: const TextStyle(color: darkSecondaryText),
-
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 14,
           vertical: 12,
@@ -281,32 +273,27 @@ class AppTheme {
   // ============================================================
 
   static ThemeData get lightTheme {
-    final colorScheme =
-        ColorScheme.fromSeed(
-          seedColor: gold,
-          brightness: Brightness.light,
-        ).copyWith(
-          primary: deepGold,
-          onPrimary: Colors.white,
-          secondary: champagne,
-          onSecondary: lightText,
-          tertiary: gold,
-          onTertiary: Colors.black,
-          surface: lightSurface,
-          onSurface: lightText,
-          error: statusRed,
-        );
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: gold,
+      brightness: Brightness.light,
+    ).copyWith(
+      primary: deepGold,
+      onPrimary: Colors.white,
+      secondary: champagne,
+      onSecondary: lightText,
+      tertiary: gold,
+      onTertiary: Colors.black,
+      surface: lightSurface,
+      onSurface: lightText,
+      error: statusRed,
+    );
 
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-
       scaffoldBackgroundColor: lightBackground,
-
       colorScheme: colorScheme,
-
       fontFamily: 'Roboto',
-
       appBarTheme: const AppBarTheme(
         backgroundColor: lightSurface,
         foregroundColor: deepGold,
@@ -318,7 +305,6 @@ class AppTheme {
           fontWeight: FontWeight.w700,
         ),
       ),
-
       cardTheme: CardThemeData(
         color: lightSurface,
         elevation: 1,
@@ -329,7 +315,6 @@ class AppTheme {
           side: BorderSide(color: champagne.withValues(alpha: 0.6)),
         ),
       ),
-
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: lightSurfaceAlt,
@@ -358,7 +343,6 @@ class AppTheme {
           vertical: 12,
         ),
       ),
-
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: deepGold,
@@ -371,7 +355,6 @@ class AppTheme {
           textStyle: const TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
-
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: gold,
@@ -382,7 +365,6 @@ class AppTheme {
           ),
         ),
       ),
-
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: deepGold,
@@ -392,7 +374,6 @@ class AppTheme {
           ),
         ),
       ),
-
       chipTheme: ChipThemeData(
         backgroundColor: lightSurfaceAlt,
         selectedColor: deepGold,
@@ -409,7 +390,6 @@ class AppTheme {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
-
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.all(Colors.white),
         trackColor: WidgetStateProperty.resolveWith((states) {
@@ -419,13 +399,11 @@ class AppTheme {
           return Colors.grey.shade300;
         }),
       ),
-
       dividerTheme: DividerThemeData(
         color: champagne.withValues(alpha: 0.7),
         thickness: 1,
         space: 1,
       ),
-
       textTheme: const TextTheme(
         headlineSmall: TextStyle(color: lightText, fontWeight: FontWeight.w800),
         titleLarge: TextStyle(color: lightText, fontWeight: FontWeight.w800),

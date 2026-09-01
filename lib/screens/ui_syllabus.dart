@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../services/svc_Syllabus_Coverage.dart';
+import '../services/svc_syllabus_coverage.dart';
 
 class SyllabusScreen extends StatefulWidget {
   const SyllabusScreen({super.key});
@@ -69,7 +69,7 @@ class _SyllabusScreenState extends State<SyllabusScreen> {
 
     final subjects =
         (_overallCoverage!['subjects'] as List<Map<String, Object?>>?) ??
-        <Map<String, Object?>>[];
+            <Map<String, Object?>>[];
 
     if (subjects.isEmpty) {
       return RefreshIndicator(
@@ -199,8 +199,7 @@ class _SyllabusScreenState extends State<SyllabusScreen> {
     final subjectName =
         subject['subjectName']?.toString().trim() ?? subjectCode;
 
-    final chapters =
-        (subject['chapters'] as List<Map<String, Object?>>?) ??
+    final chapters = (subject['chapters'] as List<Map<String, Object?>>?) ??
         <Map<String, Object?>>[];
 
     final completedTopics = _asInt(subject['completedTopics']);
@@ -465,14 +464,14 @@ class _SyllabusScreenState extends State<SyllabusScreen> {
     final background = completed
         ? color.withValues(alpha: .10)
         : active
-        ? color.withValues(alpha: .07)
-        : Colors.grey.withValues(alpha: .07);
+            ? color.withValues(alpha: .07)
+            : Colors.grey.withValues(alpha: .07);
 
     final icon = completed
         ? Icons.check_rounded
         : active
-        ? Icons.circle
-        : Icons.circle_outlined;
+            ? Icons.circle
+            : Icons.circle_outlined;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
@@ -557,7 +556,7 @@ class _SyllabusScreenState extends State<SyllabusScreen> {
 
     final index =
         subjectCode.codeUnits.fold<int>(0, (sum, value) => sum + value) %
-        colors.length;
+            colors.length;
 
     return colors[index];
   }

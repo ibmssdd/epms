@@ -31,9 +31,8 @@ class StatusTopicService {
   ) async {
     final db = await _db.database;
 
-    return db
-        .rawQuery(
-          '''
+    return db.rawQuery(
+      '''
       SELECT
           TopicID,
           TopicChapterName
@@ -46,44 +45,43 @@ class StatusTopicService {
       ORDER BY
           TopicID ASC
       ''',
-          ['${subjectCode.trim()}-%'],
-        )
-        .then((rows) {
-          final result = <Map<String, Object?>>[];
-          final seen = <String>{};
+      ['${subjectCode.trim()}-%'],
+    ).then((rows) {
+      final result = <Map<String, Object?>>[];
+      final seen = <String>{};
 
-          for (final row in rows) {
-            final topicId = row['TopicID']?.toString() ?? '';
-            final chapterName = row['TopicChapterName']?.toString() ?? '';
+      for (final row in rows) {
+        final topicId = row['TopicID']?.toString() ?? '';
+        final chapterName = row['TopicChapterName']?.toString() ?? '';
 
-            if (topicId.isEmpty) continue;
+        if (topicId.isEmpty) continue;
 
-            final parts = topicId.split('-');
+        final parts = topicId.split('-');
 
-            if (parts.length < 3) continue;
+        if (parts.length < 3) continue;
 
-            if (parts[0] != subjectCode.trim()) {
-              continue;
-            }
+        if (parts[0] != subjectCode.trim()) {
+          continue;
+        }
 
-            final chapterCode = parts[1];
+        final chapterCode = parts[1];
 
-            if (chapterCode.isEmpty) continue;
+        if (chapterCode.isEmpty) continue;
 
-            if (seen.contains(chapterCode)) {
-              continue;
-            }
+        if (seen.contains(chapterCode)) {
+          continue;
+        }
 
-            seen.add(chapterCode);
+        seen.add(chapterCode);
 
-            result.add({
-              'chapterCode': chapterCode,
-              'chapterName': chapterName,
-            });
-          }
-
-          return result;
+        result.add({
+          'chapterCode': chapterCode,
+          'chapterName': chapterName,
         });
+      }
+
+      return result;
+    });
   }
 
   /// Returns ALL usable topics belonging to one existing chapter.
@@ -281,15 +279,18 @@ class StatusTopicService {
     required String topicName,
     required String chapterName,
   }) async {
-    return txn.insert('db_StatusTopics', {
-      'TopicID': topicId,
-      'TopicLastLecNo': 0,
-      'TopicStartDate': null,
-      'TopicEndDate': null,
-      'TopicState': 'Pending',
-      'TopicChapterName': chapterName,
-      'TopicName': topicName,
-    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+    return txn.insert(
+        'db_StatusTopics',
+        {
+          'TopicID': topicId,
+          'TopicLastLecNo': 0,
+          'TopicStartDate': null,
+          'TopicEndDate': null,
+          'TopicState': 'Pending',
+          'TopicChapterName': chapterName,
+          'TopicName': topicName,
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
   /// Creates all StatusTopic records for a new chapter.
@@ -525,15 +526,18 @@ class StatusTopicService {
     required String topicName,
     required String chapterName,
   }) async {
-    await txn.insert('db_StatusTopics', {
-      'TopicID': topicId,
-      'TopicLastLecNo': 0,
-      'TopicStartDate': null,
-      'TopicEndDate': null,
-      'TopicState': 'Pending',
-      'TopicChapterName': chapterName,
-      'TopicName': topicName,
-    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+    await txn.insert(
+        'db_StatusTopics',
+        {
+          'TopicID': topicId,
+          'TopicLastLecNo': 0,
+          'TopicStartDate': null,
+          'TopicEndDate': null,
+          'TopicState': 'Pending',
+          'TopicChapterName': chapterName,
+          'TopicName': topicName,
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
   Future<void> ensureChapterTopics(
@@ -575,9 +579,8 @@ class StatusTopicService {
         txn,
         topicId: topicId,
         topicName: topicName,
-        chapterName: syllabusChapterName.isEmpty
-            ? chapterName
-            : syllabusChapterName,
+        chapterName:
+            syllabusChapterName.isEmpty ? chapterName : syllabusChapterName,
       );
     }
   }

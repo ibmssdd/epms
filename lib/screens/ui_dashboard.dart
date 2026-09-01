@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../models/mo_task.dart';
 import '../models/mo_task_group.dart';
-import '../services/svc_Milestones.dart';
-import '../services/svc_Task_Generator_Revision.dart';
-import '../services/svc_Syllabus_Coverage.dart';
-import '../services/svc_Tasks_Enquiry.dart';
+import '../services/svc_milestones.dart';
+import '../services/svc_task_generator_revision.dart';
+import '../services/svc_syllabus_coverage.dart';
+import '../services/svc_tasks_enquiry.dart';
 import '../database/app_database.dart';
 import '../widgets/wn_left_navigation.dart';
-import 'ui_Tasks.dart';
-import 'ui_Lectures.dart';
-import 'ui_Syllabus.dart';
+import 'ui_tasks.dart';
+import 'ui_lectures.dart';
+import 'ui_syllabus.dart';
 import 'ui_milestones.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -102,8 +102,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final id = row['TaskID']?.toString().trim() ?? '';
         final description = row['TaskDescription']?.toString().trim() ?? '';
 
-        final status = (row['TaskStatus']?.toString() ?? 'PENDING')
-            .toUpperCase();
+        final status =
+            (row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase();
 
         if (status == 'CANCELLED' || status == 'CANCELLED / NOT REQUIRED') {
           continue;
@@ -117,8 +117,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       }
       // NEW: milestone count from MilestoneCalendarSvc
       final milestoneSvc = MilestoneCalendarSvc(db);
-      final milestoneCount = await milestoneSvc
-          .getNextAvailableMilestoneTaskCount();
+      final milestoneCount =
+          await milestoneSvc.getNextAvailableMilestoneTaskCount();
 
       if (!mounted) return;
 
@@ -157,8 +157,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       for (final row in rows) {
         final id = row['TaskID']?.toString().trim() ?? '';
         final description = row['TaskDescription']?.toString().trim() ?? '';
-        final status = (row['TaskStatus']?.toString() ?? 'PENDING')
-            .toUpperCase();
+        final status =
+            (row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase();
         if (status == 'CANCELLED' || status == 'CANCELLED / NOT REQUIRED') {
           continue;
         }
@@ -172,8 +172,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // ----------------------------------------------------------
       // MILESTONE TASK COUNT
       final milestoneSvc = MilestoneCalendarSvc(db);
-      final milestoneCount = await milestoneSvc
-          .getNextAvailableMilestoneTaskCount();
+      final milestoneCount =
+          await milestoneSvc.getNextAvailableMilestoneTaskCount();
       // ----------------------------------------------------------
       if (!mounted) return;
 
@@ -249,15 +249,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return null;
     }
 
-    final status = switch ((row['TaskStatus']?.toString() ?? 'PENDING')
-        .toUpperCase()) {
+    final status =
+        switch ((row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase()) {
       'IN_PROGRESS' || 'STARTED' => TaskStatus.started,
-
       'COMPLETED' => TaskStatus.completed,
-
       'CANCELLED' ||
-      'CANCELLED / NOT REQUIRED' => TaskStatus.cancelledNotRequired,
-
+      'CANCELLED / NOT REQUIRED' =>
+        TaskStatus.cancelledNotRequired,
       _ => TaskStatus.pending,
     };
 
@@ -924,9 +922,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-
       itemCount: 6,
-
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 7,
@@ -934,9 +930,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         // For virtual emulator
         mainAxisExtent: 78,
         // For  Tanu Tab SM 200
-        //        mainAxisExtent: 90,
+        //       mainAxisExtent: 90,
       ),
-
       itemBuilder: (_, index) {
         switch (index) {
           case 0:
@@ -1057,9 +1052,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       )
                     : Icon(icon, color: gold, size: 15),
               ),
-
               const SizedBox(width: 7),
-
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1078,9 +1071,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       )
                     else
                       const SizedBox(height: 20),
-
                     const SizedBox(height: 1),
-
                     Text(
                       label,
                       maxLines: 2,
@@ -1094,9 +1085,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
               ),
-
               if (showChevron) const SizedBox(width: 2),
-
               if (showChevron)
                 Icon(
                   Icons.chevron_right_rounded,
@@ -1154,7 +1143,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final subjects =
         (_syllabusCoverage!['subjects'] as List<Map<String, Object?>>?) ??
-        <Map<String, Object?>>[];
+            <Map<String, Object?>>[];
 
     final overallProgress = _asDouble(_syllabusCoverage!['progress']);
 
@@ -1269,9 +1258,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 child: Icon(icon, color: gold, size: 15),
               ),
-
               const SizedBox(width: 7),
-
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1312,9 +1299,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
               ),
-
               const SizedBox(width: 2),
-
               Icon(
                 Icons.chevron_right_rounded,
                 size: 15,
@@ -1400,7 +1385,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildUpcomingSundaySection(context),
-
             const SizedBox(height: 9),
             _buildActiveWorkspaceSection(context),
             const SizedBox(height: 9),
@@ -1476,9 +1460,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             fontWeight: FontWeight.w800,
           ),
         ),
-
         const SizedBox(height: 6),
-
         ..._upcomingMilestones.map(
           (milestone) => _buildMilestoneRow(context, milestone),
         ),
@@ -1501,8 +1483,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return const SizedBox.shrink();
     }
 
-    final rawDate =
-        milestone['milestone_date'] ??
+    final rawDate = milestone['milestone_date'] ??
         milestone['MilestoneDate'] ??
         milestone['date'] ??
         milestone['Date'];
@@ -1538,15 +1519,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           'Sunday',
         ];
 
-        dateText =
-            '${weekdays[date.weekday - 1]}, '
+        dateText = '${weekdays[date.weekday - 1]}, '
             '${date.day.toString().padLeft(2, '0')}-'
             '${months[date.month - 1]}-${date.year}';
       }
     }
 
-    final milestoneName =
-        milestone['milestone_name']?.toString() ??
+    final milestoneName = milestone['milestone_name']?.toString() ??
         milestone['MilestoneName']?.toString() ??
         milestone['name']?.toString() ??
         '';
@@ -1596,9 +1575,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 fontWeight: FontWeight.w800,
               ),
             ),
-
           const SizedBox(height: 5),
-
           if (children.isEmpty)
             Text(
               'No chapter scope defined.',
@@ -1663,9 +1640,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
           ),
-
           const SizedBox(width: 4),
-
           Expanded(
             child: Text(
               chapters,

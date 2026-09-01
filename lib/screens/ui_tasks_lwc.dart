@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../database/app_database.dart';
 import '../models/mo_task.dart';
 import '../models/mo_task_group.dart';
-import '../services/svc_Task_Generator_Revision.dart';
-import '../services/svc_Status_Task_Activity.dart';
+import '../services/svc_task_generator_revision.dart';
+import '../services/svc_status_task_activity.dart';
 import '../services/svc_Milestones.dart';
 
 class TasksScreen extends StatefulWidget {
@@ -12,9 +12,7 @@ class TasksScreen extends StatefulWidget {
   final ValueChanged<Task> onTaskUpdated;
   final ValueChanged<Task>? onTaskStateChanged;
   final TaskGroup? initialExpandedGroup;
-  // ==========================================================================
 
-  // ==========================================================================
   final Future<List<Map<String, Object?>>> Function()? onGenerateRevisionTasks;
 
   const TasksScreen({
@@ -30,22 +28,29 @@ class TasksScreen extends StatefulWidget {
   State<TasksScreen> createState() => _TasksScreenState();
 }
 
-//enum _TasksWorkspaceMode { todaysTasks, inProgressTasks, revisionTasks }
-enum _TasksWorkspaceMode { todaysTasks, revisionTasks, milestoneTasks }
-//enum _TasksWorkspaceMode { todaysTasks, revisionTasks }
+enum _TasksWorkspaceMode {
+  todaysTasks,
+  revisionTasks,
+  milestoneTasks,
+}
 
 class _TasksScreenState extends State<TasksScreen> {
-  // ==========================================================================
-  // WORKSPACE
-  // ==========================================================================
+// ==========================================================================
+// WORKSPACE
+// ==========================================================================
+
   TaskGroup _selectedGroup = TaskGroup.dueToday;
   _TasksWorkspaceMode _mode = _TasksWorkspaceMode.todaysTasks;
+
   String? _expandedTaskId;
   Future<void> Function()? _commitExpandedTask;
 
-  // ==========================================================================
-  // REVISION GENERATION
-  // ==========================================================================
+  final Map<String, ({String chapterName, String topicName})> _taskTopicNames =
+      {};
+
+// ==========================================================================
+// REVISION GENERATION
+// ==========================================================================
 
   bool _generating = false;
   bool _revisionViewLoading = false;
@@ -54,19 +59,74 @@ class _TasksScreenState extends State<TasksScreen> {
 
   bool _todayRevisionExpanded = true;
   bool _previousRevisionExpanded = false;
-  // ==========================================================================
-  // MILESTONE TASKS
-  // ==========================================================================
+
+  Future<void> _loadTaskTopicName(Task task) async {
+    final id = task.id;
+
+    if (!id.startsWith('WD_') && !id.startsWith('REV_')) {
+      return;
+    }
+
+    final match = RegExp(
+      r'^(?:WD|REV)_([A-Za-z]+-Ch\d+-T\d+)',
+      caseSensitive: false,
+    ).firstMatch(id);
+
+    if (match == null) {
+      return;
+    }
+
+    final topicId = match.group(1)!;
+
+    try {
+      final db = await AppDatabase.instance.database;
+
+      final rows = await db.query(
+        'db_StatusTopics',
+        columns: [
+          'TopicChapterName',
+          'TopicName',
+        ],
+        where: 'TopicID = ?',
+        whereArgs: [topicId],
+        limit: 1,
+      );
+
+      if (rows.isEmpty || !mounted) {
+        return;
+      }
+
+      final row = rows.first;
+
+      setState(() {
+        _taskTopicNames[id] = (
+          chapterName: row['TopicChapterName']?.toString().trim() ?? '',
+          topicName: row['TopicName']?.toString().trim() ?? '',
+        );
+      });
+    } catch (_) {
+// Keep the task UI working even if lookup fails.
+    }
+  }
+
+// ==========================================================================
+// MILESTONE TASKS
+// ==========================================================================
+
   bool _milestoneTasksLoading = false;
   bool _milestoneTasksCreationRequired = false;
+
   List<Map<String, Object?>> _openMilestoneTasks = const [];
+
   bool _previousMilestoneExpanded = false;
   bool _upcomingMilestoneExpanded = true;
   bool _futureMilestoneExpanded = false;
+
   String? _milestoneError;
 
   List<Map<String, Object?>> _milestoneRows = const [];
   bool _milestoneViewLoading = false;
+
   final Map<String, bool> _milestoneExpanded = {};
 
   bool _isTodaySunday() {
@@ -80,18 +140,22 @@ class _TasksScreenState extends State<TasksScreen> {
     List<Map<String, Object?>> previous,
     List<Map<String, Object?>> upcoming,
     List<Map<String, Object?>> future,
-  })
-  _buildMilestoneTaskGroups() {
+  }) _buildMilestoneTaskGroups() {
     final today = DateUtils.dateOnly(DateTime.now());
+
     DateTime? dateFromRow(Map<String, Object?> row) {
       final value = row['TaskDueDate']?.toString();
+
       if (value == null || value.isEmpty) {
         return null;
       }
+
       final parsed = DateTime.tryParse(value);
+
       if (parsed == null) {
         return null;
       }
+
       return DateUtils.dateOnly(parsed);
     }
 
@@ -101,9 +165,11 @@ class _TasksScreenState extends State<TasksScreen> {
 
     for (final row in _openMilestoneTasks) {
       final date = dateFromRow(row);
+
       if (date == null) {
         continue;
       }
+
       if (date.isBefore(today)) {
         previous.add(row);
       } else if (date == today) {
@@ -112,7 +178,12 @@ class _TasksScreenState extends State<TasksScreen> {
         future.add(row);
       }
     }
-    return (previous: previous, upcoming: upcoming, future: future);
+
+    return (
+      previous: previous,
+      upcoming: upcoming,
+      future: future,
+    );
   }
 
   Future<void> _loadMilestoneTasksView() async {
@@ -133,10 +204,8 @@ class _TasksScreenState extends State<TasksScreen> {
       final db = await AppDatabase.instance.database;
       final milestoneSvc = MilestoneCalendarSvc(db);
 
-      // 1. Check whether milestone task creation is required.
       final creationRequired = await milestoneSvc.tasksCreationRequired();
 
-      // 2. Get all currently open milestone tasks.
       final rows = await milestoneSvc.getAllOpenMTasks();
 
       if (!mounted) {
@@ -146,7 +215,6 @@ class _TasksScreenState extends State<TasksScreen> {
       setState(() {
         _milestoneTasksCreationRequired = creationRequired;
 
-        // Keep both in sync.
         _openMilestoneTasks = rows;
         _milestoneRows = rows;
 
@@ -170,7 +238,12 @@ class _TasksScreenState extends State<TasksScreen> {
   @override
   void initState() {
     super.initState();
+
     _selectedGroup = widget.initialExpandedGroup ?? TaskGroup.dueToday;
+
+    for (final task in widget.tasks) {
+      _loadTaskTopicName(task);
+    }
   }
 
   @override
@@ -180,11 +253,19 @@ class _TasksScreenState extends State<TasksScreen> {
     if (oldWidget.initialExpandedGroup != widget.initialExpandedGroup) {
       _selectedGroup = widget.initialExpandedGroup ?? TaskGroup.dueToday;
     }
+
+    if (oldWidget.tasks != widget.tasks) {
+      for (final task in widget.tasks) {
+        if (!_taskTopicNames.containsKey(task.id)) {
+          _loadTaskTopicName(task);
+        }
+      }
+    }
   }
 
-  // ==========================================================================
-  // TASK FILTERING
-  // ==========================================================================
+// ==========================================================================
+// TASK FILTERING
+// ==========================================================================
 
   List<Task> _tasksFor(TaskGroup group) {
     final today = DateUtils.dateOnly(DateTime.now());
@@ -192,28 +273,23 @@ class _TasksScreenState extends State<TasksScreen> {
     return widget.tasks.where((task) {
       final due = DateUtils.dateOnly(task.dueDate);
 
-      final active =
-          task.status == TaskStatus.pending ||
+      final active = task.status == TaskStatus.pending ||
           task.status == TaskStatus.started;
 
       return switch (group) {
         TaskGroup.dueToday => due == today && active,
-
         TaskGroup.pastDue => due.isBefore(today) && active,
-
         TaskGroup.inProgress =>
           task.status == TaskStatus.started && !due.isAfter(today),
-
-        TaskGroup.completed =>
-          task.status == TaskStatus.completed ||
-              task.status == TaskStatus.cancelledNotRequired,
+        TaskGroup.completed => task.status == TaskStatus.completed ||
+            task.status == TaskStatus.cancelledNotRequired,
       };
     }).toList();
   }
 
-  // ==========================================================================
-  // GROUP PRESENTATION
-  // ==========================================================================
+// ==========================================================================
+// GROUP PRESENTATION
+// ==========================================================================
 
   String _groupLabel(TaskGroup group) {
     return switch (group) {
@@ -233,36 +309,41 @@ class _TasksScreenState extends State<TasksScreen> {
     };
   }
 
-  Color _groupForeground(BuildContext context, TaskGroup group) {
-    final colors = Theme.of(context).colorScheme;
-
+  Color _groupForeground(
+    BuildContext context,
+    TaskGroup group,
+  ) {
     return switch (group) {
       TaskGroup.inProgress => const Color(0xFF35D27F),
       TaskGroup.dueToday => const Color(0xFFFFB52E),
-      //         TaskGroup.pastDue    => colors.error,
       TaskGroup.pastDue => const Color(0xFFFF5C5C),
       TaskGroup.completed => const Color(0xFF8E9AAF),
     };
   }
 
-  Color _groupBackground(BuildContext context, TaskGroup group, bool selected) {
+  Color _groupBackground(
+    BuildContext context,
+    TaskGroup group,
+    bool selected,
+  ) {
     final colors = Theme.of(context).colorScheme;
 
     final foreground = _groupForeground(context, group);
 
     return Color.alphaBlend(
-      foreground.withValues(alpha: selected ? .30 : .18),
+      foreground.withValues(
+        alpha: selected ? .30 : .18,
+      ),
       colors.surface,
     );
   }
 
-  // ==========================================================================
-  // STATUS
-  // ==========================================================================
+// ==========================================================================
+// STATUS
+// ==========================================================================
 
   bool _isFuture(Task task) {
     final today = DateUtils.dateOnly(DateTime.now());
-
     final due = DateUtils.dateOnly(task.dueDate);
 
     return due.isAfter(today);
@@ -290,8 +371,7 @@ class _TasksScreenState extends State<TasksScreen> {
 
       final date = DateUtils.dateOnly(task.dueDate);
 
-      final key =
-          '${date.year.toString().padLeft(4, '0')}-'
+      final key = '${date.year.toString().padLeft(4, '0')}-'
           '${date.month.toString().padLeft(2, '0')}-'
           '${date.day.toString().padLeft(2, '0')}';
 
@@ -301,26 +381,25 @@ class _TasksScreenState extends State<TasksScreen> {
     return grouped;
   }
 
-  // ==========================================================================
-  // MANUAL TASK STATUS CHANGE
-  // ==========================================================================
+// ==========================================================================
+// MANUAL TASK STATUS CHANGE
+// ==========================================================================
 
-  Future<void> _changeStatus(Task task, TaskStatus next) async {
+  Future<void> _changeStatus(
+    Task task,
+    TaskStatus next,
+  ) async {
     if (!_canChange(task)) {
       return;
     }
 
     final valid = switch (task.status) {
-      TaskStatus.pending =>
-        next == TaskStatus.started ||
-            next == TaskStatus.completed ||
-            next == TaskStatus.cancelledNotRequired,
-
+      TaskStatus.pending => next == TaskStatus.started ||
+          next == TaskStatus.completed ||
+          next == TaskStatus.cancelledNotRequired,
       TaskStatus.started =>
         next == TaskStatus.completed || next == TaskStatus.cancelledNotRequired,
-
       TaskStatus.completed => false,
-
       TaskStatus.cancelledNotRequired => false,
     };
 
@@ -335,14 +414,19 @@ class _TasksScreenState extends State<TasksScreen> {
       await TaskActivityStatusSvc(db).deleteForTask(task.id);
     }
 
-    widget.onTaskUpdated(task.copyWith(status: next));
+    widget.onTaskUpdated(
+      task.copyWith(status: next),
+    );
   }
 
-  // ==========================================================================
-  // EXPANDED TASK COORDINATION
-  // ==========================================================================
+// ==========================================================================
+// EXPANDED TASK COORDINATION
+// ==========================================================================
 
-  void _registerCommit(String taskId, Future<void> Function() commit) {
+  void _registerCommit(
+    String taskId,
+    Future<void> Function() commit,
+  ) {
     if (_expandedTaskId == taskId) {
       _commitExpandedTask = commit;
     }
@@ -408,9 +492,9 @@ class _TasksScreenState extends State<TasksScreen> {
     });
   }
 
-  // ==========================================================================
-  // REVISION GENERATION DATABASE STATE
-  // ==========================================================================
+// ==========================================================================
+// REVISION GENERATION DATABASE STATE
+// ==========================================================================
 
   Future<void> _loadRevisionGenerationView() async {
     if (_revisionViewLoading) {
@@ -459,29 +543,30 @@ class _TasksScreenState extends State<TasksScreen> {
     }
   }
 
-  // ==========================================================================
-  // BUILD
-  // ==========================================================================
+// ==========================================================================
+// BUILD
+// ==========================================================================
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(4, 0, 4, 12),
+      padding: const EdgeInsets.fromLTRB(
+        4,
+        0,
+        4,
+        12,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildModeSelector(context),
-
           const SizedBox(height: 8),
           switch (_mode) {
             _TasksWorkspaceMode.todaysTasks => _buildStatusWorkspace(context),
-            //                      _TasksWorkspaceMode.inProgressTasks => _buildInProgressPanel(context,),
-            _TasksWorkspaceMode.revisionTasks => _buildRevisionTasksPanel(
-              context,
-            ),
-            _TasksWorkspaceMode.milestoneTasks => _buildMilestoneTasksPanel(
-              context,
-            ),
+            _TasksWorkspaceMode.revisionTasks =>
+              _buildRevisionTasksPanel(context),
+            _TasksWorkspaceMode.milestoneTasks =>
+              _buildMilestoneTasksPanel(context),
           },
         ],
       ),
@@ -513,7 +598,7 @@ class _TasksScreenState extends State<TasksScreen> {
       }
 
       setState(() {
-        _milestoneRows = rows ?? const [];
+        _milestoneRows = rows;
         _milestoneViewLoading = false;
       });
     } catch (_) {
@@ -528,11 +613,13 @@ class _TasksScreenState extends State<TasksScreen> {
     }
   }
 
-  // ==========================================================================
-  // STATUS WORKSPACE
-  // ==========================================================================
+// ==========================================================================
+// STATUS WORKSPACE
+// ==========================================================================
 
-  Widget _buildStatusWorkspace(BuildContext context) {
+  Widget _buildStatusWorkspace(
+    BuildContext context,
+  ) {
     return Column(
       children: [
         _buildStatusCards(context),
@@ -542,7 +629,9 @@ class _TasksScreenState extends State<TasksScreen> {
     );
   }
 
-  Widget _buildSelectedGroup(BuildContext context) {
+  Widget _buildSelectedGroup(
+    BuildContext context,
+  ) {
     final group = _selectedGroup;
     final items = _tasksFor(group);
 
@@ -554,10 +643,17 @@ class _TasksScreenState extends State<TasksScreen> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 13,
+              vertical: 9,
+            ),
             child: Row(
               children: [
-                Icon(_groupIcon(group), size: 19, color: foreground),
+                Icon(
+                  _groupIcon(group),
+                  size: 19,
+                  color: foreground,
+                ),
                 const SizedBox(width: 7),
                 Expanded(
                   child: Text(
@@ -594,7 +690,19 @@ class _TasksScreenState extends State<TasksScreen> {
                   _TaskRow(
                     key: ValueKey(task.id),
                     task: task,
+
+// =========================================================
+// NEW:
+// Use the task group's subtle background when expanded.
+// =========================================================
+                    expandedBackground: _groupBackground(
+                      context,
+                      group,
+                      false,
+                    ),
+
                     expanded: _expandedTaskId == task.id,
+
                     onExpand: _expandTask,
                     onCollapse: _collapseTask,
                     registerCommit: _registerCommit,
@@ -609,11 +717,13 @@ class _TasksScreenState extends State<TasksScreen> {
     );
   }
 
-  // ==========================================================================
-  // STATUS CARDS
-  // ==========================================================================
+// ==========================================================================
+// STATUS CARDS
+// ==========================================================================
 
-  Widget _buildStatusCards(BuildContext context) {
+  Widget _buildStatusCards(
+    BuildContext context,
+  ) {
     final groups = [
       TaskGroup.inProgress,
       TaskGroup.dueToday,
@@ -626,7 +736,12 @@ class _TasksScreenState extends State<TasksScreen> {
       child: Row(
         children: [
           for (var i = 0; i < groups.length; i++) ...[
-            Expanded(child: _buildStatusCard(context, groups[i])),
+            Expanded(
+              child: _buildStatusCard(
+                context,
+                groups[i],
+              ),
+            ),
             if (i < groups.length - 1) const SizedBox(width: 7),
           ],
         ],
@@ -634,10 +749,20 @@ class _TasksScreenState extends State<TasksScreen> {
     );
   }
 
-  Widget _buildStatusCard(BuildContext context, TaskGroup group) {
+  Widget _buildStatusCard(
+    BuildContext context,
+    TaskGroup group,
+  ) {
     final selected = _selectedGroup == group;
+
     final foreground = _groupForeground(context, group);
-    final background = _groupBackground(context, group, selected);
+
+    final background = _groupBackground(
+      context,
+      group,
+      selected,
+    );
+
     final count = _tasksFor(group).length;
 
     return Material(
@@ -661,20 +786,29 @@ class _TasksScreenState extends State<TasksScreen> {
         },
         child: Ink(
           height: 68,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 6,
+          ),
           decoration: BoxDecoration(
             color: background,
             borderRadius: BorderRadius.circular(11),
             border: Border.all(
               color: selected
-                  ? foreground.withValues(alpha: .85)
-                  : foreground.withValues(alpha: .20),
+                  ? foreground.withValues(
+                      alpha: .85,
+                    )
+                  : foreground.withValues(
+                      alpha: .20,
+                    ),
               width: selected ? 1.6 : 1,
             ),
             boxShadow: selected
                 ? [
                     BoxShadow(
-                      color: foreground.withValues(alpha: .14),
+                      color: foreground.withValues(
+                        alpha: .14,
+                      ),
                       blurRadius: 8,
                     ),
                   ]
@@ -686,7 +820,11 @@ class _TasksScreenState extends State<TasksScreen> {
             children: [
               Row(
                 children: [
-                  Icon(_groupIcon(group), size: 17, color: foreground),
+                  Icon(
+                    _groupIcon(group),
+                    size: 17,
+                    color: foreground,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
@@ -718,11 +856,13 @@ class _TasksScreenState extends State<TasksScreen> {
     );
   }
 
-  // ==========================================================================
-  // MODE SELECTOR
-  // ==========================================================================
+// ==========================================================================
+// MODE SELECTOR
+// ==========================================================================
 
-  Widget _buildModeSelector(BuildContext context) {
+  Widget _buildModeSelector(
+    BuildContext context,
+  ) {
     return Card(
       elevation: 0,
       child: Padding(
@@ -737,16 +877,6 @@ class _TasksScreenState extends State<TasksScreen> {
                 _TasksWorkspaceMode.todaysTasks,
               ),
             ),
-
-            //                        const SizedBox(width: 5),
-            //                        Expanded(
-            //                            child: _modeButton(
-            //                                context,
-            //                               'In-Progress',
-            //                                Icons.play_circle_outline,
-            //                                _TasksWorkspaceMode.inProgressTasks,
-            //                            ),
-            //                        ),
             const SizedBox(width: 5),
             Expanded(
               child: _modeButton(
@@ -778,7 +908,9 @@ class _TasksScreenState extends State<TasksScreen> {
     _TasksWorkspaceMode mode,
   ) {
     final selected = _mode == mode;
+
     final colors = Theme.of(context).colorScheme;
+
     return Material(
       color: selected ? colors.primaryContainer : Colors.transparent,
       borderRadius: BorderRadius.circular(8),
@@ -789,12 +921,16 @@ class _TasksScreenState extends State<TasksScreen> {
             if (mode == _TasksWorkspaceMode.revisionTasks) {
               await _loadRevisionGenerationView();
             }
+
             if (mode == _TasksWorkspaceMode.milestoneTasks) {
               await _loadMilestoneTasksView();
             }
+
             return;
           }
+
           await _leaveExpandedTask();
+
           if (!mounted) {
             return;
           }
@@ -802,15 +938,20 @@ class _TasksScreenState extends State<TasksScreen> {
           setState(() {
             _mode = mode;
           });
+
           if (mode == _TasksWorkspaceMode.revisionTasks) {
             await _loadRevisionGenerationView();
           }
+
           if (mode == _TasksWorkspaceMode.milestoneTasks) {
             await _loadMilestoneTasksView();
           }
         },
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 8),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 7,
+            vertical: 8,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -844,76 +985,15 @@ class _TasksScreenState extends State<TasksScreen> {
     );
   }
 
-  // ==========================================================================
-  // IN-PROGRESS PANEL
-  // ==========================================================================
+// ==========================================================================
+// REVISION TASKS PANEL
+// ==========================================================================
 
-  //    Widget _buildInProgressPanel(BuildContext context) {
-  //        final items = _tasksFor(TaskGroup.inProgress);
-  //
-  //        return Card(
-  //            color: Theme.of(context).colorScheme.surfaceContainerLow,
-  //            child: Column(
-  //                children: [
-  //                    Padding(
-  //                        padding: const EdgeInsets.all(12),
-  //                        child: Row(
-  //                            children: [
-  //                                const Icon(Icons.play_circle_outline, size: 19),
-  //                                const SizedBox(width: 7),
-  //                                const Text(
-  //                                    'In-Progress Tasks',                                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-  //                                ),
-  //                                const Spacer(),
-  //                                Text(
-  //                                    '${items.length}',
-  //                                    style: const TextStyle(
-  //                                        fontSize: 11,
-  //                                        fontWeight: FontWeight.w800,
-  //                                   ),
-  //                               ),
-  //                           ],
-  //                       ),
-  //                   ),
-  //                    if (items.isEmpty)
-  //                        const Padding(
-  //                            padding: EdgeInsets.all(16),
-  //                            child: Text(
-  //                                'No tasks are currently in progress.',
-  //                                style: TextStyle(fontSize: 12),
-  //                            ),
-  //                        )
-  //                    else
-  //                        Column(
-  //                            children: [
-  //                                for (final task in items)
-  //                                    _TaskRow(
-  //                                        key: ValueKey(task.id),
-  //                                        task: task,
-  //                                        expanded: _expandedTaskId == task.id,
-  //                                        onExpand: _expandTask,
-  //                                        onCollapse: _collapseTask,
-  //                                        registerCommit: _registerCommit,
-  //                                        onChangeStatus: _changeStatus,
-  //                                        onTaskStateChanged: widget.onTaskStateChanged,
-  //                                        onTaskUpdated: widget.onTaskUpdated,
-  //                                    ),
-  //                            ],
-  //                        ),
-  //               ],
-  //            ),
-  //        );
-  //    }
-  // ==========================================================================
-  // ==========================================================================
-  // REVISION TASKS PANEL
-  // ==========================================================================
-
-  Widget _buildRevisionTasksPanel(BuildContext context) {
-    final todayTasks = _todayRevisionRows
-        .map(_taskFromRevisionRow)
-        .whereType<Task>()
-        .toList();
+  Widget _buildRevisionTasksPanel(
+    BuildContext context,
+  ) {
+    final todayTasks =
+        _todayRevisionRows.map(_taskFromRevisionRow).whereType<Task>().toList();
 
     final previousTasks = _previousRevisionRows
         .map(_taskFromRevisionRow)
@@ -923,9 +1003,6 @@ class _TasksScreenState extends State<TasksScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ----------------------------------------------------------------------
-        // ONLY SHOW GENERATION CARD WHEN TODAY'S TASKS DO NOT EXIST.
-        // ----------------------------------------------------------------------
         if (!_revisionGeneratedToday) ...[
           Card(
             child: Padding(
@@ -937,7 +1014,9 @@ class _TasksScreenState extends State<TasksScreen> {
                     children: [
                       Icon(
                         Icons.auto_awesome_outlined,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary,
                       ),
                       const SizedBox(width: 7),
                       const Text(
@@ -959,9 +1038,14 @@ class _TasksScreenState extends State<TasksScreen> {
                           ? const SizedBox(
                               width: 16,
                               height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
                             )
-                          : const Icon(Icons.play_arrow_rounded, size: 18),
+                          : const Icon(
+                              Icons.play_arrow_rounded,
+                              size: 18,
+                            ),
                       label: Text(
                         _generating
                             ? 'Generating...'
@@ -972,7 +1056,9 @@ class _TasksScreenState extends State<TasksScreen> {
                   const SizedBox(height: 6),
                   const Text(
                     'Please generate today\'s tasks.',
-                    style: TextStyle(fontSize: 10.5),
+                    style: TextStyle(
+                      fontSize: 10.5,
+                    ),
                   ),
                 ],
               ),
@@ -980,10 +1066,6 @@ class _TasksScreenState extends State<TasksScreen> {
           ),
           const SizedBox(height: 10),
         ],
-
-        // ----------------------------------------------------------------------
-        // LOADING
-        // ----------------------------------------------------------------------
         if (_revisionViewLoading)
           const Card(
             child: Padding(
@@ -992,15 +1074,13 @@ class _TasksScreenState extends State<TasksScreen> {
                 child: SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
                 ),
               ),
             ),
           ),
-
-        // ----------------------------------------------------------------------
-        // TODAY'S TASKS
-        // ----------------------------------------------------------------------
         if (!_revisionViewLoading && _revisionGeneratedToday)
           _buildRevisionSection(
             context,
@@ -1015,12 +1095,7 @@ class _TasksScreenState extends State<TasksScreen> {
               });
             },
           ),
-
         if (!_revisionViewLoading) const SizedBox(height: 8),
-
-        // ----------------------------------------------------------------------
-        // PREVIOUSLY GENERATED TASKS
-        // ----------------------------------------------------------------------
         if (!_revisionViewLoading)
           _buildRevisionSection(
             context,
@@ -1035,19 +1110,19 @@ class _TasksScreenState extends State<TasksScreen> {
               });
             },
           ),
-
-        // ----------------------------------------------------------------------
-        // ERROR
-        // ----------------------------------------------------------------------
         if (!_generating && _generationError != null)
           Padding(
-            padding: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.only(
+              top: 8,
+            ),
             child: Card(
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Text(
                   _generationError!,
-                  style: const TextStyle(fontSize: 10.5),
+                  style: const TextStyle(
+                    fontSize: 10.5,
+                  ),
                 ),
               ),
             ),
@@ -1056,10 +1131,19 @@ class _TasksScreenState extends State<TasksScreen> {
     );
   }
 
-  Widget _buildMilestoneTasksPanel(BuildContext context) {
+// ==========================================================================
+// MILESTONE TASKS PANEL
+// ==========================================================================
+
+  Widget _buildMilestoneTasksPanel(
+    BuildContext context,
+  ) {
     final grouped = _groupMilestoneTasksByDate();
 
-    final dates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
+    final dates = grouped.keys.toList()
+      ..sort(
+        (a, b) => b.compareTo(a),
+      );
 
     if (_milestoneViewLoading) {
       return const Card(
@@ -1069,7 +1153,9 @@ class _TasksScreenState extends State<TasksScreen> {
             child: SizedBox(
               width: 18,
               height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+              ),
             ),
           ),
         ),
@@ -1082,7 +1168,9 @@ class _TasksScreenState extends State<TasksScreen> {
           padding: EdgeInsets.all(14),
           child: Text(
             'No milestone tasks pending or scheduled.',
-            style: TextStyle(fontSize: 11),
+            style: TextStyle(
+              fontSize: 11,
+            ),
           ),
         ),
       );
@@ -1097,7 +1185,6 @@ class _TasksScreenState extends State<TasksScreen> {
             dateKey: dates[i],
             tasks: grouped[dates[i]]!,
           ),
-
           if (i < dates.length - 1) const SizedBox(height: 8),
         ],
       ],
@@ -1113,14 +1200,18 @@ class _TasksScreenState extends State<TasksScreen> {
 
     final date = DateTime.parse(dateKey);
 
-    final today = DateUtils.dateOnly(DateTime.now());
+    final today = DateUtils.dateOnly(
+      DateTime.now(),
+    );
 
-    final isToday = DateUtils.isSameDay(date, today);
+    final isToday = DateUtils.isSameDay(
+      date,
+      today,
+    );
 
     final expanded = _milestoneExpanded[dateKey] ?? true;
 
-    final title =
-        'Coaching Milestone - '
+    final title = 'Coaching Milestone - '
         '${date.day.toString().padLeft(2, '0')}/'
         '${date.month.toString().padLeft(2, '0')}/'
         '${date.year}';
@@ -1138,7 +1229,10 @@ class _TasksScreenState extends State<TasksScreen> {
             },
             borderRadius: BorderRadius.circular(12),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 13,
+                vertical: 10,
+              ),
               child: Row(
                 children: [
                   Icon(
@@ -1146,9 +1240,7 @@ class _TasksScreenState extends State<TasksScreen> {
                     size: 19,
                     color: colors.primary,
                   ),
-
                   const SizedBox(width: 7),
-
                   Expanded(
                     child: Text(
                       title,
@@ -1159,7 +1251,6 @@ class _TasksScreenState extends State<TasksScreen> {
                       ),
                     ),
                   ),
-
                   Text(
                     '${tasks.length}',
                     style: TextStyle(
@@ -1168,9 +1259,7 @@ class _TasksScreenState extends State<TasksScreen> {
                       color: colors.primary,
                     ),
                   ),
-
                   const SizedBox(width: 6),
-
                   Icon(
                     expanded
                         ? Icons.keyboard_arrow_up
@@ -1181,7 +1270,6 @@ class _TasksScreenState extends State<TasksScreen> {
               ),
             ),
           ),
-
           if (expanded)
             Column(
               children: [
@@ -1189,6 +1277,7 @@ class _TasksScreenState extends State<TasksScreen> {
                   _TaskRow(
                     key: ValueKey(task.id),
                     task: task,
+                    expandedBackground: colors.surfaceContainerLow,
                     expanded: _expandedTaskId == task.id,
                     onExpand: _expandTask,
                     onCollapse: _collapseTask,
@@ -1204,7 +1293,10 @@ class _TasksScreenState extends State<TasksScreen> {
     );
   }
 
-  //comeback here
+// ==========================================================================
+// OLD MILESTONE SECTION
+// ==========================================================================
+
   Widget _buildMilestoneTaskSection(
     BuildContext context, {
     required String title,
@@ -1217,15 +1309,15 @@ class _TasksScreenState extends State<TasksScreen> {
 
     final background = highlighted
         ? Color.alphaBlend(
-            colors.primary.withValues(alpha: .16),
+            colors.primary.withValues(
+              alpha: .16,
+            ),
             colors.surfaceContainerHighest,
           )
         : colors.surfaceContainerLow;
 
-    final taskObjects = tasks
-        .map(_taskFromMilestoneRow)
-        .whereType<Task>()
-        .toList();
+    final taskObjects =
+        tasks.map(_taskFromMilestoneRow).whereType<Task>().toList();
 
     return Card(
       margin: EdgeInsets.zero,
@@ -1236,19 +1328,19 @@ class _TasksScreenState extends State<TasksScreen> {
             onTap: onTap,
             borderRadius: BorderRadius.circular(12),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 13,
+                vertical: 10,
+              ),
               child: Row(
                 children: [
                   Icon(
                     highlighted ? Icons.today_outlined : Icons.flag_outlined,
                     size: 19,
-                    color: highlighted
-                        ? colors.primary
-                        : colors.onSurfaceVariant,
+                    color:
+                        highlighted ? colors.primary : colors.onSurfaceVariant,
                   ),
-
                   const SizedBox(width: 7),
-
                   Expanded(
                     child: Text(
                       title,
@@ -1259,7 +1351,6 @@ class _TasksScreenState extends State<TasksScreen> {
                       ),
                     ),
                   ),
-
                   Text(
                     '${taskObjects.length}',
                     style: TextStyle(
@@ -1270,9 +1361,7 @@ class _TasksScreenState extends State<TasksScreen> {
                           : colors.onSurfaceVariant,
                     ),
                   ),
-
                   const SizedBox(width: 6),
-
                   Icon(
                     expanded
                         ? Icons.keyboard_arrow_up
@@ -1283,7 +1372,6 @@ class _TasksScreenState extends State<TasksScreen> {
               ),
             ),
           ),
-
           if (expanded)
             if (taskObjects.isEmpty)
               const Padding(
@@ -1292,7 +1380,9 @@ class _TasksScreenState extends State<TasksScreen> {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'No milestone tasks.',
-                    style: TextStyle(fontSize: 11),
+                    style: TextStyle(
+                      fontSize: 11,
+                    ),
                   ),
                 ),
               )
@@ -1301,8 +1391,11 @@ class _TasksScreenState extends State<TasksScreen> {
                 children: [
                   for (final task in taskObjects)
                     _TaskRow(
-                      key: ValueKey(task.id),
+                      key: ValueKey(
+                        task.id,
+                      ),
                       task: task,
+                      expandedBackground: colors.surfaceContainerLow,
                       expanded: _expandedTaskId == task.id,
                       onExpand: _expandTask,
                       onCollapse: _collapseTask,
@@ -1318,37 +1411,56 @@ class _TasksScreenState extends State<TasksScreen> {
     );
   }
 
-  Task? _taskFromMilestoneRow(Map<String, Object?> row) {
+// ==========================================================================
+// MILESTONE ROW -> TASK
+// ==========================================================================
+
+  Task? _taskFromMilestoneRow(
+    Map<String, Object?> row,
+  ) {
     final id = row['TaskID']?.toString().trim();
+
     final description = row['TaskDescription']?.toString() ?? '';
+
     final dueText = row['TaskDueDate']?.toString();
+
     if (id == null || id.isEmpty || dueText == null || dueText.isEmpty) {
       return null;
     }
+
     final dueDate = DateTime.tryParse(dueText);
+
     if (dueDate == null) {
       return null;
     }
-    final status = switch ((row['TaskStatus']?.toString() ?? 'PENDING')
-        .toUpperCase()) {
+
+    final status =
+        switch ((row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase()) {
       'IN_PROGRESS' || 'STARTED' => TaskStatus.started,
       'COMPLETED' => TaskStatus.completed,
       'CANCELLED' ||
-      'CANCELLED / NOT REQUIRED' => TaskStatus.cancelledNotRequired,
+      'CANCELLED / NOT REQUIRED' =>
+        TaskStatus.cancelledNotRequired,
       _ => TaskStatus.pending,
     };
 
     return Task(
       id: id,
       title: description,
-      subject: _subjectFromDescription(description),
+      subject: _subjectFromDescription(
+        description,
+      ),
       dueDate: dueDate,
       status: status,
     );
   }
 
+// ==========================================================================
+// REVISION GENERATION
+// ==========================================================================
+
   Future<void> _createMilestoneTasks() async {
-    // MTTaskGenerator connection will go here.
+// MTTaskGenerator connection will go here.
   }
 
   Future<void> _generateRevisionTasks() async {
@@ -1359,6 +1471,7 @@ class _TasksScreenState extends State<TasksScreen> {
         _generationError =
             'Daily Revision Task Generator is not connected to the Tasks workspace yet.';
       });
+
       return;
     }
 
@@ -1395,6 +1508,10 @@ class _TasksScreenState extends State<TasksScreen> {
     }
   }
 
+// ==========================================================================
+// REVISION SECTION
+// ==========================================================================
+
   Widget _buildRevisionSection(
     BuildContext context, {
     required String title,
@@ -1408,7 +1525,9 @@ class _TasksScreenState extends State<TasksScreen> {
 
     final background = highlighted
         ? Color.alphaBlend(
-            colors.primary.withValues(alpha: .16),
+            colors.primary.withValues(
+              alpha: .16,
+            ),
             colors.surfaceContainerHighest,
           )
         : colors.surfaceContainerLow;
@@ -1422,15 +1541,17 @@ class _TasksScreenState extends State<TasksScreen> {
             onTap: onTap,
             borderRadius: BorderRadius.circular(12),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 13,
+                vertical: 10,
+              ),
               child: Row(
                 children: [
                   Icon(
                     highlighted ? Icons.today_outlined : Icons.history_outlined,
                     size: 19,
-                    color: highlighted
-                        ? colors.primary
-                        : colors.onSurfaceVariant,
+                    color:
+                        highlighted ? colors.primary : colors.onSurfaceVariant,
                   ),
                   const SizedBox(width: 7),
                   Expanded(
@@ -1472,7 +1593,9 @@ class _TasksScreenState extends State<TasksScreen> {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'No revision tasks.',
-                    style: TextStyle(fontSize: 11),
+                    style: TextStyle(
+                      fontSize: 11,
+                    ),
                   ),
                 ),
               )
@@ -1481,8 +1604,11 @@ class _TasksScreenState extends State<TasksScreen> {
                 children: [
                   for (final task in tasks)
                     _TaskRow(
-                      key: ValueKey(task.id),
+                      key: ValueKey(
+                        task.id,
+                      ),
                       task: task,
+                      expandedBackground: colors.surfaceContainerLow,
                       expanded: _expandedTaskId == task.id,
                       onExpand: _expandTask,
                       onCollapse: _collapseTask,
@@ -1498,11 +1624,13 @@ class _TasksScreenState extends State<TasksScreen> {
     );
   }
 
-  // ==========================================================================
-  // REVISION ROW -> TASK
-  // ==========================================================================
+// ==========================================================================
+// REVISION ROW -> TASK
+// ==========================================================================
 
-  Task? _taskFromRevisionRow(Map<String, Object?> row) {
+  Task? _taskFromRevisionRow(
+    Map<String, Object?> row,
+  ) {
     final id = row['TaskID']?.toString().trim();
 
     final description = row['TaskDescription']?.toString() ?? '';
@@ -1519,28 +1647,30 @@ class _TasksScreenState extends State<TasksScreen> {
       return null;
     }
 
-    final status = switch ((row['TaskStatus']?.toString() ?? 'PENDING')
-        .toUpperCase()) {
+    final status =
+        switch ((row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase()) {
       'IN_PROGRESS' || 'STARTED' => TaskStatus.started,
-
       'COMPLETED' => TaskStatus.completed,
-
       'CANCELLED' ||
-      'CANCELLED / NOT REQUIRED' => TaskStatus.cancelledNotRequired,
-
+      'CANCELLED / NOT REQUIRED' =>
+        TaskStatus.cancelledNotRequired,
       _ => TaskStatus.pending,
     };
 
     return Task(
       id: id,
       title: description,
-      subject: _subjectFromDescription(description),
+      subject: _subjectFromDescription(
+        description,
+      ),
       dueDate: dueDate,
       status: status,
     );
   }
 
-  String _subjectFromDescription(String description) {
+  String _subjectFromDescription(
+    String description,
+  ) {
     final match = RegExp(
       r'^Subject\s*-\s*(.+)$',
       multiLine: true,
@@ -1560,6 +1690,7 @@ class _TaskRow extends StatefulWidget {
     super.key,
     required this.task,
     required this.expanded,
+    required this.expandedBackground,
     required this.onExpand,
     required this.onCollapse,
     required this.registerCommit,
@@ -1571,15 +1702,31 @@ class _TaskRow extends StatefulWidget {
   final Task task;
   final bool expanded;
 
-  final Future<void> Function(String taskId, Future<void> Function() commit)
-  onExpand;
+// ==========================================================================
+// NEW:
+// Background used when this task is expanded.
+// ==========================================================================
 
-  final Future<void> Function(String taskId) onCollapse;
+  final Color expandedBackground;
 
-  final void Function(String taskId, Future<void> Function() commit)
-  registerCommit;
+  final Future<void> Function(
+    String taskId,
+    Future<void> Function() commit,
+  ) onExpand;
 
-  final Future<void> Function(Task task, TaskStatus next) onChangeStatus;
+  final Future<void> Function(
+    String taskId,
+  ) onCollapse;
+
+  final void Function(
+    String taskId,
+    Future<void> Function() commit,
+  ) registerCommit;
+
+  final Future<void> Function(
+    Task task,
+    TaskStatus next,
+  ) onChangeStatus;
 
   final ValueChanged<Task>? onTaskStateChanged;
 
@@ -1591,9 +1738,7 @@ class _TaskRow extends StatefulWidget {
 
 class _TaskRowState extends State<_TaskRow> {
   bool _loading = false;
-
   bool _saving = false;
-
   bool _dirty = false;
 
   List<TaskActivityDefinition> _activities = const [];
@@ -1610,7 +1755,9 @@ class _TaskRowState extends State<_TaskRow> {
   }
 
   @override
-  void didUpdateWidget(covariant _TaskRow oldWidget) {
+  void didUpdateWidget(
+    covariant _TaskRow oldWidget,
+  ) {
     super.didUpdateWidget(oldWidget);
 
     if (!oldWidget.expanded && widget.expanded) {
@@ -1623,34 +1770,101 @@ class _TaskRowState extends State<_TaskRow> {
           return;
         }
 
-        widget.registerCommit(widget.task.id, _commitIfDirty);
+        widget.registerCommit(
+          widget.task.id,
+          _commitIfDirty,
+        );
       });
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     final parsed = _parseCompactTask(widget.task);
 
     final colors = Theme.of(context).colorScheme;
 
-    final closed =
-        widget.task.status == TaskStatus.completed ||
+    final closed = widget.task.status == TaskStatus.completed ||
         widget.task.status == TaskStatus.cancelledNotRequired;
 
+// =========================================================================
+// TASK TYPE
+// =========================================================================
+
+    final taskTypeLabel = switch (parsed.taskType) {
+      'Study' => 'Study',
+      'Revision' => 'Revision',
+      'Milestone' => 'Milestone',
+      _ => 'Task',
+    };
+
+// =========================================================================
+// TASK STATUS
+// =========================================================================
+
+    final taskStatusLabel = switch (widget.task.status) {
+      TaskStatus.pending => 'Pending',
+      TaskStatus.started => 'In Progress',
+      TaskStatus.completed => 'Completed',
+      TaskStatus.cancelledNotRequired => 'Cancelled',
+    };
+
+// =========================================================================
+// COMBINED HEADER
+// =========================================================================
+
+    final topicChapterParts = <String>[];
+
+    if (parsed.topicName.isNotEmpty) {
+      topicChapterParts.add(
+        parsed.topicName,
+      );
+    }
+
+    if (parsed.chapterName.isNotEmpty) {
+      topicChapterParts.add(
+        parsed.chapterName,
+      );
+    }
+
+    final topicChapterText =
+        topicChapterParts.isEmpty ? '' : ' (${topicChapterParts.join(', ')})';
+
+    final headerText = '${parsed.dateText} ${parsed.location}'
+        ' - $taskStatusLabel'
+        ' - $taskTypeLabel'
+        '$topicChapterText';
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 5),
+      margin: const EdgeInsets.only(
+        bottom: 5,
+      ),
       decoration: widget.expanded
           ? BoxDecoration(
-              color: const Color(0xFFF7F8FA),
-              borderRadius: BorderRadius.circular(11),
+// ===============================================================
+// CHANGED:
+// Expanded task now uses the background of its task group.
+// ===============================================================
+              color: widget.expandedBackground,
+
+              borderRadius: BorderRadius.circular(
+                11,
+              ),
+
               border: Border.all(
-                color: colors.primary.withValues(alpha: .75),
+                color: colors.primary.withValues(
+                  alpha: .75,
+                ),
                 width: 1.3,
               ),
+
               boxShadow: [
                 BoxShadow(
-                  color: colors.primary.withValues(alpha: .10),
+                  color: colors.primary.withValues(
+                    alpha: .10,
+                  ),
                   blurRadius: 7,
                 ),
               ],
@@ -1659,23 +1873,32 @@ class _TaskRowState extends State<_TaskRow> {
       child: Column(
         children: [
           InkWell(
-            borderRadius: BorderRadius.circular(11),
+            borderRadius: BorderRadius.circular(
+              11,
+            ),
             onTap: _toggleExpanded,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 7, 7),
+              padding: const EdgeInsets.fromLTRB(
+                12,
+                8,
+                7,
+                7,
+              ),
               child: Row(
                 children: [
                   Expanded(
                     child: Text(
-                      '${parsed.dateText}  ${parsed.location}',
-                      maxLines: 1,
+                      headerText,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w400,
-                        color: widget.expanded
-                            ? Colors.black
-                            : colors.onSurface,
+// Slightly increased
+// from 11 to 12.
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        // color: widget.expanded ? Colors.black : colors.onSurface,
+                        //color: widget.expanded ? Colors.black : Colors.white,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -1692,25 +1915,37 @@ class _TaskRowState extends State<_TaskRow> {
               ),
             ),
           ),
-
-          if (widget.expanded) _buildExpandedContent(context, closed),
+          if (widget.expanded)
+            _buildExpandedContent(
+              context,
+              closed,
+            ),
         ],
       ),
     );
   }
 
+// ==========================================================================
+// EXPAND / COLLAPSE
+// ==========================================================================
+
   Future<void> _toggleExpanded() async {
     if (widget.expanded) {
-      await widget.onCollapse(widget.task.id);
+      await widget.onCollapse(
+        widget.task.id,
+      );
       return;
     }
 
-    await widget.onExpand(widget.task.id, _commitIfDirty);
+    await widget.onExpand(
+      widget.task.id,
+      _commitIfDirty,
+    );
   }
 
-  // ==========================================================================
-  // ACTIVITY LOAD
-  // ==========================================================================
+// ==========================================================================
+// ACTIVITY LOAD
+// ==========================================================================
 
   Future<void> _loadActivities() async {
     if (!mounted) {
@@ -1726,9 +1961,13 @@ class _TaskRowState extends State<_TaskRow> {
 
       final svc = TaskActivityStatusSvc(db);
 
-      final definitions = await svc.getActivitiesForTask(widget.task.id);
+      final definitions = await svc.getActivitiesForTask(
+        widget.task.id,
+      );
 
-      final saved = await svc.loadStatus(widget.task.id);
+      final saved = await svc.loadStatus(
+        widget.task.id,
+      );
 
       if (!mounted) {
         return;
@@ -1749,7 +1988,10 @@ class _TaskRowState extends State<_TaskRow> {
       });
 
       if (widget.expanded) {
-        widget.registerCommit(widget.task.id, _commitIfDirty);
+        widget.registerCommit(
+          widget.task.id,
+          _commitIfDirty,
+        );
       }
     } catch (_) {
       if (!mounted) {
@@ -1765,65 +2007,80 @@ class _TaskRowState extends State<_TaskRow> {
     }
   }
 
-  // ==========================================================================
-  // EXPANDED CONTENT
-  // ==========================================================================
+// ==========================================================================
+// EXPANDED CONTENT
+// ==========================================================================
 
-  Widget _buildExpandedContent(BuildContext context, bool closed) {
+  Widget _buildExpandedContent(
+    BuildContext context,
+    bool closed,
+  ) {
     if (_loading) {
       return const Padding(
-        padding: EdgeInsets.fromLTRB(12, 0, 12, 9),
+        padding: EdgeInsets.fromLTRB(
+          12,
+          0,
+          12,
+          9,
+        ),
         child: Align(
           alignment: Alignment.centerLeft,
           child: SizedBox(
             width: 15,
             height: 15,
-            child: CircularProgressIndicator(strokeWidth: 1.7),
+            child: CircularProgressIndicator(
+              strokeWidth: 1.7,
+            ),
           ),
         ),
       );
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+      padding: const EdgeInsets.fromLTRB(
+        12,
+        0,
+        12,
+        10,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (_activities.isEmpty)
             const Padding(
-              padding: EdgeInsets.only(bottom: 8),
+              padding: EdgeInsets.only(
+                bottom: 8,
+              ),
               child: Text(
                 'No activities assigned.',
-                style: TextStyle(fontSize: 10.5, color: Colors.black54),
+                style: TextStyle(
+                  fontSize: 10.5,
+                  color: Colors.black54,
+                ),
               ),
             ),
-
           if (_activities.isNotEmpty)
             for (final activity in _activities)
-              _activityRow(context, activity, closed),
-
+              _activityRow(
+                context,
+                activity,
+                closed,
+              ),
           if (_activities.isNotEmpty) const SizedBox(height: 5),
-
-          if (!closed && !_isFuture(widget.task)) _buildInlineActions(context),
+          if (_activities.isNotEmpty && !closed && !_isFuture(widget.task))
+            _buildInlineActions(context),
         ],
       ),
     );
   }
 
+// ==========================================================================
+// ACTIVITY ROW
+// ==========================================================================
+
   // ==========================================================================
-  // ACTIVITY ROW
-  //
-  // Whole activity description is tappable.
-  //
-  // Selected:
-  //   subtle yellow background
-  //
-  // Not selected:
-  //   transparent background
-  //
-  // Closed/future:
-  //   display-only
-  // ==========================================================================
+// ACTIVITY ROW
+// ==========================================================================
 
   Widget _activityRow(
     BuildContext context,
@@ -1837,22 +2094,41 @@ class _TaskRowState extends State<_TaskRow> {
     final enabled = !future && !closed && !_saving;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 3),
+      padding: const EdgeInsets.only(
+        bottom: 3,
+      ),
       child: Material(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(6),
         child: InkWell(
           borderRadius: BorderRadius.circular(6),
-          onTap: enabled ? () => _toggleActivity(activity) : null,
+          onTap: enabled
+              ? () => _toggleActivity(
+                    activity,
+                  )
+              : null,
           child: Container(
             width: double.infinity,
-            constraints: const BoxConstraints(minHeight: 29),
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+            constraints: const BoxConstraints(
+              minHeight: 29,
+            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 7,
+              vertical: 5,
+            ),
             decoration: BoxDecoration(
-              color: completed ? const Color(0xFFFFF3C4) : Colors.transparent,
+              color: completed
+                  ? const Color(
+                      0xFFFFF3C4,
+                    )
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
-                color: completed ? const Color(0xFFE5C65C) : Colors.transparent,
+                color: completed
+                    ? const Color(
+                        0xFFE5C65C,
+                      )
+                    : Colors.transparent,
                 width: 1,
               ),
             ),
@@ -1865,7 +2141,9 @@ class _TaskRowState extends State<_TaskRow> {
                         ? const Icon(
                             Icons.check_circle,
                             size: 14,
-                            color: Color(0xFF9A7800),
+                            color: Color(
+                              0xFF9A7800,
+                            ),
                           )
                         : const Icon(
                             Icons.radio_button_unchecked,
@@ -1874,18 +2152,17 @@ class _TaskRowState extends State<_TaskRow> {
                           ),
                   ),
                 ),
-
                 const SizedBox(width: 6),
-
                 Expanded(
                   child: Text(
-                    '${activity.sequence}. ${activity.activityName}',
+                    '${activity.sequence}. '
+                    '${activity.activityName}',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11.5,
                       height: 1.15,
-                      color: Colors.black,
+                      color: completed ? Colors.black : Colors.white,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
@@ -1898,11 +2175,13 @@ class _TaskRowState extends State<_TaskRow> {
     );
   }
 
-  // ==========================================================================
-  // DIRECT TASK ACTIONS
-  // ==========================================================================
+// ==========================================================================
+// DIRECT TASK ACTIONS
+// ==========================================================================
 
-  Widget _buildInlineActions(BuildContext context) {
+  Widget _buildInlineActions(
+    BuildContext context,
+  ) {
     final task = widget.task;
 
     if (task.status == TaskStatus.pending) {
@@ -1912,20 +2191,21 @@ class _TaskRowState extends State<_TaskRow> {
           _actionButton(
             label: 'Start >>',
             onPressed: _isDue(task)
-                ? () => widget.onChangeStatus(task, TaskStatus.started)
+                ? () => widget.onChangeStatus(
+                      task,
+                      TaskStatus.started,
+                    )
                 : null,
           ),
-
           const SizedBox(width: 6),
-
           _actionButton(
             label: 'X Cancel Task',
             outlined: true,
             onPressed: _isDue(task)
                 ? () => widget.onChangeStatus(
-                    task,
-                    TaskStatus.cancelledNotRequired,
-                  )
+                      task,
+                      TaskStatus.cancelledNotRequired,
+                    )
                 : null,
           ),
         ],
@@ -1939,20 +2219,21 @@ class _TaskRowState extends State<_TaskRow> {
           _actionButton(
             label: 'Set Completed',
             onPressed: _isDue(task)
-                ? () => widget.onChangeStatus(task, TaskStatus.completed)
+                ? () => widget.onChangeStatus(
+                      task,
+                      TaskStatus.completed,
+                    )
                 : null,
           ),
-
           const SizedBox(width: 6),
-
           _actionButton(
             label: 'X Cancel Task',
             outlined: true,
             onPressed: _isDue(task)
                 ? () => widget.onChangeStatus(
-                    task,
-                    TaskStatus.cancelledNotRequired,
-                  )
+                      task,
+                      TaskStatus.cancelledNotRequired,
+                    )
                 : null,
           ),
         ],
@@ -1973,8 +2254,13 @@ class _TaskRowState extends State<_TaskRow> {
           ? OutlinedButton(
               onPressed: onPressed,
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 9),
-                minimumSize: const Size(0, 30),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 9,
+                ),
+                minimumSize: const Size(
+                  0,
+                  30,
+                ),
                 textStyle: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
@@ -1985,8 +2271,13 @@ class _TaskRowState extends State<_TaskRow> {
           : FilledButton(
               onPressed: onPressed,
               style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                minimumSize: const Size(0, 30),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                ),
+                minimumSize: const Size(
+                  0,
+                  30,
+                ),
                 textStyle: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,
@@ -1997,11 +2288,13 @@ class _TaskRowState extends State<_TaskRow> {
     );
   }
 
-  // ==========================================================================
-  // ACTIVITY TOGGLE
-  // ==========================================================================
+// ==========================================================================
+// ACTIVITY TOGGLE
+// ==========================================================================
 
-  Future<void> _toggleActivity(TaskActivityDefinition activity) async {
+  Future<void> _toggleActivity(
+    TaskActivityDefinition activity,
+  ) async {
     if (_saving ||
         _isFuture(widget.task) ||
         widget.task.status == TaskStatus.completed ||
@@ -2019,15 +2312,11 @@ class _TaskRowState extends State<_TaskRow> {
       _dirty = true;
     });
 
-    // Pending + first activity ON
-    // => In Progress immediately.
     if (widget.task.status == TaskStatus.pending && next) {
       await _commitNow();
       return;
     }
 
-    // All mandatory activities ON
-    // => Completed immediately.
     if (_allMandatoryCompleted() && _isDue(widget.task)) {
       await _commitNow();
     }
@@ -2035,7 +2324,9 @@ class _TaskRowState extends State<_TaskRow> {
 
   bool _allMandatoryCompleted() {
     final mandatory = _activities
-        .where((activity) => activity.isMandatory)
+        .where(
+          (activity) => activity.isMandatory,
+        )
         .toList();
 
     final required = mandatory.isNotEmpty ? mandatory : _activities;
@@ -2049,9 +2340,9 @@ class _TaskRowState extends State<_TaskRow> {
     );
   }
 
-  // ==========================================================================
-  // ACTIVITY COMMIT
-  // ==========================================================================
+// ==========================================================================
+// ACTIVITY COMMIT
+// ==========================================================================
 
   Future<void> _commitIfDirty() async {
     if (!_dirty) {
@@ -2077,9 +2368,13 @@ class _TaskRowState extends State<_TaskRow> {
     try {
       final db = await AppDatabase.instance.database;
 
-      final result = await TaskActivityStatusSvc(db).commitTaskActivities(
+      final result = await TaskActivityStatusSvc(
+        db,
+      ).commitTaskActivities(
         task: widget.task,
-        activityStatus: Map<String, bool>.from(_activityStatus),
+        activityStatus: Map<String, bool>.from(
+          _activityStatus,
+        ),
       );
 
       if (!mounted) {
@@ -2090,7 +2385,6 @@ class _TaskRowState extends State<_TaskRow> {
         _activityStatus = result.activityStatus;
 
         _dirty = false;
-
         _saving = false;
       });
 
@@ -2100,7 +2394,9 @@ class _TaskRowState extends State<_TaskRow> {
         if (callback != null) {
           callback(result.task);
         } else {
-          widget.onTaskUpdated(result.task);
+          widget.onTaskUpdated(
+            result.task,
+          );
         }
       }
     } catch (_) {
@@ -2115,9 +2411,13 @@ class _TaskRowState extends State<_TaskRow> {
   }
 
   bool _isFuture(Task task) {
-    final today = DateUtils.dateOnly(DateTime.now());
+    final today = DateUtils.dateOnly(
+      DateTime.now(),
+    );
 
-    final due = DateUtils.dateOnly(task.dueDate);
+    final due = DateUtils.dateOnly(
+      task.dueDate,
+    );
 
     return due.isAfter(today);
   }
@@ -2132,125 +2432,307 @@ class _TaskRowState extends State<_TaskRow> {
 // ============================================================================
 
 class _ParsedTaskDisplay {
-  const _ParsedTaskDisplay({required this.dateText, required this.location});
-
-  final String dateText;
-  final String location;
-}
-
-class _ParsedTaskId {
-  const _ParsedTaskId({
+  const _ParsedTaskDisplay({
+    required this.dateText,
+    required this.location,
+    required this.chapterName,
+    required this.topicName,
     required this.subjectCode,
     required this.chapterCode,
     required this.topicCode,
+    required this.taskType,
   });
+
+  final String dateText;
+  final String location;
+
+  final String chapterName;
+  final String topicName;
 
   final String subjectCode;
   final String chapterCode;
   final String topicCode;
+
+  final String taskType;
 }
 
-class _ParsedActivityText {
-  const _ParsedActivityText({required this.topic, required this.activity});
+_ParsedTaskDisplay _parseCompactTask(
+  Task task,
+) {
+// NOTE:
+// The parser is intentionally self-contained here.
+// Chapter/topic names are obtained from the task description
+// when available.
 
-  final String topic;
-  final String activity;
+  if (task.id.startsWith('WD_')) {
+    final names = _parseNamesFromDescription(
+      task.title,
+    );
+
+    return _parseWdTask(
+      task,
+      chapterName: names.chapterName,
+      topicName: names.topicName,
+    );
+  }
+
+  if (task.id.startsWith('REV_')) {
+    final names = _parseNamesFromDescription(
+      task.title,
+    );
+
+    return _parseRevTask(
+      task,
+      chapterName: names.chapterName,
+      topicName: names.topicName,
+    );
+  }
+
+  if (task.id.startsWith('MT_')) {
+    final names = _parseNamesFromDescription(
+      task.title,
+    );
+
+    return _parseMtTask(
+      task,
+      chapterName: names.chapterName,
+      topicName: names.topicName,
+    );
+  }
+
+  return _parseUnknownTask(task);
 }
 
-_ParsedTaskDisplay _parseCompactTask(Task task) {
-  final id = _parseTaskId(task.id);
+// ============================================================================
+// WD TASK PARSER
+// ============================================================================
 
-  String topic = '';
+_ParsedTaskDisplay _parseWdTask(
+  Task task, {
+  String chapterName = '',
+  String topicName = '',
+}) {
+  final match = RegExp(
+    r'^WD_([A-Za-z]+)-(Ch\d+)-(T\d+)',
+    caseSensitive: false,
+  ).firstMatch(task.id);
 
-  for (final rawLine in task.title.split('\n')) {
+  if (match == null) {
+    return _parseUnknownTask(task);
+  }
+
+  final subjectCode = match.group(1)!;
+
+  final chapterCode = match.group(2)!;
+
+  final topicCode = match.group(3)!;
+
+  return _ParsedTaskDisplay(
+    dateText: _formatTaskDate(
+      task.dueDate,
+    ),
+    location: _buildLocation(
+      subjectCode,
+      chapterCode,
+      topicCode,
+    ),
+    chapterName: chapterName,
+    topicName: topicName,
+    subjectCode: subjectCode,
+    chapterCode: chapterCode,
+    topicCode: topicCode,
+    taskType: 'Study',
+  );
+}
+
+// ============================================================================
+// REV TASK PARSER
+// ============================================================================
+
+_ParsedTaskDisplay _parseRevTask(
+  Task task, {
+  String chapterName = '',
+  String topicName = '',
+}) {
+  final match = RegExp(
+    r'^REV_([A-Za-z]+)-(Ch\d+)-(T\d+)',
+    caseSensitive: false,
+  ).firstMatch(task.id);
+
+  if (match == null) {
+    return _parseUnknownTask(task);
+  }
+
+  final subjectCode = match.group(1)!;
+
+  final chapterCode = match.group(2)!;
+
+  final topicCode = match.group(3)!;
+
+  return _ParsedTaskDisplay(
+    dateText: _formatTaskDate(
+      task.dueDate,
+    ),
+    location: _buildLocation(
+      subjectCode,
+      chapterCode,
+      topicCode,
+    ),
+    chapterName: chapterName,
+    topicName: topicName,
+    subjectCode: subjectCode,
+    chapterCode: chapterCode,
+    topicCode: topicCode,
+    taskType: 'Revision',
+  );
+}
+
+// ============================================================================
+// MT TASK PARSER
+// ============================================================================
+
+_ParsedTaskDisplay _parseMtTask(
+  Task task, {
+  String chapterName = '',
+  String topicName = '',
+}) {
+  final match = RegExp(
+    r'^MT_([A-Za-z]+)-(Ch\d+)-(T\d+)',
+    caseSensitive: false,
+  ).firstMatch(task.id);
+
+  if (match == null) {
+    return _parseUnknownTask(task);
+  }
+
+  final subjectCode = match.group(1)!;
+
+  final chapterCode = match.group(2)!;
+
+  final topicCode = match.group(3)!;
+
+  return _ParsedTaskDisplay(
+    dateText: _formatTaskDate(
+      task.dueDate,
+    ),
+    location: _buildLocation(
+      subjectCode,
+      chapterCode,
+      topicCode,
+    ),
+    chapterName: chapterName,
+    topicName: topicName,
+    subjectCode: subjectCode,
+    chapterCode: chapterCode,
+    topicCode: topicCode,
+    taskType: 'Milestone',
+  );
+}
+
+// ============================================================================
+// UNKNOWN TASK PARSER
+// ============================================================================
+
+_ParsedTaskDisplay _parseUnknownTask(
+  Task task,
+) {
+  final names = _parseNamesFromDescription(
+    task.title,
+  );
+
+  final subject = task.subject.trim();
+
+  return _ParsedTaskDisplay(
+    dateText: _formatTaskDate(
+      task.dueDate,
+    ),
+    location: subject.isEmpty ? 'Task' : subject,
+    chapterName: names.chapterName,
+    topicName: names.topicName,
+    subjectCode: subject,
+    chapterCode: '',
+    topicCode: '',
+    taskType: 'Task',
+  );
+}
+
+// ============================================================================
+// BUILD LOCATION
+// ============================================================================
+
+String _buildLocation(
+  String subjectCode,
+  String chapterCode,
+  String topicCode,
+) {
+  final parts = <String>[
+    subjectCode,
+    chapterCode,
+    topicCode,
+  ]
+      .where(
+        (value) => value.trim().isNotEmpty,
+      )
+      .toList();
+
+  return parts.join('-');
+}
+
+// ============================================================================
+// PARSE CHAPTER / TOPIC NAMES FROM TASK DESCRIPTION
+// ============================================================================
+
+({
+  String chapterName,
+  String topicName,
+}) _parseNamesFromDescription(
+  String description,
+) {
+  String chapterName = '';
+  String topicName = '';
+
+  for (final rawLine in description.split('\n')) {
     final line = rawLine.trim();
 
     if (line.isEmpty) {
       continue;
     }
 
-    if (line.toLowerCase().startsWith('todo')) {
-      final separator = line.indexOf('-');
+    final chapterMatch = RegExp(
+      r'^(?:Chapter(?:\s+Name)?)\s*[-:]\s*(.+)$',
+      caseSensitive: false,
+    ).firstMatch(line);
 
-      if (separator >= 0) {
-        final parsed = _parseActivityText(line.substring(separator + 1).trim());
-
-        if (parsed != null) {
-          topic = parsed.topic;
-          break;
-        }
-      }
+    if (chapterMatch != null) {
+      chapterName = chapterMatch.group(1)!.trim();
+      continue;
     }
 
-    if (RegExp(r'^-\s*\d+\.').hasMatch(line)) {
-      final parsed = _parseActivityText(line.substring(1).trim());
+    final topicMatch = RegExp(
+      r'^(?:Topic(?:\s+Name)?)\s*[-:]\s*(.+)$',
+      caseSensitive: false,
+    ).firstMatch(line);
 
-      if (parsed != null) {
-        topic = parsed.topic;
-        break;
-      }
+    if (topicMatch != null) {
+      topicName = topicMatch.group(1)!.trim();
+      continue;
     }
   }
 
-  if (topic.isEmpty) {
-    topic = id.topicCode;
-  }
-
-  final code = [
-    id.subjectCode,
-    id.chapterCode,
-  ].where((value) => value.isNotEmpty).join('-');
-
-  final location = code.isEmpty ? topic : '$code → $topic';
-
-  return _ParsedTaskDisplay(
-    dateText: '${task.dueDate.day}/${task.dueDate.month}/${task.dueDate.year}',
-    location: location,
+  return (
+    chapterName: chapterName,
+    topicName: topicName,
   );
 }
 
-_ParsedTaskId _parseTaskId(String taskId) {
-  var subject = '';
-  var chapter = '';
-  var topic = '';
+// ============================================================================
+// DATE FORMAT
+// ============================================================================
 
-  for (final token in taskId.split('_')) {
-    final match = RegExp(
-      r'^([A-Za-z]+)-(Ch\d+)-(T\d+)$',
-    ).firstMatch(token.trim());
-
-    if (match != null) {
-      subject = match.group(1)!;
-
-      chapter = match.group(2)!;
-
-      topic = match.group(3)!;
-
-      break;
-    }
-  }
-
-  return _ParsedTaskId(
-    subjectCode: subject,
-    chapterCode: chapter,
-    topicCode: topic,
-  );
-}
-
-_ParsedActivityText? _parseActivityText(String value) {
-  final match = RegExp(r'^(\d+)\.\s*(.*?)\s*-\s*(.+)$').firstMatch(value);
-
-  if (match == null) {
-    return null;
-  }
-
-  final topic = match.group(2)!.trim();
-
-  final activity = match.group(3)!.trim();
-
-  if (topic.isEmpty || activity.isEmpty) {
-    return null;
-  }
-
-  return _ParsedActivityText(topic: topic, activity: activity);
+String _formatTaskDate(
+  DateTime date,
+) {
+  return '${date.day.toString().padLeft(2, '0')}/'
+      '${date.month.toString().padLeft(2, '0')}/'
+      '${date.year}';
 }

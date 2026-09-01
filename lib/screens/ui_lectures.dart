@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
+import '../database/app_database.dart';
+import '../services/svc_task_generator_lectured.dart';
 import '../services/svc_Lecture_Enquiry.dart';
-import '../services/lecture_svc.dart';
+import '../services/svc_Lectures.dart';
 
 class LectureScreen extends StatefulWidget {
   final String? initialSubjectCode;
@@ -14,9 +16,22 @@ class LectureScreen extends StatefulWidget {
 
 class _LectureScreenState extends State<LectureScreen> {
   final LectureService _lectureService = LectureService.instance;
-
   final LectureEnquiryService _lectureEnquiryService =
       LectureEnquiryService.instance;
+
+  //final TaskGeneratorLectured _taskGenerator = TaskGeneratorLectured();
+  late TaskGeneratorLectured _taskGenerator;
+  // ---------------------------------------------------------------------------
+  // DEBUG
+  // ---------------------------------------------------------------------------
+
+  void _debug(String message) {
+    debugPrint(
+      '[LECTURE UI] '
+      '${DateTime.now().toIso8601String()} '
+      '$message',
+    );
+  }
 
   // ---------------------------------------------------------------------------
   // SUBJECTS
@@ -96,18 +111,35 @@ class _LectureScreenState extends State<LectureScreen> {
   void initState() {
     super.initState();
 
+    _debug('initState() START');
+
     final initialSubject = widget.initialSubjectCode?.trim();
+
+    _debug(
+      'initState(): '
+      'initialSubjectCode=$initialSubject',
+    );
 
     if (initialSubject != null && initialSubject.isNotEmpty) {
       _selectedSubjectCode = initialSubject;
+
+      _debug(
+        'initState(): '
+        'selectedSubjectCode=$_selectedSubjectCode',
+      );
     }
 
     _loadViewLectures();
+
+    _debug('initState() END');
   }
 
   @override
   void dispose() {
+    _debug('dispose()');
+
     _shortNotesController.dispose();
+
     super.dispose();
   }
 
@@ -116,6 +148,11 @@ class _LectureScreenState extends State<LectureScreen> {
   // ---------------------------------------------------------------------------
 
   void _changeMainTab(int index) {
+    _debug(
+      '_changeMainTab(): '
+      'old=$_mainTabIndex, new=$index',
+    );
+
     if (_mainTabIndex == index) {
       return;
     }
@@ -125,6 +162,8 @@ class _LectureScreenState extends State<LectureScreen> {
     });
 
     if (index == 0) {
+      _debug('_changeMainTab(): loading view lectures');
+
       _loadViewLectures();
     }
   }
@@ -134,6 +173,11 @@ class _LectureScreenState extends State<LectureScreen> {
   // ---------------------------------------------------------------------------
 
   Future<void> _selectSubject(String subjectCode) async {
+    _debug(
+      '_selectSubject(): '
+      'subjectCode=$subjectCode',
+    );
+
     setState(() {
       _selectedSubjectCode = subjectCode;
 
@@ -153,6 +197,8 @@ class _LectureScreenState extends State<LectureScreen> {
       _selectedNotesFilePath = null;
       _selectedNotesImages = null;
     });
+
+    _debug('_selectSubject(): state reset complete');
   }
 
   // ---------------------------------------------------------------------------
@@ -160,10 +206,23 @@ class _LectureScreenState extends State<LectureScreen> {
   // ---------------------------------------------------------------------------
 
   Future<void> _selectWorkflow(bool newChapter) async {
+    _debug(
+      '_selectWorkflow() START - '
+      'newChapter=$newChapter',
+    );
+
     final subjectCode = _selectedSubjectCode;
 
+    _debug(
+      '_selectWorkflow(): '
+      'subjectCode=$subjectCode',
+    );
+
     if (subjectCode == null) {
+      _debug('_selectWorkflow(): ABORT - no subject');
+
       _showMessage('Please select a subject first.');
+
       return;
     }
 
@@ -182,7 +241,11 @@ class _LectureScreenState extends State<LectureScreen> {
       _lastLecture = false;
     });
 
+    _debug('_selectWorkflow(): state updated');
+
     await _loadChapters();
+
+    _debug('_selectWorkflow() END');
   }
 
   // ---------------------------------------------------------------------------
@@ -190,11 +253,21 @@ class _LectureScreenState extends State<LectureScreen> {
   // ---------------------------------------------------------------------------
 
   Future<void> _loadChapters() async {
+    _debug('_loadChapters() START');
+
     final subjectCode = _selectedSubjectCode;
 
     final newChapter = _newChapter;
 
+    _debug(
+      '_loadChapters(): '
+      'subject=$subjectCode, '
+      'newChapter=$newChapter',
+    );
+
     if (subjectCode == null || newChapter == null) {
+      _debug('_loadChapters(): ABORT - missing state');
+
       return;
     }
 
@@ -202,16 +275,38 @@ class _LectureScreenState extends State<LectureScreen> {
       _chaptersLoading = true;
     });
 
+    _debug(
+      '_loadChapters(): '
+      '_chaptersLoading=true',
+    );
+
     try {
       final List<Map<String, Object?>> chapters;
 
       if (newChapter) {
+        _debug(
+          '_loadChapters(): '
+          'calling getNewChapterChapters()',
+        );
+
         chapters = await _lectureService.getNewChapterChapters(subjectCode);
       } else {
+        _debug(
+          '_loadChapters(): '
+          'calling getContinuationChapters()',
+        );
+
         chapters = await _lectureService.getContinuationChapters(subjectCode);
       }
 
+      _debug(
+        '_loadChapters(): '
+        'service returned ${chapters.length} chapters',
+      );
+
       if (!mounted) {
+        _debug('_loadChapters(): widget no longer mounted');
+
         return;
       }
 
@@ -220,23 +315,33 @@ class _LectureScreenState extends State<LectureScreen> {
         _chaptersLoading = false;
       });
 
-      // -----------------------------------------------------------------------
-      // CONTINUATION REFINEMENT
-      //
-      // If only one chapter is currently in progress, do not make the user
-      // select it manually. Preload it and immediately enable Topic selection.
-      // -----------------------------------------------------------------------
+      _debug(
+        '_loadChapters(): state updated, '
+        'chapters=${_chapters.length}',
+      );
 
       if (!newChapter && chapters.length == 1) {
         final onlyChapter = chapters.first;
 
         final chapterCode = onlyChapter['chapterCode']?.toString();
 
+        _debug(
+          '_loadChapters(): '
+          'continuation has exactly one chapter '
+          'chapterCode=$chapterCode',
+        );
+
         if (chapterCode != null && chapterCode.isNotEmpty) {
           await _selectChapter(onlyChapter, showSelectionMessage: false);
         }
       }
-    } catch (e) {
+
+      _debug('_loadChapters() END');
+    } catch (e, stackTrace) {
+      _debug('_loadChapters(): EXCEPTION=$e');
+
+      _debug('_loadChapters(): STACK=$stackTrace');
+
       if (!mounted) {
         return;
       }
@@ -257,20 +362,38 @@ class _LectureScreenState extends State<LectureScreen> {
     Map<String, Object?>? chapter, {
     bool showSelectionMessage = true,
   }) async {
+    _debug(
+      '_selectChapter() START - '
+      'chapter=$chapter',
+    );
+
     if (chapter == null) {
+      _debug('_selectChapter(): ABORT - null chapter');
+
       return;
     }
 
     final subjectCode = _selectedSubjectCode;
 
     if (subjectCode == null) {
+      _debug('_selectChapter(): ABORT - no subject');
+
       return;
     }
 
     final chapterCode = chapter['chapterCode']?.toString();
 
+    _debug(
+      '_selectChapter(): '
+      'subject=$subjectCode, '
+      'chapterCode=$chapterCode',
+    );
+
     if (chapterCode == null || chapterCode.isEmpty) {
+      _debug('_selectChapter(): INVALID chapter code');
+
       _showMessage('Invalid chapter selected.');
+
       return;
     }
 
@@ -288,20 +411,40 @@ class _LectureScreenState extends State<LectureScreen> {
       _topicsLoading = true;
     });
 
+    _debug(
+      '_selectChapter(): '
+      'state updated, loading topics',
+    );
+
     try {
       final List<Map<String, Object?>> topics;
 
       if (_newChapter == true) {
+        _debug(
+          '_selectChapter(): '
+          'calling getNewChapterTopics()',
+        );
+
         topics = await _lectureService.getNewChapterTopics(
           subjectCode: subjectCode,
           chapterCode: chapterCode,
         );
       } else {
+        _debug(
+          '_selectChapter(): '
+          'calling getContinuationTopics()',
+        );
+
         topics = await _lectureService.getContinuationTopics(
           subjectCode: subjectCode,
           chapterCode: chapterCode,
         );
       }
+
+      _debug(
+        '_selectChapter(): '
+        'service returned ${topics.length} topics',
+      );
 
       if (!mounted) {
         return;
@@ -312,10 +455,18 @@ class _LectureScreenState extends State<LectureScreen> {
         _topicsLoading = false;
       });
 
+      _debug('_selectChapter(): topics state updated');
+
       if (showSelectionMessage && topics.isEmpty) {
         _showMessage('No selectable topics found for this chapter.');
       }
-    } catch (e) {
+
+      _debug('_selectChapter() END');
+    } catch (e, stackTrace) {
+      _debug('_selectChapter(): EXCEPTION=$e');
+
+      _debug('_selectChapter(): STACK=$stackTrace');
+
       if (!mounted) {
         return;
       }
@@ -333,7 +484,11 @@ class _LectureScreenState extends State<LectureScreen> {
   // ---------------------------------------------------------------------------
 
   void _selectTopic(Map<String, Object?>? topic) {
+    _debug('_selectTopic(): topic=$topic');
+
     if (topic == null) {
+      _debug('_selectTopic(): ABORT - null topic');
+
       return;
     }
 
@@ -342,6 +497,11 @@ class _LectureScreenState extends State<LectureScreen> {
 
       _selectedTopicCode = topic['topicCode']?.toString();
     });
+
+    _debug(
+      '_selectTopic(): '
+      'selectedTopicCode=$_selectedTopicCode',
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -349,6 +509,11 @@ class _LectureScreenState extends State<LectureScreen> {
   // ---------------------------------------------------------------------------
 
   Future<void> _selectDate() async {
+    _debug(
+      '_selectDate(): '
+      'current=$_lectureDate',
+    );
+
     final selected = await showDatePicker(
       context: context,
       initialDate: _lectureDate,
@@ -357,12 +522,19 @@ class _LectureScreenState extends State<LectureScreen> {
     );
 
     if (selected == null) {
+      _debug('_selectDate(): user cancelled');
+
       return;
     }
 
     setState(() {
       _lectureDate = selected;
     });
+
+    _debug(
+      '_selectDate(): '
+      'new=$_lectureDate',
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -370,60 +542,105 @@ class _LectureScreenState extends State<LectureScreen> {
   // ---------------------------------------------------------------------------
 
   void _captureNotesImages() {
-    /*
-     * UI hook only for now.
-     *
-     * Actual camera/gallery/file implementation can be connected later.
-     *
-     * Keeping this method here prevents the UI from becoming coupled to a
-     * particular image/file package before that decision is finalized.
-     */
+    _debug('_captureNotesImages() clicked');
 
     _showMessage('Notes / image capture will be connected here.');
   }
 
   void _selectNotesFile() {
-    /*
-     * UI hook only for now.
-     */
+    _debug('_selectNotesFile() clicked');
 
     _showMessage('Class notes file selection will be connected here.');
   }
 
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
   // SAVE
-  // ---------------------------------------------------------------------------
+  // ===========================================================================
 
   Future<void> _saveLecture() async {
+    _debug('');
+    _debug('================================================');
+    _debug('SAVE BUTTON CLICKED');
+    _debug('================================================');
+    print('');
+    print('================================================');
+    print('[LECTURE SERVICE] saveLecture() ENTERED');
+    print('================================================');
+
     if (_saving) {
+      _debug('_saveLecture(): ABORT - already saving');
+
       return;
     }
 
+    _debug(
+      '_saveLecture(): '
+      'beginning validation',
+    );
+
     final subjectCode = _selectedSubjectCode;
-
     final chapter = _selectedChapter;
-
     final topic = _selectedTopic;
-
     final newChapter = _newChapter;
+    _debug(
+      '_saveLecture(): '
+      'subjectCode=$subjectCode',
+    );
+
+    _debug(
+      '_saveLecture(): '
+      'newChapter=$newChapter',
+    );
+
+    _debug(
+      '_saveLecture(): '
+      'chapter=$chapter',
+    );
+
+    _debug(
+      '_saveLecture(): '
+      'topic=$topic',
+    );
+
+    _debug(
+      '_saveLecture(): '
+      'lectureDate=$_lectureDate',
+    );
+
+    _debug(
+      '_saveLecture(): '
+      'lastLecture=$_lastLecture',
+    );
 
     if (subjectCode == null) {
+      _debug('_saveLecture(): VALIDATION FAILED - subject');
+
       _showMessage('Please select a subject.');
+
       return;
     }
 
     if (newChapter == null) {
+      _debug('_saveLecture(): VALIDATION FAILED - workflow');
+
       _showMessage('Please select the lecture type.');
+
       return;
     }
 
     if (chapter == null) {
+      _debug('_saveLecture(): VALIDATION FAILED - chapter');
+
       _showMessage('Please select a chapter.');
+
       return;
     }
 
     if (topic == null) {
+      _debug('_saveLecture(): VALIDATION FAILED - topic');
+
       _showMessage('Please select a topic.');
+
       return;
     }
 
@@ -437,20 +654,86 @@ class _LectureScreenState extends State<LectureScreen> {
 
     final topicName = topic['topicName']?.toString() ?? '';
 
+    final shortNotes = _shortNotesController.text;
+
+    _debug('_saveLecture(): extracted values');
+
+    _debug('  subjectCode=$subjectCode');
+
+    _debug('  chapterCode=$chapterCode');
+
+    _debug('  chapterName=$chapterName');
+
+    _debug('  topicId=$topicId');
+
+    _debug('  topicCode=$topicCode');
+
+    _debug('  topicName=$topicName');
+
+    _debug('  lectureDate=$_lectureDate');
+
+    _debug('  shortNotesLength=${shortNotes.length}');
+
+    _debug('  lastLecture=$_lastLecture');
+
+    _debug('  newChapter=$newChapter');
+
     if (chapterCode.isEmpty ||
         chapterName.isEmpty ||
         topicId.isEmpty ||
         topicCode.isEmpty ||
         topicName.isEmpty) {
+      _debug(
+        '_saveLecture(): VALIDATION FAILED - '
+        'incomplete chapter/topic data',
+      );
+
       _showMessage('Selected chapter or topic contains incomplete data.');
+
       return;
     }
+
+    _debug('_saveLecture(): ALL VALIDATION PASSED');
 
     setState(() {
       _saving = true;
     });
 
+    _debug(
+      '_saveLecture(): '
+      '_saving=true',
+    );
+
     try {
+      _debug('');
+      _debug('------------------------------------------------');
+      _debug('CALLING LectureService.saveLecture()');
+      _debug('------------------------------------------------');
+
+      _debug('saveLecture arguments:');
+
+      _debug('  subjectCode=$subjectCode');
+
+      _debug('  chapterCode=$chapterCode');
+
+      _debug('  topicCode=$topicCode');
+
+      _debug('  chapterName=$chapterName');
+
+      _debug('  topicName=$topicName');
+
+      _debug('  topicId=$topicId');
+
+      _debug('  lectureDate=$_lectureDate');
+
+      _debug('  shortNotesLength=${shortNotes.length}');
+
+      _debug('  lastLecture=$_lastLecture');
+
+      _debug('  newChapter=$newChapter');
+
+      _debug('WAITING FOR LectureService.saveLecture()...');
+
       final result = await _lectureService.saveLecture(
         subjectCode: subjectCode,
         chapterCode: chapterCode,
@@ -459,44 +742,136 @@ class _LectureScreenState extends State<LectureScreen> {
         topicName: topicName,
         topicId: topicId,
         lectureDate: _lectureDate,
-        shortNotes: _shortNotesController.text,
+        shortNotes: shortNotes,
         lastLecture: _lastLecture,
         newChapter: newChapter,
       );
 
+      final db = await AppDatabase.instance.database;
+      _taskGenerator = TaskGeneratorLectured(
+        db: db,
+      );
+
+      _debug('');
+      _debug('================================================');
+      _debug('LectureService.saveLecture() RETURNED');
+      _debug('================================================');
+
+      _debug('result=$result');
+
+      _debug('result.lectureId=${result.lectureId}');
+
+      _debug('result.completedChapter=${result.completedChapter}');
+
+      final taskResult = await _taskGenerator.generateLectureTasks(
+        lectureId: result.lectureId,
+      );
+
       if (!mounted) {
+        _debug('_saveLecture(): widget no longer mounted');
+
         return;
       }
 
+      _debug('_saveLecture(): resetting recording state');
+
       _resetRecordingState();
+
+      _debug('_saveLecture(): recording state reset');
 
       setState(() {
         _mainTabIndex = 0;
       });
 
+      _debug(
+        '_saveLecture(): '
+        'changed main tab to View Lectures',
+      );
+
+      _debug(
+        '_saveLecture(): '
+        'calling _loadViewLectures()',
+      );
+
       await _loadViewLectures();
 
+      _debug(
+        '_saveLecture(): '
+        '_loadViewLectures() completed',
+      );
+
       if (!mounted) {
+        _debug('_saveLecture(): widget unmounted after reload');
+
         return;
       }
 
-      _showMessage(
-        result.completedChapter
-            ? 'Lecture saved for $topicName. Chapter completed.'
-            : 'Lecture saved for $topicName.\nLecture ID: ${result.lectureId}',
+      final message = result.completedChapter
+          ? 'Lecture saved for $topicName. Chapter completed.\n'
+              'Tasks generated: ${taskResult.tasksCreated}'
+          : 'Lecture saved for $topicName.\n'
+              'Lecture ID: ${result.lectureId}\n'
+              'Tasks generated: ${taskResult.tasksCreated}';
+
+      _debug(
+        '_saveLecture(): '
+        'showing success message',
       );
-    } catch (e) {
+
+      //_showMessage(message);
+      if (!mounted) return;
+
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          title: const Text('Lecture Saved'),
+          content: Text(
+            'Lecture saved successfully.\n\n'
+            'Tasks Created: ${taskResult.tasksCreated}',
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+
+      _debug('_saveLecture() SUCCESS END');
+    } catch (e, stackTrace) {
+      _debug('');
+      _debug('================================================');
+      _debug('LectureService.saveLecture() THREW EXCEPTION');
+      _debug('================================================');
+
+      _debug('EXCEPTION=$e');
+
+      _debug('STACK TRACE=$stackTrace');
+
       if (!mounted) {
         return;
       }
 
       _showMessage('Unable to save lecture: $e');
     } finally {
+      _debug('_saveLecture(): entering finally');
+
       if (mounted) {
         setState(() {
           _saving = false;
         });
+
+        _debug(
+          '_saveLecture(): '
+          '_saving=false',
+        );
       }
+
+      _debug('_saveLecture() FINALLY END');
+
+      _debug('================================================');
     }
   }
 
@@ -505,7 +880,11 @@ class _LectureScreenState extends State<LectureScreen> {
   // ---------------------------------------------------------------------------
 
   void _cancelRecording() {
+    _debug('_cancelRecording() START');
+
     if (_saving) {
+      _debug('_cancelRecording(): ABORT - saving');
+
       return;
     }
 
@@ -515,12 +894,21 @@ class _LectureScreenState extends State<LectureScreen> {
       _mainTabIndex = 0;
     });
 
+    _debug(
+      '_cancelRecording(): '
+      'loading view lectures',
+    );
+
     _loadViewLectures();
 
     _showMessage('Lecture recording cancelled.');
+
+    _debug('_cancelRecording() END');
   }
 
   void _resetRecordingState() {
+    _debug('_resetRecordingState() START');
+
     setState(() {
       _newChapter = null;
 
@@ -550,6 +938,8 @@ class _LectureScreenState extends State<LectureScreen> {
 
       _selectedNotesImages = null;
     });
+
+    _debug('_resetRecordingState() END');
   }
 
   // ===========================================================================
@@ -557,20 +947,47 @@ class _LectureScreenState extends State<LectureScreen> {
   // ===========================================================================
 
   Future<void> _loadViewLectures() async {
+    _debug('_loadViewLectures() START');
+
     setState(() {
       _viewLoading = true;
     });
+
+    _debug(
+      '_loadViewLectures(): '
+      '_viewLoading=true',
+    );
 
     try {
       List<Map<String, Object?>> lectures;
 
       if (_viewMode == 0) {
+        _debug(
+          '_loadViewLectures(): '
+          'mode=Date-Wise',
+        );
+
         lectures = await _lectureEnquiryService.getThisWeekLectures();
       } else if (_viewMode == 1) {
+        _debug(
+          '_loadViewLectures(): '
+          'mode=Subject-Wise / Physics',
+        );
+
         lectures = await _lectureEnquiryService.getPhysicsLectures();
       } else {
+        _debug(
+          '_loadViewLectures(): '
+          'mode=All Lectures',
+        );
+
         lectures = await _lectureEnquiryService.getAllLectures();
       }
+
+      _debug(
+        '_loadViewLectures(): '
+        'received ${lectures.length} lectures',
+      );
 
       if (!mounted) {
         return;
@@ -585,7 +1002,13 @@ class _LectureScreenState extends State<LectureScreen> {
 
         _expandedViewLectures.clear();
       });
-    } catch (e) {
+
+      _debug('_loadViewLectures() END');
+    } catch (e, stackTrace) {
+      _debug('_loadViewLectures(): EXCEPTION=$e');
+
+      _debug('_loadViewLectures(): STACK=$stackTrace');
+
       if (!mounted) {
         return;
       }
@@ -599,6 +1022,11 @@ class _LectureScreenState extends State<LectureScreen> {
   }
 
   Future<void> _selectViewMode(int mode) async {
+    _debug(
+      '_selectViewMode(): '
+      'old=$_viewMode, new=$mode',
+    );
+
     setState(() {
       _viewMode = mode;
     });
@@ -611,6 +1039,8 @@ class _LectureScreenState extends State<LectureScreen> {
   // ---------------------------------------------------------------------------
 
   Future<List<Map<String, Object?>>> _loadDateLectures(int index) {
+    _debug('_loadDateLectures(): index=$index');
+
     if (index == 0) {
       return _lectureEnquiryService.getThisWeekLectures();
     }
@@ -623,6 +1053,11 @@ class _LectureScreenState extends State<LectureScreen> {
   }
 
   Future<List<Map<String, Object?>>> _loadSubjectLectures(String subjectCode) {
+    _debug(
+      '_loadSubjectLectures(): '
+      'subjectCode=$subjectCode',
+    );
+
     return _lectureEnquiryService.getSubjectLectures(subjectCode);
   }
 
@@ -698,10 +1133,17 @@ class _LectureScreenState extends State<LectureScreen> {
         child: InkWell(
           borderRadius: BorderRadius.circular(14),
           onTap: () async {
+            _debug(
+              '_buildCollapsiblePeriod onTap: '
+              'key=$keyName, '
+              'expanded=$expanded',
+            );
+
             if (expanded) {
               setState(() {
                 _expandedViewGroups.remove(keyName);
               });
+
               return;
             }
 
@@ -711,7 +1153,17 @@ class _LectureScreenState extends State<LectureScreen> {
 
             if (_viewLectures.isEmpty) {
               try {
+                _debug(
+                  'Loading collapsed section: '
+                  '$keyName',
+                );
+
                 final rows = await loader();
+
+                _debug(
+                  'Collapsed section returned '
+                  '${rows.length} rows',
+                );
 
                 if (!mounted) {
                   return;
@@ -720,7 +1172,11 @@ class _LectureScreenState extends State<LectureScreen> {
                 setState(() {
                   _viewLectures = rows;
                 });
-              } catch (e) {
+              } catch (e, stackTrace) {
+                _debug('Collapsed section ERROR=$e');
+
+                _debug('Collapsed section STACK=$stackTrace');
+
                 if (!mounted) {
                   return;
                 }
@@ -827,6 +1283,11 @@ class _LectureScreenState extends State<LectureScreen> {
             child: InkWell(
               borderRadius: BorderRadius.circular(11),
               onTap: () {
+                _debug(
+                  'Lecture group tapped: '
+                  '$key',
+                );
+
                 setState(() {
                   if (expanded) {
                     _expandedViewGroups.remove('nested_$key');
@@ -976,12 +1437,10 @@ class _LectureScreenState extends State<LectureScreen> {
       children: [
         if (lectureDate.isNotEmpty)
           _detailLine(Icons.calendar_today, lectureDate),
-
         if (shortDetails.isNotEmpty) ...[
           const SizedBox(height: 6),
           _detailLine(Icons.notes, shortDetails),
         ],
-
         if (hasFile || hasImages) ...[
           const SizedBox(height: 7),
           Wrap(
@@ -1043,7 +1502,6 @@ class _LectureScreenState extends State<LectureScreen> {
         child: Column(
           children: [
             _buildTopTabs(),
-
             Expanded(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 180),
@@ -1102,9 +1560,8 @@ class _LectureScreenState extends State<LectureScreen> {
     required VoidCallback onTap,
   }) {
     return Material(
-      color: selected
-          ? Theme.of(context).colorScheme.surface
-          : Colors.transparent,
+      color:
+          selected ? Theme.of(context).colorScheme.surface : Colors.transparent,
       borderRadius: BorderRadius.circular(11),
       elevation: selected ? 1 : 0,
       child: InkWell(
@@ -1139,7 +1596,6 @@ class _LectureScreenState extends State<LectureScreen> {
     return Column(
       children: [
         _buildViewModeSelector(),
-
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(10, 2, 10, 12),
@@ -1149,13 +1605,12 @@ class _LectureScreenState extends State<LectureScreen> {
                     child: Center(child: CircularProgressIndicator()),
                   )
                 : _viewMode == 0
-                ? _buildDateWiseView()
-                : _viewMode == 1
-                ? _buildSubjectWiseView()
-                : _buildAllLecturesView(),
+                    ? _buildDateWiseView()
+                    : _viewMode == 1
+                        ? _buildSubjectWiseView()
+                        : _buildAllLecturesView(),
           ),
         ),
-
         _buildReturnButton(),
       ],
     );
@@ -1260,17 +1715,14 @@ class _LectureScreenState extends State<LectureScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildSubjectSection(),
-
           if (_selectedSubjectCode != null) ...[
             const SizedBox(height: 7),
             _buildWorkflowSection(),
           ],
-
           if (_newChapter != null) ...[
             const SizedBox(height: 7),
             _buildChapterTopicSection(),
           ],
-
           if (_selectedTopic != null) ...[
             const SizedBox(height: 7),
             _buildLectureDetailsSection(),
@@ -1392,6 +1844,11 @@ class _LectureScreenState extends State<LectureScreen> {
   }
 
   Future<void> _selectChapterByCode(String? code) async {
+    _debug(
+      '_selectChapterByCode(): '
+      'code=$code',
+    );
+
     if (code == null || code.isEmpty) {
       return;
     }
@@ -1460,6 +1917,11 @@ class _LectureScreenState extends State<LectureScreen> {
   }
 
   void _selectTopicByCode(String? code) {
+    _debug(
+      '_selectTopicByCode(): '
+      'code=$code',
+    );
+
     if (code == null || code.isEmpty) {
       return;
     }
@@ -1494,9 +1956,7 @@ class _LectureScreenState extends State<LectureScreen> {
               Expanded(child: _buildLastLectureField()),
             ],
           ),
-
           const SizedBox(height: 7),
-
           TextField(
             controller: _shortNotesController,
             minLines: 5,
@@ -1515,9 +1975,7 @@ class _LectureScreenState extends State<LectureScreen> {
               ),
             ),
           ),
-
           const SizedBox(height: 7),
-
           Row(
             children: [
               Expanded(
@@ -1537,9 +1995,7 @@ class _LectureScreenState extends State<LectureScreen> {
               ),
             ],
           ),
-
           const SizedBox(height: 8),
-
           Row(
             children: [
               Expanded(
@@ -1624,6 +2080,11 @@ class _LectureScreenState extends State<LectureScreen> {
                 setState(() {
                   _lastLecture = !_lastLecture;
                 });
+
+                _debug(
+                  'Last Lecture toggled: '
+                  '$_lastLecture',
+                );
               },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -1643,6 +2104,11 @@ class _LectureScreenState extends State<LectureScreen> {
                         setState(() {
                           _lastLecture = value;
                         });
+
+                        _debug(
+                          'Last Lecture switch: '
+                          '$value',
+                        );
                       },
               ),
             ],
@@ -1767,6 +2233,8 @@ class _LectureScreenState extends State<LectureScreen> {
         width: double.infinity,
         child: OutlinedButton.icon(
           onPressed: () {
+            _debug('Return to Record Lecture clicked');
+
             setState(() {
               _mainTabIndex = 1;
             });
@@ -1814,8 +2282,7 @@ class _LectureScreenState extends State<LectureScreen> {
 
     final first = rows.first;
 
-    final subject =
-        first['subjectName']?.toString() ??
+    final subject = first['subjectName']?.toString() ??
         first['subjectCode']?.toString() ??
         '';
 
@@ -1835,6 +2302,8 @@ class _LectureScreenState extends State<LectureScreen> {
   // ---------------------------------------------------------------------------
 
   void _showMessage(String message) {
+    _debug('SnackBar: $message');
+
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
     ScaffoldMessenger.of(context).showSnackBar(

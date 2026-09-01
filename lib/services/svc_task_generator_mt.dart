@@ -2,81 +2,51 @@ import 'dart:convert';
 
 import 'package:sqflite/sqflite.dart';
 
-/// MT Task Generator
+/// Milestone Task Generator
 ///
-/// Dynamic Milestone Task Generator.
-///
-/// The caller supplies:
-///
-///     mtType
-///     milestoneDate
-///
-/// Example:
-///
-///     generateMilestoneTasks(
-///       mtType: 'CMT',
-///       milestoneDate: someSunday,
-///     );
-///
-/// or:
-///
-///     generateMilestoneTasks(
-///       mtType: 'PMT',
-///       milestoneDate: someSunday,
-///     );
-///
-/// Generation hierarchy:
+/// Creates milestone tasks from:
 ///
 ///   db_Milestones
-///        │
-///        ├── PHY
-///        │     └── MT Rule
-///        │            └── MT_Subject_Code + MT_Type
-///        │                   └── partial SubjectTaskID lookup
-///        │                          └── db_SubjectTasks
-///        │                                 └── SubjectTaskActivities
-///        │                                        └── db_Activities
-///        │
-///        ├── CHEM
-///        │     └── same flow
-///        │
-///        ├── BIO
-///        │     └── same flow
-///        │
-///        └── PCB
-///              └── PCB_<MT_TYPE>_TEST
-///                     └── SubjectTaskActivities
-///                            └── db_Activities
+///        ↓
+///   db_Milestones_TC_Rules
+///        ↓
+///   db_SubjectTasks
+///        ↓
+///   db_SubjectTaskActivities
+///        ↓
+///   db_Activities
 ///
-/// Subject task lookup:
+/// FINAL TASK CREATION RULES
 ///
-///   MT_Subject_Code + MT_Type
-///              ↓
-///       partial SubjectTaskID
-///              ↓
-///       LIKE 'PHY_CMT_%'
-///       LIKE 'PHY_PMT_%'
-///       LIKE 'CHEM_CMT_%'
-///       LIKE 'CHEM_PMT_%'
-///       LIKE 'BIO_CMT_%'
-///       LIKE 'BIO_PMT_%'
+/// 1. PHY_CMT_FSR
+///    - ONE task for Physics
+///    - ONE activity-status record for that task
+///    - Every chapter in milestone scope becomes an individual
+///      true/false entry in the same ActivityStatusJSON.
 ///
-/// Created task data:
-///   db_TaskLogWeekEnd
-///   db_TaskActivityStatus
+/// 2. CHE_CMT_FSR
+///    - ONE task for Chemistry
+///    - ONE activity-status record for that task
+///    - Every chapter in milestone scope becomes an individual
+///      true/false entry in the same ActivityStatusJSON.
 ///
-/// Return value:
+/// 3. BIO_CMT_FSR
+///    - ONE task for Biology
+///    - ONE activity-status record for that task
+///    - Every chapter in milestone scope becomes an individual
+///      true/false entry in the same ActivityStatusJSON.
 ///
-///   {
-///     'PHY':  <number of PHY tasks created/present>,
-///     'CHEM': <number of CHEM tasks created/present>,
-///     'BIO':  <number of BIO tasks created/present>,
-///     'PCB':  <number of PCB tasks created/present>,
-///   }
+/// 4. PCB_CMT_TEST
+///    - ONE task
+///    - Uses all existing activities from:
+///        db_SubjectTaskActivities
+///        db_Activities
+///
+/// No database schema change is required.
 class MtTaskGenerator {
   MtTaskGenerator({required Database db, DateTime Function()? now})
-    : _db = db,
-      _now = now ?? DateTime.now;
+      : _db = db,
+        _now = now ?? DateTime.now;
 
   final Database _db;
   final DateTime Function() _now;
@@ -94,6 +64,8 @@ class MtTaskGenerator {
   static const String _subjectTaskActivityTable = 'db_SubjectTaskActivities';
 
   static const String _activityTable = 'db_Activities';
+
+  static const String _syllabusTable = 'db_SyllabusMaster';
 
   static const String _taskLogTable = 'db_TaskLogWeekEnd';
 
@@ -123,7 +95,7 @@ class MtTaskGenerator {
       'milestone_common_tasks_created';
 
   // ===========================================================================
-  // TASK CREATION RULE COLUMNS
+  // RULE COLUMNS
   // ===========================================================================
 
   static const String _ruleIdColumn = 'MT_Rule_ID';
@@ -152,23 +124,6 @@ class MtTaskGenerator {
   // PUBLIC METHOD
   // ===========================================================================
 
-  /// Generates all milestone tasks for [milestoneDate] and [mtType].
-  ///
-  /// [mtType] is supplied by the Milestone UI.
-  ///
-  /// Example:
-  ///
-  ///     mtType = CMT
-  ///
-  /// or:
-  ///
-  ///     mtType = PMT
-  ///
-  /// The supplied type is used dynamically for:
-  ///
-  ///   1. Milestone lookup
-  ///   2. Rule lookup
-  ///   3. SubjectTask matching
   Future<Map<String, int>> generateMilestoneTasks({
     required String mtType,
     DateTime? milestoneDate,
@@ -195,11 +150,19 @@ class MtTaskGenerator {
 
     final results = <String, int>{'PHY': 0, 'CHEM': 0, 'BIO': 0, 'PCB': 0};
 
+    // =========================================================================
+    // PHYSICS
+    // =========================================================================
+
     results['PHY'] = await _processSubject(
       milestone: milestone,
       subjectCode: 'PHY',
       mtType: normalizedType,
     );
+
+    // =========================================================================
+    // CHEMISTRY
+    // =========================================================================
 
     results['CHEM'] = await _processSubject(
       milestone: milestone,
@@ -207,11 +170,19 @@ class MtTaskGenerator {
       mtType: normalizedType,
     );
 
+    // =========================================================================
+    // BIOLOGY
+    // =========================================================================
+
     results['BIO'] = await _processSubject(
       milestone: milestone,
       subjectCode: 'BIO',
       mtType: normalizedType,
     );
+
+    // =========================================================================
+    // PCB COMMON TASK
+    // =========================================================================
 
     results['PCB'] = await _processCommonTasks(
       milestone: milestone,
@@ -254,8 +225,7 @@ class MtTaskGenerator {
         continue;
       }
 
-      final partialKey =
-          '${ruleSubjectCode}_'
+      final partialKey = '${ruleSubjectCode}_'
           '${ruleType}_';
 
       final subjectTasks = await _getSubjectTasksByPartialKey(partialKey);
@@ -271,12 +241,52 @@ class MtTaskGenerator {
           continue;
         }
 
+        // =====================================================================
+        // SYLLABUS REVISION TASK
+        //
+        // One task for the complete subject scope.
+        //
+        // Example:
+        //
+        // PHY_CMT_FSR
+        //
+        // becomes:
+        //
+        // ONE task
+        //
+        // ActivityStatusJSON:
+        //
+        // {
+        //   "Physics - Chapter 1": false,
+        //   "Physics - Chapter 2": false,
+        //   "Physics - Chapter 3": false
+        // }
+        // =====================================================================
+
+        if (_isSyllabusRevisionTask(subjectTask, rule)) {
+          final created = await _createSyllabusRevisionTask(
+            subjectTask: subjectTask,
+            rule: rule,
+            milestoneDate: _parseMilestoneDate(milestone),
+            subjectCode: subjectCode,
+            chapterCodes: chapters,
+          );
+
+          if (created) {
+            taskCount++;
+          }
+
+          continue;
+        }
+
+        // =====================================================================
+        // NORMAL SUBJECT MILESTONE TASK
+        // =====================================================================
+
         final created = await _createTaskFromSubjectTask(
           subjectTask: subjectTask,
           rule: rule,
-          milestone: milestone,
           milestoneDate: _parseMilestoneDate(milestone),
-          chapterCodes: chapters,
         );
 
         if (created) {
@@ -296,7 +306,214 @@ class MtTaskGenerator {
   }
 
   // ===========================================================================
-  // COMMON / PCB PROCESSING
+  // SYLLABUS REVISION DETECTION
+  // ===========================================================================
+
+  bool _isSyllabusRevisionTask(
+    Map<String, Object?> subjectTask,
+    Map<String, Object?> rule,
+  ) {
+    final subjectTaskId =
+        _string(subjectTask[_subjectTaskIdColumn])?.toUpperCase() ?? '';
+
+    final subjectTaskName =
+        _string(subjectTask[_subjectTaskNameColumn])?.toUpperCase() ?? '';
+
+    final ruleDescription =
+        _string(rule[_ruleDescriptionColumn])?.toUpperCase() ?? '';
+
+    return subjectTaskId.contains('FSR') ||
+        subjectTaskId.contains('SYLLABUS') ||
+        subjectTaskId.contains('REVISION') ||
+        subjectTaskName.contains('SYLLABUS') ||
+        subjectTaskName.contains('REVISION') ||
+        ruleDescription.contains('SYLLABUS');
+  }
+
+  // ===========================================================================
+  // CREATE ONE SUBJECT SYLLABUS REVISION TASK
+  // ===========================================================================
+
+  Future<bool> _createSyllabusRevisionTask({
+    required Map<String, Object?> subjectTask,
+    required Map<String, Object?> rule,
+    required DateTime milestoneDate,
+    required String subjectCode,
+    required List<String> chapterCodes,
+  }) async {
+    final subjectTaskId = _string(subjectTask[_subjectTaskIdColumn]);
+
+    if (subjectTaskId == null) {
+      return false;
+    }
+
+    if (chapterCodes.isEmpty) {
+      return false;
+    }
+
+    final ruleId = _string(rule[_ruleIdColumn]) ?? '0';
+
+    // =========================================================================
+    // ONE TASK ID ONLY
+    // =========================================================================
+
+    final taskId = _buildTaskId(
+      milestoneDate: milestoneDate,
+      ruleId: ruleId,
+      subjectTaskId: subjectTaskId,
+    );
+
+    final taskDescription =
+        _string(subjectTask[_subjectTaskNameColumn]) ?? subjectTaskId;
+
+    // =========================================================================
+    // Build chapter activity JSON.
+    //
+    // Every chapter becomes an individual activity-like entry,
+    // but all entries belong to ONE task and ONE status record.
+    // =========================================================================
+
+    final activityStatus = <String, bool>{};
+
+    for (final chapterCode in chapterCodes) {
+      final chapter = await _getChapterInfo(
+        subjectCode: subjectCode,
+        chapterCode: chapterCode,
+      );
+
+      final chapterName = _string(chapter?['chapter_name']);
+
+      final displayName = chapterName ?? chapterCode;
+
+      activityStatus[displayName] = false;
+    }
+
+    if (activityStatus.isEmpty) {
+      return false;
+    }
+
+    // =========================================================================
+    // Duration
+    // =========================================================================
+
+    final activities = await _getActivitiesForSubjectTask(subjectTaskId);
+
+    final duration = _taskDuration(subjectTask, activities);
+
+    // =========================================================================
+    // ONE TASK + ONE ACTIVITY STATUS RECORD
+    // =========================================================================
+
+    return _createTaskWithActivityJson(
+      taskId: taskId,
+      taskDescription: taskDescription,
+      dueDate: milestoneDate,
+      durationMinutes: duration,
+      activityStatus: activityStatus,
+    );
+  }
+
+  // ===========================================================================
+  // CREATE TASK WITH CUSTOM ACTIVITY JSON
+  // ===========================================================================
+
+  Future<bool> _createTaskWithActivityJson({
+    required String taskId,
+    required String taskDescription,
+    required DateTime dueDate,
+    required int durationMinutes,
+    required Map<String, bool> activityStatus,
+  }) async {
+    // =========================================================================
+    // TASK
+    // =========================================================================
+
+    final existingTask = await _db.query(
+      _taskLogTable,
+      columns: const ['TaskID'],
+      where: 'TaskID = ?',
+      whereArgs: [taskId],
+      limit: 1,
+    );
+
+    if (existingTask.isEmpty) {
+      await _db.insert(
+          _taskLogTable,
+          <String, Object?>{
+            'TaskID': taskId,
+            'TaskDescription': taskDescription,
+            'TaskDueDate': _formatDate(dueDate),
+            'TaskStartTime': null,
+            'TaskDurationMinutes': durationMinutes,
+            'TaskCalendarEventID': null,
+            'TaskReminderMinutes': null,
+            'TaskStatus': 'PENDING',
+          },
+          conflictAlgorithm: ConflictAlgorithm.ignore);
+    }
+
+    // =========================================================================
+    // ONE ACTIVITY STATUS RECORD
+    // =========================================================================
+
+    final existingStatus = await _db.query(
+      _taskActivityStatusTable,
+      columns: const ['TaskID'],
+      where: 'TaskID = ?',
+      whereArgs: [taskId],
+      limit: 1,
+    );
+
+    if (existingStatus.isEmpty) {
+      await _db.insert(
+          _taskActivityStatusTable,
+          <String, Object?>{
+            'TaskID': taskId,
+            'ActivityStatusJSON': jsonEncode(activityStatus),
+            'TaskActivityUpdatedDate': _now().toIso8601String(),
+          },
+          conflictAlgorithm: ConflictAlgorithm.ignore);
+    }
+
+    return true;
+  }
+
+  // ===========================================================================
+  // CHAPTER LOOKUP
+  // ===========================================================================
+
+  Future<Map<String, Object?>?> _getChapterInfo({
+    required String subjectCode,
+    required String chapterCode,
+  }) async {
+    final normalizedSubject = _normalizeSubjectCode(subjectCode);
+
+    final subjectCandidates = switch (normalizedSubject) {
+      'PHY' => const ['PHY', 'PHYSICS'],
+      'CHEM' => const ['CHEM', 'CHEMISTRY'],
+      'BIO' => const ['BIO', 'BIOLOGY'],
+      _ => <String>[],
+    };
+
+    for (final candidate in subjectCandidates) {
+      final rows = await _db.query(
+        _syllabusTable,
+        where: 'UPPER(subject_code) = ? '
+            'AND UPPER(chapter_code) = ?',
+        whereArgs: [candidate.toUpperCase(), chapterCode.toUpperCase()],
+        limit: 1,
+      );
+
+      if (rows.isNotEmpty) {
+        return rows.first;
+      }
+    }
+
+    return null;
+  }
+
+  // ===========================================================================
+  // PCB COMMON TASK
   // ===========================================================================
 
   Future<int> _processCommonTasks({
@@ -347,15 +564,13 @@ class MtTaskGenerator {
   }
 
   // ===========================================================================
-  // SUBJECT TASK CREATION
+  // NORMAL SUBJECT TASK
   // ===========================================================================
 
   Future<bool> _createTaskFromSubjectTask({
     required Map<String, Object?> subjectTask,
     required Map<String, Object?> rule,
-    required Map<String, Object?> milestone,
     required DateTime milestoneDate,
-    required List<String> chapterCodes,
   }) async {
     final subjectTaskId = _string(subjectTask[_subjectTaskIdColumn]);
 
@@ -374,8 +589,6 @@ class MtTaskGenerator {
       return false;
     }
 
-    final taskDescription = subjectTaskName;
-
     final duration = _taskDuration(subjectTask, activities);
 
     final taskId = _buildTaskId(
@@ -386,7 +599,7 @@ class MtTaskGenerator {
 
     return _createTaskAndActivityStatus(
       taskId: taskId,
-      taskDescription: taskDescription,
+      taskDescription: subjectTaskName,
       dueDate: milestoneDate,
       durationMinutes: duration,
       activities: activities,
@@ -394,7 +607,7 @@ class MtTaskGenerator {
   }
 
   // ===========================================================================
-  // TASK + ACTIVITY STATUS INSERT
+  // NORMAL TASK + EXISTING ACTIVITIES
   // ===========================================================================
 
   Future<bool> _createTaskAndActivityStatus({
@@ -404,6 +617,10 @@ class MtTaskGenerator {
     required int durationMinutes,
     required List<Map<String, Object?>> activities,
   }) async {
+    // =========================================================================
+    // TASK
+    // =========================================================================
+
     final existingTask = await _db.query(
       _taskLogTable,
       columns: const ['TaskID'],
@@ -412,20 +629,25 @@ class MtTaskGenerator {
       limit: 1,
     );
 
-    final alreadyExists = existingTask.isNotEmpty;
-
-    if (!alreadyExists) {
-      await _db.insert(_taskLogTable, <String, Object?>{
-        'TaskID': taskId,
-        'TaskDescription': taskDescription,
-        'TaskDueDate': _formatDate(dueDate),
-        'TaskStartTime': null,
-        'TaskDurationMinutes': durationMinutes,
-        'TaskCalendarEventID': null,
-        'TaskReminderMinutes': null,
-        'TaskStatus': 'PENDING',
-      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+    if (existingTask.isEmpty) {
+      await _db.insert(
+          _taskLogTable,
+          <String, Object?>{
+            'TaskID': taskId,
+            'TaskDescription': taskDescription,
+            'TaskDueDate': _formatDate(dueDate),
+            'TaskStartTime': null,
+            'TaskDurationMinutes': durationMinutes,
+            'TaskCalendarEventID': null,
+            'TaskReminderMinutes': null,
+            'TaskStatus': 'PENDING',
+          },
+          conflictAlgorithm: ConflictAlgorithm.ignore);
     }
+
+    // =========================================================================
+    // EXISTING ACTIVITIES
+    // =========================================================================
 
     final activityStatus = <String, bool>{};
 
@@ -439,7 +661,13 @@ class MtTaskGenerator {
       activityStatus[activityId] = false;
     }
 
-    final activityStatusJson = jsonEncode(activityStatus);
+    if (activityStatus.isEmpty) {
+      return false;
+    }
+
+    // =========================================================================
+    // ONE STATUS RECORD
+    // =========================================================================
 
     final existingStatus = await _db.query(
       _taskActivityStatusTable,
@@ -450,11 +678,14 @@ class MtTaskGenerator {
     );
 
     if (existingStatus.isEmpty) {
-      await _db.insert(_taskActivityStatusTable, <String, Object?>{
-        'TaskID': taskId,
-        'ActivityStatusJSON': activityStatusJson,
-        'TaskActivityUpdatedDate': _now().toIso8601String(),
-      }, conflictAlgorithm: ConflictAlgorithm.ignore);
+      await _db.insert(
+          _taskActivityStatusTable,
+          <String, Object?>{
+            'TaskID': taskId,
+            'ActivityStatusJSON': jsonEncode(activityStatus),
+            'TaskActivityUpdatedDate': _now().toIso8601String(),
+          },
+          conflictAlgorithm: ConflictAlgorithm.ignore);
     }
 
     return true;
@@ -474,8 +705,7 @@ class MtTaskGenerator {
 
     final rows = await _db.query(
       _ruleTable,
-      where:
-          '$_ruleActiveColumn = ? '
+      where: '$_ruleActiveColumn = ? '
           'AND $_ruleTypeColumn = ?',
       whereArgs: [1, normalizedType],
       orderBy: '$_ruleIdColumn ASC',
@@ -486,9 +716,8 @@ class MtTaskGenerator {
     for (final row in rows) {
       final ruleSubject = _string(row[_ruleSubjectColumn])?.toUpperCase();
 
-      final normalizedRuleSubject = ruleSubject == null
-          ? null
-          : _normalizeSubjectCode(ruleSubject);
+      final normalizedRuleSubject =
+          ruleSubject == null ? null : _normalizeSubjectCode(ruleSubject);
 
       if (normalizedRuleSubject == normalizedSubject) {
         result.add(row);
@@ -499,7 +728,7 @@ class MtTaskGenerator {
   }
 
   // ===========================================================================
-  // SUBJECT TASK LOOKUP BY PARTIAL KEY
+  // SUBJECT TASK LOOKUP
   // ===========================================================================
 
   Future<List<Map<String, Object?>>> _getSubjectTasksByPartialKey(
@@ -507,8 +736,7 @@ class MtTaskGenerator {
   ) async {
     return _db.query(
       _subjectTaskTable,
-      where:
-          '$_subjectTaskIdColumn LIKE ? '
+      where: '$_subjectTaskIdColumn LIKE ? '
           'AND $_subjectTaskActiveColumn = ?',
       whereArgs: ['$partialKey%', 'Yes'],
       orderBy: '$_subjectTaskIdColumn ASC',
@@ -516,7 +744,7 @@ class MtTaskGenerator {
   }
 
   // ===========================================================================
-  // SUBJECT TASK LOOKUP BY ID
+  // SUBJECT TASK BY ID
   // ===========================================================================
 
   Future<Map<String, Object?>?> _getSubjectTaskById(
@@ -524,8 +752,7 @@ class MtTaskGenerator {
   ) async {
     final rows = await _db.query(
       _subjectTaskTable,
-      where:
-          '$_subjectTaskIdColumn = ? '
+      where: '$_subjectTaskIdColumn = ? '
           'AND $_subjectTaskActiveColumn = ?',
       whereArgs: [subjectTaskId, 'Yes'],
       limit: 1,
@@ -539,7 +766,7 @@ class MtTaskGenerator {
   }
 
   // ===========================================================================
-  // SUBJECT TASK ACTIVITIES + db_ACTIVITIES
+  // ACTIVITIES
   // ===========================================================================
 
   Future<List<Map<String, Object?>>> _getActivitiesForSubjectTask(
@@ -567,8 +794,7 @@ class MtTaskGenerator {
 
       final activityRows = await _db.query(
         _activityTable,
-        where:
-            'ActivityID = ? '
+        where: 'ActivityID = ? '
             'AND IsActive = ?',
         whereArgs: [activityId, 'Yes'],
         limit: 1,
@@ -578,9 +804,7 @@ class MtTaskGenerator {
         continue;
       }
 
-      final activity = activityRows.first;
-
-      result.add(<String, Object?>{...link, ...activity});
+      result.add(<String, Object?>{...link, ...activityRows.first});
     }
 
     return result;
@@ -614,16 +838,11 @@ class MtTaskGenerator {
     DateTime date,
     String mtType,
   ) async {
-    final normalizedType = mtType.trim().toUpperCase();
-
-    final formattedDate = _formatDate(date);
-
     final rows = await _db.query(
       _milestoneTable,
-      where:
-          '$_milestoneTypeColumn = ? '
+      where: '$_milestoneTypeColumn = ? '
           'AND $_milestoneDateColumn = ?',
-      whereArgs: [normalizedType, formattedDate],
+      whereArgs: [mtType.trim().toUpperCase(), _formatDate(date)],
       limit: 1,
     );
 
@@ -655,9 +874,7 @@ class MtTaskGenerator {
       return const [];
     }
 
-    final rawValue = milestone[column]?.toString();
-
-    return _splitCodes(rawValue);
+    return _splitCodes(milestone[column]?.toString());
   }
 
   // ===========================================================================
@@ -684,8 +901,7 @@ class MtTaskGenerator {
     await _db.update(
       _milestoneTable,
       {column: 1},
-      where:
-          '$_milestoneTypeColumn = ? '
+      where: '$_milestoneTypeColumn = ? '
           'AND $_milestoneDateColumn = ?',
       whereArgs: [
         milestone[_milestoneTypeColumn],
@@ -695,7 +911,7 @@ class MtTaskGenerator {
   }
 
   // ===========================================================================
-  // MARK COMMON / PCB TASKS CREATED
+  // MARK COMMON TASKS CREATED
   // ===========================================================================
 
   Future<void> _markCommonTasksCreated({
@@ -704,8 +920,7 @@ class MtTaskGenerator {
     await _db.update(
       _milestoneTable,
       {_commonTasksCreatedColumn: 1},
-      where:
-          '$_milestoneTypeColumn = ? '
+      where: '$_milestoneTypeColumn = ? '
           'AND $_milestoneDateColumn = ?',
       whereArgs: [
         milestone[_milestoneTypeColumn],
@@ -731,33 +946,7 @@ class MtTaskGenerator {
   }
 
   // ===========================================================================
-  // ACTIVITY DESCRIPTION
-  // ===========================================================================
-
-  String _activityDescription(Map<String, Object?> activity) {
-    final description = _string(activity['ActivityDescription']);
-
-    if (description != null) {
-      return description;
-    }
-
-    final name = _string(activity['ActivityName']);
-
-    if (name != null) {
-      return name;
-    }
-
-    final id = _string(activity['ActivityID']);
-
-    if (id != null) {
-      return id;
-    }
-
-    return 'Activity';
-  }
-
-  // ===========================================================================
-  // SUBJECT CODE NORMALIZATION
+  // SUBJECT NORMALIZATION
   // ===========================================================================
 
   String _normalizeSubjectCode(String value) {

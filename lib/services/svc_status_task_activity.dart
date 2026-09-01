@@ -68,22 +68,19 @@ class TaskActivityStatusSvc {
       [subjectTaskId],
     );
 
-    return rows
-        .map((row) {
-          return TaskActivityDefinition(
-            activityId: row['ActivityID']?.toString() ?? '',
-            activityCode: row['ActivityCode']?.toString() ?? '',
-            activityName: row['ActivityDisplayName']?.toString() ?? '',
-            sequence: _toInt(row['ActivitySequence']) ?? 0,
-            isMandatory: _toBool(row['IsMandatory']),
-          );
-        })
-        .where((item) {
-          return item.activityCode.isNotEmpty &&
-              item.activityName.isNotEmpty &&
-              item.sequence > 0;
-        })
-        .toList();
+    return rows.map((row) {
+      return TaskActivityDefinition(
+        activityId: row['ActivityID']?.toString() ?? '',
+        activityCode: row['ActivityCode']?.toString() ?? '',
+        activityName: row['ActivityDisplayName']?.toString() ?? '',
+        sequence: _toInt(row['ActivitySequence']) ?? 0,
+        isMandatory: _toBool(row['IsMandatory']),
+      );
+    }).where((item) {
+      return item.activityCode.isNotEmpty &&
+          item.activityName.isNotEmpty &&
+          item.sequence > 0;
+    }).toList();
   }
 
   // ==========================================================================
@@ -125,16 +122,13 @@ class TaskActivityStatusSvc {
 
     final anyCompleted = normalized.values.any((value) => value);
 
-    final requiredActivities = definitions
-        .where((activity) => activity.isMandatory)
-        .toList();
+    final requiredActivities =
+        definitions.where((activity) => activity.isMandatory).toList();
 
-    final completionActivities = requiredActivities.isNotEmpty
-        ? requiredActivities
-        : definitions;
+    final completionActivities =
+        requiredActivities.isNotEmpty ? requiredActivities : definitions;
 
-    final allRequiredCompleted =
-        completionActivities.isNotEmpty &&
+    final allRequiredCompleted = completionActivities.isNotEmpty &&
         completionActivities.every(
           (activity) => normalized[activity.activityCode] == true,
         );
@@ -174,11 +168,14 @@ class TaskActivityStatusSvc {
           whereArgs: [task.id],
         );
       } else {
-        await txn.insert(_activityStatusTable, {
-          'TaskID': task.id,
-          'ActivityStatusJSON': jsonEncode(normalized),
-          'TaskActivityUpdatedDate': DateTime.now().toIso8601String(),
-        }, conflictAlgorithm: ConflictAlgorithm.replace);
+        await txn.insert(
+            _activityStatusTable,
+            {
+              'TaskID': task.id,
+              'ActivityStatusJSON': jsonEncode(normalized),
+              'TaskActivityUpdatedDate': DateTime.now().toIso8601String(),
+            },
+            conflictAlgorithm: ConflictAlgorithm.replace);
       }
 
       // ----------------------------------------------------------------------
