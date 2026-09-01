@@ -30,11 +30,9 @@ class TaskActivityCommitResult {
   final bool taskStatusChanged;
 }
 
-class TaskActivityStatusSvc {
-  TaskActivityStatusSvc(this._db);
+class TaskActivityStatusSvc {  TaskActivityStatusSvc(this._db);
 
   final Database _db;
-
   static const String _activityStatusTable = 'db_TaskActivityStatus';
 
   // ==========================================================================
@@ -108,13 +106,10 @@ class TaskActivityStatusSvc {
   // ==========================================================================
 
   Future<TaskActivityCommitResult> commitTaskActivities({
-    required Task task,
-    required Map<String, bool> activityStatus,
-  }) async {
+    required Task task, required Map<String, bool> activityStatus,}) async
+  {
     final definitions = await getActivitiesForTask(task.id);
-
     final normalized = <String, bool>{};
-
     for (final activity in definitions) {
       normalized[activity.activityCode] =
           activityStatus[activity.activityCode] ?? false;
@@ -252,6 +247,132 @@ class TaskActivityStatusSvc {
       taskStatusChanged: taskStatusChanged,
     );
   }
+
+  Future<TaskActivityCommitResult> commitMilestoneTaskActivities({
+    required Task task,
+    required Map<String, bool> activityStatus,
+  }) async {
+    final definitions = await getActivitiesForTask(task.id);
+
+    final normalized = <String, bool>{};
+
+    for (final activity in definitions) {
+      normalized[activity.activityCode] =
+          activityStatus[activity.activityCode] ?? false;
+    }
+
+    final anyCompleted =
+    normalized.values.any((value) => value);
+
+    final requiredActivities =
+    definitions.where((activity) => activity.isMandatory).toList();
+
+    final completionActivities =
+    requiredActivities.isNotEmpty
+        ? requiredActivities
+        : definitions;
+
+    final allRequiredCompleted =
+        completionActivities.isNotEmpty &&
+            completionActivities.every(
+                  (activity) =>
+              normalized[activity.activityCode] == true,
+            );
+
+    var nextStatus = task.status;
+
+    if (task.status == TaskStatus.pending && anyCompleted) {
+      nextStatus = TaskStatus.started;
+    }
+
+    if (allRequiredCompleted) {
+      nextStatus = TaskStatus.completed;
+    }
+
+    final taskStatusChanged =
+        nextStatus != task.status;
+
+    await _db.transaction((txn) async {
+      // MT RULE:
+      // Always retain ActivityStatusJSON.
+      //
+      // Individual MT task completion must NOT remove
+      // its activity status record.
+      await txn.insert(
+        _activityStatusTable,
+        {
+          'TaskID': task.id,
+          'ActivityStatusJSON': jsonEncode(normalized),
+          'TaskActivityUpdatedDate':
+          DateTime.now().toIso8601String(),
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+
+      if (taskStatusChanged) {
+        String? table;
+
+        final weekDayTask = await txn.query(
+          'db_TaskLogWeekDay',
+          columns: ['TaskID'],
+          where: 'TaskID = ?',
+          whereArgs: [task.id],
+          limit: 1,
+        );
+
+        if (weekDayTask.isNotEmpty) {
+          table = 'db_TaskLogWeekDay';
+        } else {
+          final weekEndTask = await txn.query(
+            'db_TaskLogWeekEnd',
+            columns: ['TaskID'],
+            where: 'TaskID = ?',
+            whereArgs: [task.id],
+            limit: 1,
+          );
+
+          if (weekEndTask.isNotEmpty) {
+            table = 'db_TaskLogWeekEnd';
+          }
+        }
+
+        if (table != null) {
+          final values = <String, Object?>{
+            'TaskStatus': _taskStatusValue(nextStatus),
+          };
+
+          final now =
+          DateTime.now().toIso8601String();
+
+          if (nextStatus == TaskStatus.completed) {
+            values['TaskCompletedDate'] = now;
+            values['TaskCancelledDate'] = null;
+          } else if (
+          nextStatus ==
+              TaskStatus.cancelledNotRequired) {
+            values['TaskCancelledDate'] = now;
+            values['TaskCompletedDate'] = null;
+          } else {
+            values['TaskCompletedDate'] = null;
+            values['TaskCancelledDate'] = null;
+          }
+
+          await txn.update(
+            table,
+            values,
+            where: 'TaskID = ?',
+            whereArgs: [task.id],
+          );
+        }
+      }
+    });
+
+    return TaskActivityCommitResult(
+      task: task.copyWith(status: nextStatus),
+      activityStatus: normalized,
+      taskStatusChanged: taskStatusChanged,
+    );
+  }
   // ==========================================================================
   // UPDATE TASK STATUS
   //
@@ -285,14 +406,31 @@ class TaskActivityStatusSvc {
   // ==========================================================================
   // DELETE ACTIVITY STATE
   // ==========================================================================
-
-  Future<void> deleteForTask(String taskId) async {
-    await _db.delete(
-      _activityStatusTable,
-      where: 'TaskID = ?',
-      whereArgs: [taskId],
-    );
-  }
+// ==========================================================================
+// DELETE ALL MILESTONE TASK ACTIVITY STATE
+//
+// MT activities are intentionally retained when individual MT tasks
+// are completed.
+//
+// This method is called only when the MT lifecycle is finally closed,
+// i.e. after the last MT task (PCB/Common) has been closed.
+// ==========================================================================
+//
+//   Future<void> clearMilestoneTaskActivities() async {
+//     await _db.delete(
+//       _activityStatusTable,
+//       where: 'TaskID LIKE ?',
+//       whereArgs: ['MT_%'],
+//     );
+//   }
+  // Future<void> deleteForTask(String taskId) async
+  // {
+  //   await _db.delete(
+  //     _activityStatusTable,
+  //     where: 'TaskID = ?',
+  //     whereArgs: [taskId],
+  //   );
+  // }
 
   // ==========================================================================
   // FIND SUBJECT TASK
@@ -398,4 +536,33 @@ class TaskActivityStatusSvc {
 
     return int.tryParse(value?.toString() ?? '');
   }
+// ==========================================================================
+// DELETE ALL MILESTONE TASK ACTIVITY STATE
+//
+// MT activity status is retained while individual MT tasks are completed.
+//
+// This method is called only when the final MT task (PCB/Common)
+// has been closed and the complete MT activity lifecycle is finished.
+// ==========================================================================
+
+Future<void> clearMilestoneTaskActivities() async {
+  await _db.delete(
+    _activityStatusTable,
+    where: 'TaskID LIKE ?',
+    whereArgs: ['MT_%'],
+  );
 }
+
+// ==========================================================================
+// DELETE ACTIVITY STATE
+// ==========================================================================
+
+Future<void> deleteForTask(String taskId) async {
+  await _db.delete(
+    _activityStatusTable,
+    where: 'TaskID = ?',
+    whereArgs: [taskId],
+  );
+}
+}
+

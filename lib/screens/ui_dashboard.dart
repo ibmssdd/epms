@@ -12,7 +12,7 @@ import 'ui_tasks.dart';
 import 'ui_lectures.dart';
 import 'ui_syllabus.dart';
 import 'ui_milestones.dart';
-
+import '../widgets/wd_topics_InProgress.dart';
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
   @override
@@ -103,7 +103,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final description = row['TaskDescription']?.toString().trim() ?? '';
 
         final status =
-            (row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase();
+        (row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase();
 
         if (status == 'CANCELLED' || status == 'CANCELLED / NOT REQUIRED') {
           continue;
@@ -118,7 +118,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // NEW: milestone count from MilestoneCalendarSvc
       final milestoneSvc = MilestoneCalendarSvc(db);
       final milestoneCount =
-          await milestoneSvc.getNextAvailableMilestoneTaskCount();
+      await milestoneSvc.getNextAvailableMilestoneTaskCount();
 
       if (!mounted) return;
 
@@ -158,7 +158,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final id = row['TaskID']?.toString().trim() ?? '';
         final description = row['TaskDescription']?.toString().trim() ?? '';
         final status =
-            (row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase();
+        (row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase();
         if (status == 'CANCELLED' || status == 'CANCELLED / NOT REQUIRED') {
           continue;
         }
@@ -173,7 +173,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // MILESTONE TASK COUNT
       final milestoneSvc = MilestoneCalendarSvc(db);
       final milestoneCount =
-          await milestoneSvc.getNextAvailableMilestoneTaskCount();
+      await milestoneSvc.getNextAvailableMilestoneTaskCount();
       // ----------------------------------------------------------
       if (!mounted) return;
 
@@ -250,12 +250,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     final status =
-        switch ((row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase()) {
+    switch ((row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase()) {
       'IN_PROGRESS' || 'STARTED' => TaskStatus.started,
       'COMPLETED' => TaskStatus.completed,
       'CANCELLED' ||
       'CANCELLED / NOT REQUIRED' =>
-        TaskStatus.cancelledNotRequired,
+      TaskStatus.cancelledNotRequired,
       _ => TaskStatus.pending,
     };
 
@@ -315,7 +315,67 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final db = await AppDatabase.instance.database;
       final svc = MilestoneCalendarSvc(db);
 
-      final rows = await svc.getUpcomingMilestonesForWidget(DateTime.now());
+      final rows =
+      await svc.getUpcomingMilestonesForWidget(DateTime.now());
+
+      // ============================================================
+      // DEBUG — MILESTONE DATA RECEIVED FROM SERVICE
+      // ============================================================
+      debugPrint('============================================================');
+      debugPrint('[MILESTONE LOAD] Rows returned: ${rows.length}');
+
+      for (final row in rows) {
+        debugPrint('[MILESTONE LOAD] COMPLETE ROW: $row');
+        debugPrint('[MILESTONE LOAD] Keys: ${row.keys.toList()}');
+        debugPrint('[MILESTONE LOAD] milestone_name: ${row['milestone_name']}');
+        debugPrint('[MILESTONE LOAD] MilestoneName: ${row['MilestoneName']}');
+        debugPrint('[MILESTONE LOAD] milestone_date: ${row['milestone_date']}');
+        debugPrint('[MILESTONE LOAD] MilestoneDate: ${row['MilestoneDate']}');
+        debugPrint('[MILESTONE LOAD] date: ${row['date']}');
+        debugPrint('[MILESTONE LOAD] Date: ${row['Date']}');
+        debugPrint('[MILESTONE LOAD] scope: ${row['scope']}');
+      }
+
+      debugPrint('============================================================');
+      debugPrint('============================================================');
+      debugPrint('[MILESTONE LOAD] Rows returned: ${rows.length}');
+
+      for (final milestone in rows) {
+        debugPrint('[MILESTONE LOAD] Full milestone row: $milestone');
+
+        final scope = milestone['scope'];
+
+        if (scope is Map) {
+          debugPrint('[MILESTONE LOAD] Scope: $scope');
+
+          for (final subjectCode in ['Phy', 'Chem', 'Bio']) {
+            final entries = scope[subjectCode];
+
+            debugPrint(
+              '[MILESTONE LOAD] $subjectCode entries: $entries',
+            );
+
+            if (entries is List) {
+              for (final entry in entries) {
+                if (entry is Map) {
+                  debugPrint(
+                    '[MILESTONE LOAD] '
+                        '$subjectCode → '
+                        'Subject: ${entry['subject_name']} | '
+                        'Chapter: ${entry['chapter_name']} | '
+                        'Chapter Code: ${entry['chapter_code']} | '
+                        'Topic: ${entry['topic_name']}',
+                  );
+                }
+              }
+            }
+          }
+        } else {
+          debugPrint('[MILESTONE LOAD] Scope is NOT a Map: $scope');
+        }
+      }
+
+      debugPrint('============================================================');
 
       if (!mounted) return;
 
@@ -851,11 +911,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _lectureSubjectCard(
-    BuildContext context, {
-    required String code,
-    required String name,
-    required IconData icon,
-  }) {
+      BuildContext context, {
+        required String code,
+        required String name,
+        required IconData icon,
+      }) {
     const gold = Color(0xFFD4AF37);
 
     return Material(
@@ -1000,14 +1060,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _taskStatCard(
-    BuildContext context, {
-    required String label,
-    required int? count,
-    required IconData icon,
-    required VoidCallback onTap,
-    bool showChevron = true,
-    bool showSpinner = false,
-  }) {
+      BuildContext context, {
+        required String label,
+        required int? count,
+        required IconData icon,
+        required VoidCallback onTap,
+        bool showChevron = true,
+        bool showSpinner = false,
+      }) {
     const gold = Color(0xFFD4AF37);
 
     return Material(
@@ -1046,10 +1106,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 child: showSpinner
                     ? const SizedBox(
-                        width: 15,
-                        height: 15,
-                        child: CircularProgressIndicator(strokeWidth: 1.8),
-                      )
+                  width: 15,
+                  height: 15,
+                  child: CircularProgressIndicator(strokeWidth: 1.8),
+                )
                     : Icon(icon, color: gold, size: 15),
               ),
               const SizedBox(width: 7),
@@ -1214,12 +1274,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _syllabusStatCard(
-    BuildContext context, {
-    required String label,
-    required String value,
-    required String detail,
-    required IconData icon,
-  }) {
+      BuildContext context, {
+        required String label,
+        required String value,
+        required String detail,
+        required IconData icon,
+      }) {
     const gold = Color(0xFFD4AF37);
 
     return Material(
@@ -1317,10 +1377,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ============================================================
 
   Widget _dashboardPanel(
-    BuildContext context, {
-    required String title,
-    required Widget child,
-  }) {
+      BuildContext context, {
+        required String title,
+        required Widget child,
+      }) {
     const gold = Color(0xFFD4AF37);
 
     return Container(
@@ -1462,7 +1522,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         const SizedBox(height: 6),
         ..._upcomingMilestones.map(
-          (milestone) => _buildMilestoneRow(context, milestone),
+              (milestone) => _buildMilestoneRow(context, milestone),
         ),
       ],
     );
@@ -1472,14 +1532,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // MILESTONE ROW
   // ============================================================
   Widget _buildMilestoneRow(
-    BuildContext context,
-    Map<String, Object?> milestone,
-  ) {
+      BuildContext context,
+      Map<String, Object?> milestone,
+      ) {
     const gold = Color(0xFFD4AF37);
 
     final scope = milestone['scope'];
 
+    debugPrint('============================================================');
+    debugPrint('[MILESTONE WIDGET] Building milestone row');
+    debugPrint('[MILESTONE WIDGET] Milestone: ${milestone['milestone_name']}');
+    debugPrint('[MILESTONE WIDGET] Scope: $scope');
+
     if (scope is! Map) {
+      debugPrint('[MILESTONE WIDGET] ERROR: scope is not a Map');
+      debugPrint('============================================================');
       return const SizedBox.shrink();
     }
 
@@ -1556,6 +1623,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       subjectName: 'Biology',
     );
 
+    debugPrint(
+      '[MILESTONE WIDGET] Subject rows generated: ${children.length}',
+    );
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Column(
@@ -1590,40 +1661,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-
   void _appendMilestoneSubject(
-    BuildContext context,
-    List<Widget> children,
-    Map scope, {
-    required String subjectCode,
-    required String subjectName,
-  }) {
+      BuildContext context,
+      List<Widget> children,
+      Map scope, {
+        required String subjectCode,
+        required String subjectName,
+      }) {
     final entries = scope[subjectCode];
 
     if (entries is! List || entries.isEmpty) {
       return;
     }
+
     final chapterNames = entries
         .whereType<Map>()
         .map(
-          (entry) => entry['chapter_name']?.toString().trim().isNotEmpty == true
-              ? entry['chapter_name'].toString()
-              : entry['chapter_code']?.toString() ?? '',
-        )
+          (entry) {
+        final chapterName = entry['chapter_name']?.toString().trim();
+
+        if (chapterName != null && chapterName.isNotEmpty) {
+          return chapterName;
+        }
+
+        return entry['chapter_code']?.toString().trim() ?? '';
+      },
+    )
         .where((name) => name.isNotEmpty)
-        .join(', ');
+        .toList();
 
     if (chapterNames.isEmpty) {
       return;
     }
-    children.add(_milestoneSubjectRow(context, subjectName, chapterNames));
+
+    children.add(
+      _milestoneSubjectRow(
+        context,
+        subjectName,
+        chapterNames,
+      ),
+    );
   }
 
   Widget _milestoneSubjectRow(
-    BuildContext context,
-    String subject,
-    String chapters,
-  ) {
+      BuildContext context,
+      String subject,
+      List<String> chapters,
+      ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2.5),
       child: Row(
@@ -1642,14 +1726,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(width: 4),
           Expanded(
-            child: Text(
-              chapters,
-              softWrap: true,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: .55),
-                fontSize: 9.5,
-                height: 1.35,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final chapter in chapters)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 2),
+                    child: Text(
+                      '• $chapter',
+                      softWrap: true,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: .55),
+                        fontSize: 9.5,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],

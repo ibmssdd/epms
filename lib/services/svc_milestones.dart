@@ -237,7 +237,8 @@ class MilestoneCalendarSvc {
     return text == '1' || text == 'true' || text == 'yes';
   }
 
-  Future<List<Map<String, Object?>>> getAllOpenMTasks() async {
+  Future<List<Map<String, Object?>>> getAllOpenMTasks() async
+  {
     final rows = await _db.rawQuery('''
     SELECT *
     FROM db_TaskLogWeekEnd
