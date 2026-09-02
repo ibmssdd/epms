@@ -235,21 +235,25 @@ class MilestoneCalendarSvc {
 
   Future<List<Map<String, Object?>>> getAllOpenMTasks() async {
     final rows = await _db.rawQuery('''
-    SELECT *
-    FROM db_TaskLogWeekEnd
-    WHERE TaskID LIKE 'MT_%'
-      AND UPPER(TaskStatus) NOT IN (
+    SELECT
+      t.*,
+      m.milestone_type AS MilestoneType
+    FROM db_TaskLogWeekEnd t
+    INNER JOIN db_Milestones m
+      ON date(t.TaskDueDate) = date(m.milestone_date)
+    WHERE t.TaskID LIKE 'MT_%'
+      AND UPPER(t.TaskStatus) NOT IN (
         'COMPLETED',
         'CANCELLED',
         'CANCELLED / NOT REQUIRED'
       )
-    ORDER BY date(TaskDueDate) DESC,
-             TaskID ASC
-    ''');
+    ORDER BY
+      date(t.TaskDueDate) DESC,
+      t.TaskID ASC
+  ''');
 
     return rows;
   }
-
   MtTask? mtTaskFromRow(Map<String, Object?> row) {
     final id = row['TaskID']?.toString().trim();
     final description = row['TaskDescription']?.toString() ?? '';

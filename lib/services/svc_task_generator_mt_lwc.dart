@@ -69,6 +69,15 @@ class MtTaskGenerator {
 
   static const String _taskLogTable = 'db_TaskLogWeekEnd';
 
+  // ===========================================================================
+  // NEW SUBTASK LOG TABLE
+  // ===========================================================================
+  //
+  // IMPORTANT:
+  // db_TaskActivityStatus is intentionally NOT referenced anywhere.
+  //
+  // ===========================================================================
+
   static const String _subTaskLogTable = 'db_SubTasksMT';
 
   // ===========================================================================
@@ -118,8 +127,7 @@ class MtTaskGenerator {
 
   static const String _subjectTaskActiveColumn = 'SubjectTaskIsActive';
 
-  static const String _subjectTaskDurationColumn =
-      'SubjectTaskDurationMinutes';
+  static const String _subjectTaskDurationColumn = 'SubjectTaskDurationMinutes';
 
   // ===========================================================================
   // PUBLIC METHOD
@@ -128,14 +136,13 @@ class MtTaskGenerator {
   Future<Map<String, int>> generateMilestoneTasks({
     required String mtType,
     DateTime? milestoneDate,
-  }) async {
+  }) async
+  {
     final date = _dateOnly(milestoneDate ?? _now());
 
     final normalizedType = mtType.trim().toUpperCase();
 
-    if (normalizedType.isEmpty) {
-      throw ArgumentError('MT Type cannot be empty.');
-    }
+    if (normalizedType.isEmpty) { throw ArgumentError('MT Type cannot be empty.');}
 
     // =========================================================================
     // EXISTING WEEKEND/SUNDAY RULE
@@ -233,12 +240,12 @@ class MtTaskGenerator {
       subjectCode,
     );
 
+    if (chapters.isEmpty) {
+      return 0;
+    }
+
     // =========================================================================
     // EXISTING RULE LOOKUP
-    //
-    // IMPORTANT:
-    // We do this even when chapters are empty so that an existing FSR parent
-    // task can still be reconciled and its old chapters can be cancelled.
     // =========================================================================
 
     final rules = await _getRulesForSubject(
@@ -267,25 +274,18 @@ class MtTaskGenerator {
 
       final partialKey = '${ruleSubjectCode}_' '${ruleType}_';
 
-      final subjectTasks =
-      await _getSubjectTasksByPartialKey(partialKey);
-
+      final subjectTasks = await _getSubjectTasksByPartialKey(partialKey);
       if (subjectTasks.isEmpty) {
         continue;
       }
-
       for (final subjectTask in subjectTasks) {
-        final subjectTaskId =
-        _string(subjectTask[_subjectTaskIdColumn]);
-
+        final subjectTaskId = _string(subjectTask[_subjectTaskIdColumn]);
         if (subjectTaskId == null) {
           continue;
         }
-
         // =====================================================================
         // SYLLABUS REVISION TASK
         // =====================================================================
-
         if (_isSyllabusRevisionTask(
           subjectTask,
           rule,
@@ -297,9 +297,7 @@ class MtTaskGenerator {
             subjectCode: subjectCode,
             chapterCodes: chapters,
           );
-
           subTaskCount += createdCount;
-
           continue;
         }
 
@@ -367,15 +365,14 @@ class MtTaskGenerator {
     required String subjectCode,
     required List<String> chapterCodes,
   }) async {
-    final subjectTaskId =
-    _string(subjectTask[_subjectTaskIdColumn]);
-
+    final subjectTaskId = _string(subjectTask[_subjectTaskIdColumn]);
     if (subjectTaskId == null) {
       return 0;
     }
-
-    final ruleId =
-        _string(rule[_ruleIdColumn]) ?? '0';
+    if (chapterCodes.isEmpty) {
+      return 0;
+    }
+    final ruleId = _string(rule[_ruleIdColumn]) ?? '0';
 
     // =========================================================================
     // SAME TASK ID LOGIC AS OLD GENERATOR
@@ -386,25 +383,25 @@ class MtTaskGenerator {
       ruleId: ruleId,
       subjectTaskId: subjectTaskId,
     );
-
     final taskDescription =
-        _string(subjectTask[_subjectTaskNameColumn]) ??
-            subjectTaskId;
+        _string(subjectTask[_subjectTaskNameColumn]) ?? subjectTaskId;
 
     // =========================================================================
     // EXISTING ACTIVITIES
     //
-    // Used for parent task duration exactly as before.
+    // We keep the old SubjectTask -> Activities lookup.
+    //
+    // It is used for the parent task duration exactly as before.
     // =========================================================================
 
-    final activities =
-    await _getActivitiesForSubjectTask(subjectTaskId);
+    final activities = await _getActivitiesForSubjectTask(subjectTaskId);
 
-    final duration =
-    _taskDuration(subjectTask, activities);
+    final duration = _taskDuration(subjectTask, activities);
 
     // =========================================================================
     // CREATE PARENT TASK
+    //
+    // THIS IS THE SAME db_TaskLogWeekEnd FORMATION AS OLD GENERATOR.
     // =========================================================================
 
     await _ensureParentTask(
@@ -415,190 +412,52 @@ class MtTaskGenerator {
     );
 
     // =========================================================================
-    // RECONCILE FSR CHAPTER SCOPE
+    // CREATE ONE SUBTASK PER MILESTONE CHAPTER
     // =========================================================================
     //
-    // This is the new behavior.
+    // Old:
     //
-    // The milestone chapter list is the authoritative current scope.
+    // ActivityStatusJSON:
     //
-    // New chapter:
-    //     INSERT PENDING
+    // {
+    //   "Chapter 1": false,
+    //   "Chapter 2": false
+    // }
     //
-    // Existing PENDING:
-    //     NO ACTION
+    // New:
     //
-    // Existing CANCELLED:
-    //     RESTORE PENDING
+    // one db_SubTasksMT row per chapter.
     //
-    // Removed chapter:
-    //     CANCEL
-    //
-    // Nothing is deleted.
-    // =========================================================================
-
-    return _reconcileSyllabusRevisionSubTasks(
-      taskId: taskId,
-      subjectCode: subjectCode,
-      chapterCodes: chapterCodes,
-      durationMinutes: duration,
-    );
-  }
-
-  // ===========================================================================
-  // FSR SUBTASK RECONCILIATION
-  // ===========================================================================
-
-  Future<int> _reconcileSyllabusRevisionSubTasks({
-    required String taskId,
-    required String subjectCode,
-    required List<String> chapterCodes,
-    required int durationMinutes,
-  }) async {
-    final normalizedSubject =
-    _normalizeSubjectCode(subjectCode);
-
-    final currentScope = <String>{
-      for (final code in chapterCodes)
-        if (code.trim().isNotEmpty) code.trim(),
-    };
-
-    // =========================================================================
-    // READ ALL EXISTING FSR SUBTASKS FOR THIS PARENT
-    // =========================================================================
-
-    final existingRows = await _db.query(
-      _subTaskLogTable,
-      where: 'SubTaskID = ? '
-          'AND SubTaskSubjectCode = ?',
-      whereArgs: [
-        taskId,
-        normalizedSubject,
-      ],
-    );
+    // ==========================================================================
 
     var createdCount = 0;
 
-    // =========================================================================
-    // CURRENT SCOPE
-    // =========================================================================
-    //
-    // For every chapter currently selected:
-    //
-    //   missing       -> INSERT
-    //   PENDING       -> NO ACTION
-    //   CANCELLED     -> RESTORE PENDING
-    //
-    // =========================================================================
+    for (final chapterCode in chapterCodes) {
+      final chapter = await _getChapterInfo(
+        subjectCode: subjectCode,
+        chapterCode: chapterCode,
+      );
+      final chapterName = _string(chapter?['chapter_name']);
+      // Keep the old display-name behavior:
+      // chapter_name if available,
+      // otherwise chapter code.
+      // However, SubTaskChapterCode remains the actual
+      // milestone chapter code.
+      // final displayName =     chapterName ?? chapterCode;
+      final subTaskDescription =
+          'Revise : $chapterCode - ${chapterName ?? chapterCode}';
+      final created = await _insertSubTaskIfMissing(
+        subTaskId: taskId,
+        subjectCode: subjectCode,
+        chapterCode: chapterCode,
+        description: subTaskDescription,
+        durationMinutes: duration,
+      );
 
-    for (final chapterCode in currentScope) {
-      Map<String, Object?>? existing;
-
-      for (final row in existingRows) {
-        final rowChapter =
-        _string(row['SubTaskChapterCode']);
-
-        if (rowChapter == chapterCode) {
-          existing = row;
-          break;
-        }
-      }
-
-      // -----------------------------------------------------------------------
-      // NEW CHAPTER
-      // -----------------------------------------------------------------------
-
-      if (existing == null) {
-        final chapter = await _getChapterInfo(
-          subjectCode: subjectCode,
-          chapterCode: chapterCode,
-        );
-
-        final chapterName =
-        _string(chapter?['chapter_name']);
-
-        final subTaskDescription =
-            'Revise : $chapterCode - '
-            '${chapterName ?? chapterCode}';
-
-        final created = await _insertSubTaskIfMissing(
-          subTaskId: taskId,
-          subjectCode: subjectCode,
-          chapterCode: chapterCode,
-          description: subTaskDescription,
-          durationMinutes: durationMinutes,
-        );
-
-        if (created) {
-          createdCount++;
-        }
-
-        continue;
-      }
-
-      // -----------------------------------------------------------------------
-      // EXISTING CANCELLED CHAPTER
-      // -----------------------------------------------------------------------
-
-      final status =
-      _string(existing['SubTaskStatus'])?.toUpperCase();
-
-      if (status == 'CANCELLED') {
-        await _setSubTaskStatus(
-          subTaskId: taskId,
-          subjectCode: normalizedSubject,
-          chapterCode: chapterCode,
-          status: 'PENDING',
-        );
-      }
-
-      // PENDING -> no action.
-    }
-
-    // =========================================================================
-    // CHAPTERS NO LONGER IN CURRENT SCOPE
-    // =========================================================================
-    //
-    // Existing PENDING chapter no longer selected:
-    //     CANCELLED
-    //
-    // Existing CANCELLED chapter:
-    //     NO ACTION
-    //
-    // =========================================================================
-
-    for (final row in existingRows) {
-      final chapterCode =
-      _string(row['SubTaskChapterCode']);
-
-      if (chapterCode == null) {
-        continue;
-      }
-
-      if (currentScope.contains(chapterCode)) {
-        continue;
-      }
-
-      final status =
-      _string(row['SubTaskStatus'])?.toUpperCase();
-
-      if (status == 'PENDING') {
-        await _setSubTaskStatus(
-          subTaskId: taskId,
-          subjectCode: normalizedSubject,
-          chapterCode: chapterCode,
-          status: 'CANCELLED',
-        );
+      if (created) {
+        createdCount++;
       }
     }
-
-    // =========================================================================
-    // PARENT TASK STATUS
-    // =========================================================================
-
-    await _reconcileParentTaskStatus(
-      taskId: taskId,
-    );
 
     return createdCount;
   }
@@ -611,8 +470,7 @@ class MtTaskGenerator {
     required String subjectCode,
     required String chapterCode,
   }) async {
-    final normalizedSubject =
-    _normalizeSubjectCode(subjectCode);
+    final normalizedSubject = _normalizeSubjectCode(subjectCode);
 
     final subjectCandidates = switch (normalizedSubject) {
       'PHY' => const ['PHY', 'PHYSICS'],
@@ -655,9 +513,7 @@ class MtTaskGenerator {
       if (rows.isNotEmpty) {
         print('FOUND SYLLABUS ROW:');
         print(rows.first);
-        print(
-          'chapter_name = ${rows.first['chapter_name']}',
-        );
+        print('chapter_name = ${rows.first['chapter_name']}');
         print('==========================================================');
 
         return rows.first;
@@ -673,7 +529,6 @@ class MtTaskGenerator {
 
     return null;
   }
-
   // ===========================================================================
   // PCB COMMON TASK
   // ===========================================================================
@@ -687,22 +542,21 @@ class MtTaskGenerator {
     // EXACT SAME PCB SUBJECT TASK ID LOGIC
     // =========================================================================
 
-    final pcbSubjectTaskId =
-        'PCB_${mtType}_TEST';
-
-    final subjectTask =
-    await _getSubjectTaskById(pcbSubjectTaskId);
-
+    final pcbSubjectTaskId = 'PCB_${mtType}_TEST';
+    final subjectTask = await _getSubjectTaskById(pcbSubjectTaskId);
     if (subjectTask == null) {
       return 0;
     }
 
     // =========================================================================
     // EXACT SAME ACTIVITY LOOKUP
+    //
+    // db_SubjectTaskActivities
+    //          ↓
+    // db_Activities
     // =========================================================================
 
-    final activities =
-    await _getActivitiesForSubjectTask(
+    final activities = await _getActivitiesForSubjectTask(
       pcbSubjectTaskId,
     );
 
@@ -711,11 +565,9 @@ class MtTaskGenerator {
     }
 
     final taskDescription =
-        _string(subjectTask[_subjectTaskNameColumn]) ??
-            pcbSubjectTaskId;
+        _string(subjectTask[_subjectTaskNameColumn]) ?? pcbSubjectTaskId;
 
-    final duration =
-    _taskDuration(
+    final duration = _taskDuration(
       subjectTask,
       activities,
     );
@@ -732,6 +584,8 @@ class MtTaskGenerator {
 
     // =========================================================================
     // CREATE PARENT TASK
+    //
+    // db_TaskLogWeekEnd formation is unchanged.
     // =========================================================================
 
     await _ensureParentTask(
@@ -742,176 +596,54 @@ class MtTaskGenerator {
     );
 
     // =========================================================================
-    // RECONCILE PCB ACTIVITIES
-    // =========================================================================
-    //
-    // The current SubjectTask -> Activity relationship is authoritative.
-    //
-    // Current activity + missing:
-    //     INSERT PENDING
-    //
-    // Current activity + CANCELLED:
-    //     RESTORE PENDING
-    //
-    // Current activity + PENDING:
-    //     NO ACTION
-    //
-    // Existing activity no longer present:
-    //     CANCELLED
-    //
-    // Nothing is deleted.
+    // CREATE ONE SUBTASK PER PCB ACTIVITY
     // =========================================================================
 
-    final createdCount =
-    await _reconcilePcbSubTasks(
-      taskId: taskId,
-      activities: activities,
-    );
+    var createdCount = 0;
+
+    for (final activity in activities) {
+      final activityId = _string(
+        activity['ActivityID'],
+      );
+
+      if (activityId == null) {
+        continue;
+      }
+
+      // =======================================================================
+      // ACTIVITY DESCRIPTION
+      //
+      // Use the existing ActivityDisplayName from db_Activities.
+      // No new activity selection logic is introduced.
+      // =======================================================================
+
+      final activityDescription =
+          _string(activity['ActivityDisplayName']) ?? activityId;
+
+      final activityDuration = _int(activity['ActivityDurationMinutes']) ?? 0;
+
+      final created = await _insertSubTaskIfMissing(
+        subTaskId: taskId,
+        subjectCode: 'PCB',
+        chapterCode: activityId,
+        description: activityDescription,
+        durationMinutes: activityDuration,
+      );
+
+      if (created) {
+        createdCount++;
+      }
+    }
+
+    // =========================================================================
+    // EXISTING COMMON TASK CREATED FLAG BEHAVIOR
+    // =========================================================================
 
     if (createdCount > 0) {
       await _markCommonTasksCreated(
         milestone: milestone,
       );
     }
-
-    return createdCount;
-  }
-
-  // ===========================================================================
-  // PCB SUBTASK RECONCILIATION
-  // ===========================================================================
-
-  Future<int> _reconcilePcbSubTasks({
-    required String taskId,
-    required List<Map<String, Object?>> activities,
-  }) async {
-    final existingRows = await _db.query(
-      _subTaskLogTable,
-      where: 'SubTaskID = ? '
-          'AND SubTaskSubjectCode = ?',
-      whereArgs: [
-        taskId,
-        'PCB',
-      ],
-    );
-
-    final currentActivities = <String, Map<String, Object?>>{};
-
-    for (final activity in activities) {
-      final activityId =
-      _string(activity['ActivityID']);
-
-      if (activityId == null) {
-        continue;
-      }
-
-      currentActivities[activityId] = activity;
-    }
-
-    var createdCount = 0;
-
-    // =========================================================================
-    // CURRENT PCB ACTIVITIES
-    // =========================================================================
-
-    for (final entry in currentActivities.entries) {
-      final activityId = entry.key;
-      final activity = entry.value;
-
-      Map<String, Object?>? existing;
-
-      for (final row in existingRows) {
-        final rowChapter =
-        _string(row['SubTaskChapterCode']);
-
-        if (rowChapter == activityId) {
-          existing = row;
-          break;
-        }
-      }
-
-      // -----------------------------------------------------------------------
-      // NEW PCB ACTIVITY
-      // -----------------------------------------------------------------------
-
-      if (existing == null) {
-        final activityDescription =
-            _string(activity['ActivityDisplayName']) ??
-                activityId;
-
-        final activityDuration =
-            _int(activity['ActivityDurationMinutes']) ?? 0;
-
-        final created = await _insertSubTaskIfMissing(
-          subTaskId: taskId,
-          subjectCode: 'PCB',
-          chapterCode: activityId,
-          description: activityDescription,
-          durationMinutes: activityDuration,
-        );
-
-        if (created) {
-          createdCount++;
-        }
-
-        continue;
-      }
-
-      // -----------------------------------------------------------------------
-      // RESTORE CANCELLED PCB ACTIVITY
-      // -----------------------------------------------------------------------
-
-      final status =
-      _string(existing['SubTaskStatus'])?.toUpperCase();
-
-      if (status == 'CANCELLED') {
-        await _setSubTaskStatus(
-          subTaskId: taskId,
-          subjectCode: 'PCB',
-          chapterCode: activityId,
-          status: 'PENDING',
-        );
-      }
-
-      // PENDING -> no action.
-    }
-
-    // =========================================================================
-    // PCB ACTIVITIES NO LONGER APPLICABLE
-    // =========================================================================
-
-    for (final row in existingRows) {
-      final activityId =
-      _string(row['SubTaskChapterCode']);
-
-      if (activityId == null) {
-        continue;
-      }
-
-      if (currentActivities.containsKey(activityId)) {
-        continue;
-      }
-
-      final status =
-      _string(row['SubTaskStatus'])?.toUpperCase();
-
-      if (status == 'PENDING') {
-        await _setSubTaskStatus(
-          subTaskId: taskId,
-          subjectCode: 'PCB',
-          chapterCode: activityId,
-          status: 'CANCELLED',
-        );
-      }
-    }
-
-    // =========================================================================
-    // PARENT TASK STATUS
-    // =========================================================================
-
-    await _reconcileParentTaskStatus(
-      taskId: taskId,
-    );
 
     return createdCount;
   }
@@ -925,93 +657,77 @@ class MtTaskGenerator {
     required Map<String, Object?> rule,
     required DateTime milestoneDate,
   }) async {
-    final subjectTaskId =
-    _string(subjectTask[_subjectTaskIdColumn]);
+    final subjectTaskId = _string(subjectTask[_subjectTaskIdColumn]);
 
     if (subjectTaskId == null) {
       return 0;
     }
-
     // =========================================================================
     // SAME TASK DESCRIPTION
     // =========================================================================
-
     final subjectTaskName =
-        _string(subjectTask[_subjectTaskNameColumn]) ??
-            subjectTaskId;
-
+        _string(subjectTask[_subjectTaskNameColumn]) ?? subjectTaskId;
     // =========================================================================
     // SAME RULE ID
     // =========================================================================
-
-    final ruleId =
-        _string(rule[_ruleIdColumn]) ?? '0';
+    final ruleId = _string(rule[_ruleIdColumn]) ?? '0';
 
     // =========================================================================
     // SAME ACTIVITY LOOKUP
     // =========================================================================
-
-    final activities =
-    await _getActivitiesForSubjectTask(subjectTaskId);
+    final activities = await _getActivitiesForSubjectTask(subjectTaskId);
 
     if (activities.isEmpty) {
       return 0;
     }
-
     // =========================================================================
     // SAME TASK DURATION
     // =========================================================================
-
-    final duration =
-    _taskDuration(subjectTask, activities);
-
+    final duration = _taskDuration(subjectTask, activities);
     // =========================================================================
     // SAME TASK ID
     // =========================================================================
-
     final taskId = _buildTaskId(
       milestoneDate: milestoneDate,
       ruleId: ruleId,
       subjectTaskId: subjectTaskId,
     );
-
     // =========================================================================
     // CREATE PARENT TASK
     // =========================================================================
-
     await _ensureParentTask(
       taskId: taskId,
       taskDescription: subjectTaskName,
       dueDate: milestoneDate,
       durationMinutes: duration,
     );
-
     // =========================================================================
-    // CREATE SUBTASKS FROM EXISTING ACTIVITIES
+    // CREATE SUBTASKS FROM THE EXISTING ACTIVITIES
     // =========================================================================
-
     var createdCount = 0;
-
     for (final activity in activities) {
-      final activityId =
-      _string(activity['ActivityID']);
+      final activityId = _string(activity['ActivityID']);
 
       if (activityId == null) {
         continue;
       }
 
+      // Use the actual activity display name from db_Activities.
+      // ActivityID remains the SubTaskChapterCode.
       final activityDescription =
-          _string(activity['ActivityDisplayName']) ??
-              activityId;
+          _string(activity['ActivityDisplayName']) ?? activityId;
+      print('===============Sandeep=====================================');
+      print('PCB ACTIVITY');
+      print('ActivityID          : $activityId');
+      print('ActivityDisplayName : ${activity['ActivityDisplayName']}');
+      print('Final Description   : $activityDescription');
+      print('Full activity row   : $activity');
+      print('==========================================================');
+      final activityDuration = _int(activity['ActivityDurationMinutes']) ?? 0;
 
-      final activityDuration =
-          _int(activity['ActivityDurationMinutes']) ?? 0;
-
-      final created =
-      await _insertSubTaskIfMissing(
+      final created = await _insertSubTaskIfMissing(
         subTaskId: taskId,
-        subjectCode:
-        _subjectCodeFromSubjectTask(subjectTaskId),
+        subjectCode: _subjectCodeFromSubjectTask(subjectTaskId),
         chapterCode: activityId,
         description: activityDescription,
         durationMinutes: activityDuration,
@@ -1024,9 +740,18 @@ class MtTaskGenerator {
 
     return createdCount;
   }
-
   // ===========================================================================
   // PARENT TASK CREATION
+  // ===========================================================================
+  //
+  // IMPORTANT:
+  //
+  // This method intentionally preserves the OLD db_TaskLogWeekEnd
+  // field formation.
+  //
+  // No TaskLogWeekEnd field has been added, removed, renamed,
+  // or reinterpreted.
+  //
   // ===========================================================================
 
   Future<void> _ensureParentTask({
@@ -1074,6 +799,26 @@ class MtTaskGenerator {
   // ===========================================================================
   // INSERT SUBTASK
   // ===========================================================================
+  //
+  // db_SubTasksMT:
+  //
+  // SubTaskID
+  // SubTaskSubjectCode
+  // SubTaskChapterCode
+  // SubTaskDescription
+  // SubTaskStatus
+  // SubTaskStatusUpdateTime
+  // SubTaskDurationMinutes
+  // SubTaskCalendarEventID
+  // SubTaskReminderMinutes
+  // SubTaskCreatedDate
+  //
+  // SQLite defaults are intentionally used for:
+  //
+  // SubTaskStatus        -> PENDING
+  // SubTaskCreatedDate   -> CURRENT_TIMESTAMP
+  //
+  // ===========================================================================
 
   Future<bool> _insertSubTaskIfMissing({
     required String subTaskId,
@@ -1082,19 +827,27 @@ class MtTaskGenerator {
     required String description,
     required int durationMinutes,
   }) async {
-    final normalizedSubject =
-    _normalizeSubjectCode(subjectCode);
+    // =========================================================================
+    // NORMALIZE ONLY THE SUBJECT CODE
+    // =========================================================================
 
-    final normalizedChapter =
-    chapterCode.trim();
+    final normalizedSubject = _normalizeSubjectCode(subjectCode);
 
-    if (normalizedSubject.isEmpty ||
-        normalizedChapter.isEmpty) {
+    final normalizedChapter = chapterCode.trim();
+
+    if (normalizedSubject.isEmpty || normalizedChapter.isEmpty) {
       return false;
     }
 
     // =========================================================================
     // CHECK COMPOSITE PRIMARY KEY
+    //
+    // PRIMARY KEY:
+    //
+    // SubTaskID
+    // SubTaskSubjectCode
+    // SubTaskChapterCode
+    //
     // =========================================================================
 
     final existing = await _db.query(
@@ -1122,7 +875,15 @@ class MtTaskGenerator {
     // =========================================================================
     // INSERT
     //
-    // Database defaults remain authoritative.
+    // Do NOT explicitly insert:
+    //
+    // SubTaskStatus
+    // SubTaskStatusUpdateTime
+    // SubTaskCalendarEventID
+    // SubTaskReminderMinutes
+    // SubTaskCreatedDate
+    //
+    // so the database defaults remain authoritative.
     // =========================================================================
 
     await _db.insert(
@@ -1141,96 +902,27 @@ class MtTaskGenerator {
   }
 
   // ===========================================================================
-  // UPDATE SUBTASK STATUS
+  // ACTIVITY DESCRIPTION
   // ===========================================================================
   //
-  // Used only for reconciliation.
+  // The existing db_Activities table is the source of the activity
+  // description.
   //
-  // When a chapter/activity is cancelled or restored:
+  // ActivityDescription is preferred.
   //
-  //     SubTaskStatus
-  //     SubTaskStatusUpdateTime
+  // The fallbacks are retained defensively in case the activity table
+  // uses one of the alternative existing column names.
   //
-  // are updated.
-  //
-  // All other subtask fields remain untouched.
   // ===========================================================================
 
-  Future<void> _setSubTaskStatus({
-    required String subTaskId,
-    required String subjectCode,
-    required String chapterCode,
-    required String status,
-  }) async {
-    final normalizedSubject =
-    _normalizeSubjectCode(subjectCode);
-
-    final normalizedChapter =
-    chapterCode.trim();
-
-    final timestamp =
-    _formatDateTime(_now());
-
-    await _db.update(
-      _subTaskLogTable,
-      <String, Object?>{
-        'SubTaskStatus': status,
-        'SubTaskStatusUpdateTime': timestamp,
-      },
-      where: 'SubTaskID = ? '
-          'AND SubTaskSubjectCode = ? '
-          'AND SubTaskChapterCode = ?',
-      whereArgs: [
-        subTaskId,
-        normalizedSubject,
-        normalizedChapter,
-      ],
-    );
-  }
-
-  // ===========================================================================
-  // RECONCILE PARENT TASK STATUS
-  // ===========================================================================
-  //
-  // Parent remains active while at least one subtask is active.
-  //
-  // If there are no PENDING subtasks:
-  //
-  //     parent -> CANCELLED
-  //
-  // If at least one PENDING subtask exists:
-  //
-  //     parent -> PENDING
-  //
-  // This is only called by FSR / PCB reconciliation.
-  // ===========================================================================
-
-  Future<void> _reconcileParentTaskStatus({
-    required String taskId,
-  }) async {
-    final activeRows = await _db.query(
-      _subTaskLogTable,
-      columns: const ['SubTaskID'],
-      where: 'SubTaskID = ? '
-          'AND UPPER(SubTaskStatus) = ?',
-      whereArgs: [
-        taskId,
-        'PENDING',
-      ],
-      limit: 1,
-    );
-
-    final newParentStatus =
-    activeRows.isEmpty ? 'CANCELLED' : 'PENDING';
-
-    await _db.update(
-      _taskLogTable,
-      <String, Object?>{
-        'TaskStatus': newParentStatus,
-      },
-      where: 'TaskID = ?',
-      whereArgs: [taskId],
-    );
+  String _activityDescription(
+      Map<String, Object?> activity,
+      ) {
+    return _string(activity['ActivityDescription']) ??
+        _string(activity['ActivityName']) ??
+        _string(activity['Description']) ??
+        _string(activity['ActivityID']) ??
+        'Activity';
   }
 
   // ===========================================================================
@@ -1240,15 +932,13 @@ class MtTaskGenerator {
   String _subjectCodeFromSubjectTask(
       String subjectTaskId,
       ) {
-    final normalized =
-    subjectTaskId.trim().toUpperCase();
+    final normalized = subjectTaskId.trim().toUpperCase();
 
     if (normalized.startsWith('PHY_')) {
       return 'PHY';
     }
 
-    if (normalized.startsWith('CHEM_') ||
-        normalized.startsWith('CHE_')) {
+    if (normalized.startsWith('CHEM_') || normalized.startsWith('CHE_')) {
       return 'CHEM';
     }
 
@@ -1260,8 +950,14 @@ class MtTaskGenerator {
       return 'PCB';
     }
 
-    final underscoreIndex =
-    normalized.indexOf('_');
+    // =========================================================================
+    // FALLBACK
+    //
+    // Existing SubjectTaskID convention is subject-based.
+    // Keep the first token as the subject code if no known prefix matches.
+    // =========================================================================
+
+    final underscoreIndex = normalized.indexOf('_');
 
     if (underscoreIndex > 0) {
       return _normalizeSubjectCode(
@@ -1280,11 +976,9 @@ class MtTaskGenerator {
       String subjectCode,
       String mtType,
       ) async {
-    final normalizedSubject =
-    _normalizeSubjectCode(subjectCode);
+    final normalizedSubject = _normalizeSubjectCode(subjectCode);
 
-    final normalizedType =
-    mtType.trim().toUpperCase();
+    final normalizedType = mtType.trim().toUpperCase();
 
     final rows = await _db.query(
       _ruleTable,
@@ -1297,17 +991,13 @@ class MtTaskGenerator {
       orderBy: '$_ruleIdColumn ASC',
     );
 
-    final result =
-    <Map<String, Object?>>[];
+    final result = <Map<String, Object?>>[];
 
     for (final row in rows) {
-      final ruleSubject =
-      _string(row[_ruleSubjectColumn])?.toUpperCase();
+      final ruleSubject = _string(row[_ruleSubjectColumn])?.toUpperCase();
 
       final normalizedRuleSubject =
-      ruleSubject == null
-          ? null
-          : _normalizeSubjectCode(ruleSubject);
+      ruleSubject == null ? null : _normalizeSubjectCode(ruleSubject);
 
       if (normalizedRuleSubject == normalizedSubject) {
         result.add(row);
@@ -1364,6 +1054,20 @@ class MtTaskGenerator {
   // ===========================================================================
   // ACTIVITIES
   // ===========================================================================
+  //
+  // THIS IS THE EXISTING RELATIONSHIP AND IS NOT CHANGED.
+  //
+  // db_SubjectTaskActivities
+  //          ↓
+  // ActivityID
+  //          ↓
+  // db_Activities
+  //
+  // ActivitySequence is preserved.
+  //
+  // Only active db_Activities rows are accepted.
+  //
+  // ===========================================================================
 
   Future<List<Map<String, Object?>>> _getActivitiesForSubjectTask(
       String subjectTaskId,
@@ -1379,12 +1083,10 @@ class MtTaskGenerator {
       return const [];
     }
 
-    final result =
-    <Map<String, Object?>>[];
+    final result = <Map<String, Object?>>[];
 
     for (final link in links) {
-      final activityId =
-      _string(link['ActivityID']);
+      final activityId = _string(link['ActivityID']);
 
       if (activityId == null) {
         continue;
@@ -1419,13 +1121,21 @@ class MtTaskGenerator {
   // ===========================================================================
   // DURATION
   // ===========================================================================
+  //
+  // PARENT TASK DURATION:
+  //
+  // EXACT SAME LOGIC AS OLD GENERATOR.
+  //
+  // 1. SubjectTaskDurationMinutes if configured.
+  // 2. Otherwise sum ActivityDurationMinutes.
+  //
+  // ===========================================================================
 
   int _taskDuration(
       Map<String, Object?> subjectTask,
       List<Map<String, Object?>> activities,
       ) {
-    final configured =
-    _int(subjectTask[_subjectTaskDurationColumn]);
+    final configured = _int(subjectTask[_subjectTaskDurationColumn]);
 
     if (configured != null) {
       return configured;
@@ -1433,9 +1143,7 @@ class MtTaskGenerator {
 
     return activities.fold<int>(
       0,
-          (sum, row) =>
-      sum +
-          (_int(row['ActivityDurationMinutes']) ?? 0),
+          (sum, row) => sum + (_int(row['ActivityDurationMinutes']) ?? 0),
     );
   }
 
@@ -1468,13 +1176,22 @@ class MtTaskGenerator {
   // ===========================================================================
   // MILESTONE CHAPTER SCOPE
   // ===========================================================================
+  //
+  // SUBJECT-SPECIFIC MILESTONE COLUMN IS PRESERVED.
+  //
+  // PHY  -> milestone_phy_chapters
+  // CHEM -> milestone_chem_chapters
+  // BIO  -> milestone_bio_chapters
+  //
+  // If the column has no data, the subject is out of scope.
+  //
+  // ===========================================================================
 
   List<String> _milestoneScope(
       Map<String, Object?> milestone,
       String subjectCode,
       ) {
-    final normalizedSubject =
-    _normalizeSubjectCode(subjectCode);
+    final normalizedSubject = _normalizeSubjectCode(subjectCode);
 
     final column = switch (normalizedSubject) {
       'PHY' => _phyColumn,
@@ -1500,8 +1217,7 @@ class MtTaskGenerator {
     required String subjectCode,
     required Map<String, Object?> milestone,
   }) async {
-    final normalizedSubject =
-    _normalizeSubjectCode(subjectCode);
+    final normalizedSubject = _normalizeSubjectCode(subjectCode);
 
     final column = switch (normalizedSubject) {
       'PHY' => _phyTaskCreatedColumn,
@@ -1548,14 +1264,17 @@ class MtTaskGenerator {
   // ===========================================================================
   // TASK ID
   // ===========================================================================
+  //
+  // UNCHANGED.
+  //
+  // ===========================================================================
 
   String _buildTaskId({
     required DateTime milestoneDate,
     required String ruleId,
     required String subjectTaskId,
   }) {
-    final compactDate =
-    _compactDate(milestoneDate);
+    final compactDate = _compactDate(milestoneDate);
 
     return 'MT_${compactDate}_'
         '${ruleId}_'
@@ -1569,8 +1288,7 @@ class MtTaskGenerator {
   String _normalizeSubjectCode(
       String value,
       ) {
-    final code =
-    value.trim().toUpperCase();
+    final code = value.trim().toUpperCase();
 
     switch (code) {
       case 'PHYSICS':
@@ -1602,8 +1320,7 @@ class MtTaskGenerator {
   DateTime _parseMilestoneDate(
       Map<String, Object?> milestone,
       ) {
-    final value =
-    _string(milestone[_milestoneDateColumn]);
+    final value = _string(milestone[_milestoneDateColumn]);
 
     if (value == null) {
       throw StateError(
@@ -1627,38 +1344,11 @@ class MtTaskGenerator {
   static String _formatDate(
       DateTime date,
       ) {
-    final month =
-    date.month.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
 
-    final day =
-    date.day.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
 
     return '${date.year}-$month-$day';
-  }
-
-  static String _formatDateTime(
-      DateTime date,
-      ) {
-    final year =
-    date.year.toString().padLeft(4, '0');
-
-    final month =
-    date.month.toString().padLeft(2, '0');
-
-    final day =
-    date.day.toString().padLeft(2, '0');
-
-    final hour =
-    date.hour.toString().padLeft(2, '0');
-
-    final minute =
-    date.minute.toString().padLeft(2, '0');
-
-    final second =
-    date.second.toString().padLeft(2, '0');
-
-    return '$year-$month-$day '
-        '$hour:$minute:$second';
   }
 
   static String _compactDate(
@@ -1676,8 +1366,7 @@ class MtTaskGenerator {
   static List<String> _splitCodes(
       String? value,
       ) {
-    if (value == null ||
-        value.trim().isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return const [];
     }
 
@@ -1691,11 +1380,9 @@ class MtTaskGenerator {
   static String? _string(
       Object? value,
       ) {
-    final text =
-    value?.toString().trim();
+    final text = value?.toString().trim();
 
-    if (text == null ||
-        text.isEmpty) {
+    if (text == null || text.isEmpty) {
       return null;
     }
 

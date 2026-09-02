@@ -1,5 +1,8 @@
 import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
+
 import '../models/mo_task.dart';
 
 class TaskActivityDefinition {
@@ -30,9 +33,11 @@ class TaskActivityCommitResult {
   final bool taskStatusChanged;
 }
 
-class TaskActivityStatusSvc {  TaskActivityStatusSvc(this._db);
+class TaskActivityStatusSvc {
+  TaskActivityStatusSvc(this._db);
 
   final Database _db;
+
   static const String _activityStatusTable = 'db_TaskActivityStatus';
 
   // ==========================================================================
@@ -42,9 +47,16 @@ class TaskActivityStatusSvc {  TaskActivityStatusSvc(this._db);
   Future<List<TaskActivityDefinition>> getActivitiesForTask(
     String taskId,
   ) async {
+    debugPrint('========== GET ACTIVITIES FOR TASK ==========');
+    debugPrint('Task ID: $taskId');
+
     final subjectTaskId = await _findSubjectTaskId(taskId);
 
+    debugPrint('Resolved SubjectTaskID: $subjectTaskId');
+
     if (subjectTaskId == null) {
+      debugPrint('NO SUBJECT TASK ID -> returning EMPTY');
+      debugPrint('=============================================');
       return const [];
     }
 
@@ -65,6 +77,20 @@ class TaskActivityStatusSvc {  TaskActivityStatusSvc(this._db);
       ''',
       [subjectTaskId],
     );
+
+    debugPrint('Activity DB rows: ${rows.length}');
+
+    for (final row in rows) {
+      debugPrint(
+        '  ActivityID=${row['ActivityID']} '
+        'Code=${row['ActivityCode']} '
+        'Name=${row['ActivityDisplayName']} '
+        'Sequence=${row['ActivitySequence']} '
+        'Mandatory=${row['IsMandatory']}',
+      );
+    }
+
+    debugPrint('=============================================');
 
     return rows.map((row) {
       return TaskActivityDefinition(
@@ -102,14 +128,19 @@ class TaskActivityStatusSvc {  TaskActivityStatusSvc(this._db);
   }
 
   // ==========================================================================
-  // COMMIT LOCAL ACTIVITY STATE
+  // COMMIT LOCAL ACTIVITY STATE - NORMAL TASKS
+  //
+  // Normal task behavior is intentionally unchanged.
   // ==========================================================================
 
   Future<TaskActivityCommitResult> commitTaskActivities({
-    required Task task, required Map<String, bool> activityStatus,}) async
-  {
+    required Task task,
+    required Map<String, bool> activityStatus,
+  }) async {
     final definitions = await getActivitiesForTask(task.id);
+
     final normalized = <String, bool>{};
+
     for (final activity in definitions) {
       normalized[activity.activityCode] =
           activityStatus[activity.activityCode] ?? false;
@@ -130,20 +161,12 @@ class TaskActivityStatusSvc {  TaskActivityStatusSvc(this._db);
 
     var nextStatus = task.status;
 
-    // ------------------------------------------------------------------------
-    // Pending + any activity completed
-    // => In Progress
-    // ------------------------------------------------------------------------
-
+    // Pending + any activity completed => In Progress.
     if (task.status == TaskStatus.pending && anyCompleted) {
       nextStatus = TaskStatus.started;
     }
 
-    // ------------------------------------------------------------------------
-    // All required activities completed
-    // => Completed
-    // ------------------------------------------------------------------------
-
+    // All required activities completed => Completed.
     if (allRequiredCompleted) {
       nextStatus = TaskStatus.completed;
     }
@@ -164,26 +187,25 @@ class TaskActivityStatusSvc {  TaskActivityStatusSvc(this._db);
         );
       } else {
         await txn.insert(
-            _activityStatusTable,
-            {
-              'TaskID': task.id,
-              'ActivityStatusJSON': jsonEncode(normalized),
-              'TaskActivityUpdatedDate': DateTime.now().toIso8601String(),
-            },
-            conflictAlgorithm: ConflictAlgorithm.replace);
+          _activityStatusTable,
+          {
+            'TaskID': task.id,
+            'ActivityStatusJSON': jsonEncode(normalized),
+            'TaskActivityUpdatedDate': DateTime.now().toIso8601String(),
+          },
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
       }
 
       // ----------------------------------------------------------------------
       // Task status changed
       //
-      // Do NOT determine the table from the TaskID prefix.
       // Find which task-log table actually contains this TaskID.
       // ----------------------------------------------------------------------
 
       if (taskStatusChanged) {
         String? table;
 
-        // Check WeekDay first.
         final weekDayTask = await txn.query(
           'db_TaskLogWeekDay',
           columns: ['TaskID'],
@@ -195,7 +217,6 @@ class TaskActivityStatusSvc {  TaskActivityStatusSvc(this._db);
         if (weekDayTask.isNotEmpty) {
           table = 'db_TaskLogWeekDay';
         } else {
-          // If not WeekDay, check WeekEnd.
           final weekEndTask = await txn.query(
             'db_TaskLogWeekEnd',
             columns: ['TaskID'],
@@ -208,10 +229,6 @@ class TaskActivityStatusSvc {  TaskActivityStatusSvc(this._db);
             table = 'db_TaskLogWeekEnd';
           }
         }
-
-        // --------------------------------------------------------------------
-        // Update the actual table containing the task.
-        // --------------------------------------------------------------------
 
         if (table != null) {
           final values = <String, Object?>{
@@ -248,66 +265,138 @@ class TaskActivityStatusSvc {  TaskActivityStatusSvc(this._db);
     );
   }
 
+  // ==========================================================================
+  // COMMIT LOCAL ACTIVITY STATE - MILESTONE TASKS
+  //
+  // MT RULE:
+  // ActivityStatusJSON is always retained, including when an individual
+  // milestone task becomes completed.
+  // ==========================================================================
+
   Future<TaskActivityCommitResult> commitMilestoneTaskActivities({
     required Task task,
     required Map<String, bool> activityStatus,
   }) async {
-    final definitions = await getActivitiesForTask(task.id);
+    debugPrint('========== MT SERVICE COMMIT ==========');
+    debugPrint('Task ID: ${task.id}');
+    debugPrint('Task status before: ${task.status}');
+    debugPrint('Incoming activity status: $activityStatus');
 
-    final normalized = <String, bool>{};
+    // ==========================================================================
+    // FSR / SUBJECT SYLLABUS REVISION
+    //
+    // For PHY_CMT_FSR / CHE_CMT_FSR / BIO_CMT_FSR:
+    //
+    // ActivityStatusJSON is chapter-based.
+    //
+    // Example:
+    //
+    // {
+    //   "Evolution": false,
+    //   "Human Reproduction": true,
+    //   "Molecular Basis Of Inheritance": false
+    // }
+    //
+    // DO NOT replace these chapter entries with the generic
+    // MILESTONE_SYLLABUS_REVISION activity from db_Activities.
+    // ==========================================================================
 
-    for (final activity in definitions) {
-      normalized[activity.activityCode] =
-          activityStatus[activity.activityCode] ?? false;
+    final isFsrTask = task.id.trim().toUpperCase().contains('_FSR');
+
+    Map<String, bool> normalized;
+
+    if (isFsrTask) {
+      debugPrint('MT task type: FSR / CHAPTER-BASED');
+
+      normalized = <String, bool>{};
+
+      for (final entry in activityStatus.entries) {
+        final chapterName = entry.key.trim();
+
+        if (chapterName.isEmpty) {
+          continue;
+        }
+
+        normalized[chapterName] = entry.value;
+      }
+
+      debugPrint('FSR chapter status preserved: $normalized');
+    } else {
+      // =========================================================================
+      // PCB / OTHER MT TASKS
+      //
+      // These continue to use the actual configured activities.
+      // =========================================================================
+
+      debugPrint('MT task type: NORMAL ACTIVITY-BASED');
+
+      final definitions = await getActivitiesForTask(task.id);
+
+      debugPrint('Definitions found: ${definitions.length}');
+
+      normalized = <String, bool>{};
+
+      for (final activity in definitions) {
+        normalized[activity.activityCode] =
+            activityStatus[activity.activityCode] ?? false;
+      }
+
+      debugPrint('Normalized activity status: $normalized');
     }
 
-    final anyCompleted =
-    normalized.values.any((value) => value);
+    // ==========================================================================
+    // COMPLETION LOGIC
+    // ==========================================================================
 
-    final requiredActivities =
-    definitions.where((activity) => activity.isMandatory).toList();
-
-    final completionActivities =
-    requiredActivities.isNotEmpty
-        ? requiredActivities
-        : definitions;
+    final anyCompleted = normalized.values.any((value) => value);
 
     final allRequiredCompleted =
-        completionActivities.isNotEmpty &&
-            completionActivities.every(
-                  (activity) =>
-              normalized[activity.activityCode] == true,
-            );
+        normalized.isNotEmpty && normalized.values.every((value) => value);
 
     var nextStatus = task.status;
 
+    // Pending + first completed activity/chapter
+    // => In Progress.
     if (task.status == TaskStatus.pending && anyCompleted) {
       nextStatus = TaskStatus.started;
     }
 
+    // Every activity/chapter completed
+    // => Completed.
     if (allRequiredCompleted) {
       nextStatus = TaskStatus.completed;
     }
 
-    final taskStatusChanged =
-        nextStatus != task.status;
+    final taskStatusChanged = nextStatus != task.status;
+
+    debugPrint('Final normalized status: $normalized');
+    debugPrint('Any completed: $anyCompleted');
+    debugPrint('All completed: $allRequiredCompleted');
+    debugPrint('Next task status: $nextStatus');
+    debugPrint('Task status changed: $taskStatusChanged');
 
     await _db.transaction((txn) async {
+      // =========================================================================
       // MT RULE:
-      // Always retain ActivityStatusJSON.
       //
-      // Individual MT task completion must NOT remove
-      // its activity status record.
+      // ALWAYS retain ActivityStatusJSON.
+      // =========================================================================
+
       await txn.insert(
         _activityStatusTable,
         {
           'TaskID': task.id,
           'ActivityStatusJSON': jsonEncode(normalized),
-          'TaskActivityUpdatedDate':
-          DateTime.now().toIso8601String(),
+          'TaskActivityUpdatedDate': DateTime.now().toIso8601String(),
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
+
+      debugPrint('MT ActivityStatusJSON saved.');
+
+      // =========================================================================
+      // UPDATE TASK STATUS
+      // =========================================================================
 
       if (taskStatusChanged) {
         String? table;
@@ -336,20 +425,19 @@ class TaskActivityStatusSvc {  TaskActivityStatusSvc(this._db);
           }
         }
 
+        debugPrint('MT task log table: $table');
+
         if (table != null) {
           final values = <String, Object?>{
             'TaskStatus': _taskStatusValue(nextStatus),
           };
 
-          final now =
-          DateTime.now().toIso8601String();
+          final now = DateTime.now().toIso8601String();
 
           if (nextStatus == TaskStatus.completed) {
             values['TaskCompletedDate'] = now;
             values['TaskCancelledDate'] = null;
-          } else if (
-          nextStatus ==
-              TaskStatus.cancelledNotRequired) {
+          } else if (nextStatus == TaskStatus.cancelledNotRequired) {
             values['TaskCancelledDate'] = now;
             values['TaskCompletedDate'] = null;
           } else {
@@ -363,9 +451,14 @@ class TaskActivityStatusSvc {  TaskActivityStatusSvc(this._db);
             where: 'TaskID = ?',
             whereArgs: [task.id],
           );
+
+          debugPrint('MT task status updated to: $nextStatus');
         }
       }
     });
+
+    debugPrint('Returning activity status: $normalized');
+    debugPrint('========================================');
 
     return TaskActivityCommitResult(
       task: task.copyWith(status: nextStatus),
@@ -377,13 +470,17 @@ class TaskActivityStatusSvc {  TaskActivityStatusSvc(this._db);
   // UPDATE TASK STATUS
   //
   // Used when TasksScreen changes the task status directly.
-  // This saves the status to the actual task-log table.
   // ==========================================================================
 
-  Future<void> updateTaskStatus(String taskId, TaskStatus status) async {
+  Future<void> updateTaskStatus(
+    String taskId,
+    TaskStatus status,
+  ) async {
     final now = DateTime.now().toIso8601String();
 
-    final values = <String, Object?>{'TaskStatus': _taskStatusValue(status)};
+    final values = <String, Object?>{
+      'TaskStatus': _taskStatusValue(status),
+    };
 
     if (status == TaskStatus.completed) {
       values['TaskCompletedDate'] = now;
@@ -403,46 +500,23 @@ class TaskActivityStatusSvc {  TaskActivityStatusSvc(this._db);
       whereArgs: [taskId],
     );
   }
-  // ==========================================================================
-  // DELETE ACTIVITY STATE
-  // ==========================================================================
-// ==========================================================================
-// DELETE ALL MILESTONE TASK ACTIVITY STATE
-//
-// MT activities are intentionally retained when individual MT tasks
-// are completed.
-//
-// This method is called only when the MT lifecycle is finally closed,
-// i.e. after the last MT task (PCB/Common) has been closed.
-// ==========================================================================
-//
-//   Future<void> clearMilestoneTaskActivities() async {
-//     await _db.delete(
-//       _activityStatusTable,
-//       where: 'TaskID LIKE ?',
-//       whereArgs: ['MT_%'],
-//     );
-//   }
-  // Future<void> deleteForTask(String taskId) async
-  // {
-  //   await _db.delete(
-  //     _activityStatusTable,
-  //     where: 'TaskID = ?',
-  //     whereArgs: [taskId],
-  //   );
-  // }
 
   // ==========================================================================
   // FIND SUBJECT TASK
   // ==========================================================================
 
   Future<String?> _findSubjectTaskId(String taskId) async {
+    debugPrint('----- FIND SUBJECT TASK -----');
+    debugPrint('Looking for TaskID: $taskId');
+
     final rows = await _db.query(
       'db_SubjectTasks',
       columns: ['SubjectTaskID'],
       where: 'SubjectTaskIsActive = ?',
       whereArgs: ['Yes'],
     );
+
+    debugPrint('Active SubjectTasks found: ${rows.length}');
 
     final normalizedTaskId = taskId.trim().toUpperCase();
 
@@ -461,13 +535,50 @@ class TaskActivityStatusSvc {  TaskActivityStatusSvc(this._db);
         continue;
       }
 
-      // Prefer the longest match.
+      debugPrint('MATCH: $subjectTaskId');
+
       if (bestMatch == null || subjectTaskId.length > bestMatch.length) {
         bestMatch = subjectTaskId;
       }
     }
 
+    debugPrint('BEST MATCH: $bestMatch');
+    debugPrint('-----------------------------');
+
     return bestMatch;
+  }
+
+  // ==========================================================================
+  // CLEAR ALL MILESTONE TASK ACTIVITY STATE
+  //
+  // MT activity status is retained while individual MT tasks are completed.
+  //
+  // This method is intended to be called only when the final MT task
+  // (PCB/Common) has been closed and the complete MT activity lifecycle
+  // is finished.
+  // ==========================================================================
+
+  Future<void> clearMilestoneTaskActivities() async {
+    await _db.delete(
+      _activityStatusTable,
+      where: 'TaskID LIKE ?',
+      whereArgs: ['MT_%'],
+    );
+  }
+
+  // ==========================================================================
+  // DELETE ACTIVITY STATE FOR ONE TASK
+  //
+  // Kept available for explicit task-level cleanup where required.
+  // Do not use this for normal individual MT task completion.
+  // ==========================================================================
+
+  Future<void> deleteForTask(String taskId) async {
+    await _db.delete(
+      _activityStatusTable,
+      where: 'TaskID = ?',
+      whereArgs: [taskId],
+    );
   }
 
   // ==========================================================================
@@ -536,33 +647,4 @@ class TaskActivityStatusSvc {  TaskActivityStatusSvc(this._db);
 
     return int.tryParse(value?.toString() ?? '');
   }
-// ==========================================================================
-// DELETE ALL MILESTONE TASK ACTIVITY STATE
-//
-// MT activity status is retained while individual MT tasks are completed.
-//
-// This method is called only when the final MT task (PCB/Common)
-// has been closed and the complete MT activity lifecycle is finished.
-// ==========================================================================
-
-Future<void> clearMilestoneTaskActivities() async {
-  await _db.delete(
-    _activityStatusTable,
-    where: 'TaskID LIKE ?',
-    whereArgs: ['MT_%'],
-  );
 }
-
-// ==========================================================================
-// DELETE ACTIVITY STATE
-// ==========================================================================
-
-Future<void> deleteForTask(String taskId) async {
-  await _db.delete(
-    _activityStatusTable,
-    where: 'TaskID = ?',
-    whereArgs: [taskId],
-  );
-}
-}
-

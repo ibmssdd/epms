@@ -3,8 +3,6 @@ import '../database/app_database.dart';
 import '../services/svc_status_chapters.dart';
 import '../services/svc_milestones.dart';
 import '../services/svc_task_generator_mt.dart';
-import '../models/mo_task.dart';
-import '../services/svc_status_task_activity.dart';
 
 /// Milestone calendar workspace.
 ///
@@ -17,8 +15,7 @@ import '../services/svc_status_task_activity.dart';
 /// - Primary color used consistently for selected states
 ///
 /// Database writes remain inside MilestoneCalendarSvc.
-class MilestoneCalendarScreen extends StatefulWidget
-{
+class MilestoneCalendarScreen extends StatefulWidget {
   const MilestoneCalendarScreen({
     super.key,
     this.initialDate,
@@ -27,8 +24,6 @@ class MilestoneCalendarScreen extends StatefulWidget
     this.onCmtTaskGenerationStarted,
     this.onCmtTasksGenerated,
     this.onCmtTaskGenerationFailed,
-    this.onTaskUpdated,
-    this.onTaskStateChanged,
   });
 
   final DateTime? initialDate;
@@ -43,15 +38,12 @@ class MilestoneCalendarScreen extends StatefulWidget
 
   final void Function(DateTime, Object)? onCmtTaskGenerationFailed;
 
-  final ValueChanged<Task>? onTaskUpdated;
-  final ValueChanged<Task>? onTaskStateChanged;
-
   @override
   State<MilestoneCalendarScreen> createState() =>
       _MilestoneCalendarScreenState();
 }
 
-enum MilestoneCalendarView { view, set, tasks }
+enum MilestoneCalendarView { view, set }
 
 class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
   static const List<_SubjectInfo> _subjects = [
@@ -69,7 +61,7 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
   // ---------------------------------------------------------------------------
 
   static const int _chaptersPerBox = 5;
-  static const int _boxesPerPage = 2;
+  // static const int _boxesPerPage = 2;
   static const int _chaptersPerSwipe = 10;
 
   int _chapterPage = 0;
@@ -111,19 +103,6 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
   String? _error;
 
   MilestoneCalendarSvc? _svc;
-
-  // ---------------------------------------------------------------------------
-  // MILESTONE TASKS
-  // ---------------------------------------------------------------------------
-  bool _milestoneTasksLoading = false;
-  bool _milestoneTasksCreationRequired = false;
-  List<Map<String, Object?>> _openMilestoneTasks = const [];
-  String? _milestoneTasksError;
-  final Map<String, bool> _milestoneTaskExpanded = {};
-  final Map<String, bool> _milestoneSubjectExpanded = {};
-  final Map<String, bool> _milestoneChapterExpanded = {};
-  String? _expandedTaskId;
-  Future<void> Function()? _commitExpandedTask;
 
   @override
   void initState() {
@@ -245,10 +224,6 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
         _loading = false;
         _error = null;
       });
-
-      if (widget.initialView == MilestoneCalendarView.tasks) {
-        await _loadMilestoneTasksView();
-      }
     } catch (error) {
       if (!mounted) return;
 
@@ -357,9 +332,8 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
 
     _scopeChangePending = row != null;
 
-    _scopeMessage = row == null
-        ? null
-        : 'Existing milestone found for this Sunday.';
+    _scopeMessage =
+    row == null ? null : 'Existing milestone found for this Sunday.';
 
     _loadSelectionsFromMilestone(row);
   }
@@ -443,9 +417,8 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
           continue;
         }
 
-        final chapterCode = subjectChapterCode
-            .substring(separatorIndex + 1)
-            .trim();
+        final chapterCode =
+        subjectChapterCode.substring(separatorIndex + 1).trim();
 
         if (chapterCode.isNotEmpty) {
           target.add(chapterCode);
@@ -585,11 +558,8 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
 
   Future<void> _saveMilestone() async {
     if (_saving) return;
-
     final svc = _svc;
-
     if (svc == null) return;
-
     if (_selectedDate.weekday != DateTime.sunday) {
       _showMessage('Milestone date must be a Sunday.');
       return;
@@ -598,38 +568,21 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
     final existing = await svc.getAnyMilestoneForDate(_selectedDate);
 
     if (existing != null && !_scopeChangePending) {
-      setState(() {
-        _existingMilestone = existing;
-
-        _scopeMessage =
+      setState(() { _existingMilestone = existing;        _scopeMessage =
         'Existing milestone found. Do you want to change its scope?';
-
         _scopeChangePending = true;
       });
-
       return;
     }
 
     final missingSubjects = <String>[];
 
-    if (_selectedPhy.isEmpty) {
-      missingSubjects.add('Physics');
-    }
-
-    if (_selectedChem.isEmpty) {
-      missingSubjects.add('Chemistry');
-    }
-
-    if (_selectedBio.isEmpty) {
-      missingSubjects.add('Biology');
-    }
-
+    if (_selectedPhy.isEmpty) { missingSubjects.add('Physics');  }
+    if (_selectedChem.isEmpty) { missingSubjects.add('Chemistry');}
+    if (_selectedBio.isEmpty) {  missingSubjects.add('Biology'); }
     if (missingSubjects.isNotEmpty) {
       final proceed = await _confirmMissingSubjects(missingSubjects);
-
-      if (!proceed) return;
-    }
-
+      if (!proceed) return; }
     await _persistMilestone();
   }
 
@@ -663,21 +616,13 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
 
   Future<void> _persistMilestone() async {
     final svc = _svc;
-
     if (svc == null || _saving) return;
 
-    setState(() {
-      _saving = true;
-      _error = null;
-    });
-
+    setState(() { _saving = true; _error = null; });
     bool progressDialogShown = false;
-
     try {
       // 1. Save milestone.
-      await svc.saveMilestone(
-        milestoneType: _milestoneType,
-        date: _selectedDate,
+      await svc.saveMilestone( milestoneType: _milestoneType, date: _selectedDate,
         phyChapters: _selectedPhy.join(','),
         chemChapters: _selectedChem.join(','),
         bioChapters: _selectedBio.join(','),
@@ -685,12 +630,9 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
 
       // 2. Generate tasks.
       Map<String, int> taskResults = const {};
-
       if (_createTasksAfterMilestoneSave) {
         if (!mounted) return;
-
         progressDialogShown = true;
-
         showDialog<void>(
           context: context,
           barrierDismissible: false,
@@ -714,32 +656,23 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
       }
 
       if (!mounted) return;
-
       if (progressDialogShown) {
         Navigator.of(context, rootNavigator: true).pop();
-
         progressDialogShown = false;
       }
 
       final milestones = await svc.getUpcomingMilestones(limit: 100);
-
       if (!mounted) return;
-
       final savedType = _milestoneType;
-
-      await showDialog<void>(
-        context: context,
+      await showDialog<void>( context: context,
         barrierDismissible: false,
         builder: (context) => AlertDialog(
           title: Text('$savedType Milestone'),
           content: _createTasksAfterMilestoneSave
               ? Text(_buildTaskGenerationMessage(taskResults))
               : const Text('Milestone created successfully.'),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
+          actions: [ FilledButton( onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),),
           ],
         ),
       );
@@ -831,9 +764,7 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
 
   Future<Map<String, int>> _generateTasksForSavedMilestone() async {
     final db = await AppDatabase.instance.database;
-
     final generator = MtTaskGenerator(db: db);
-
     return generator.generateMilestoneTasks(
       mtType: _milestoneType,
       milestoneDate: _selectedDate,
@@ -841,31 +772,17 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
   }
 
   String _buildTaskGenerationMessage(Map<String, int> results) {
-    String statusText(String subject, int status) {
-      switch (status) {
-        case 1:
-          return '$subject: Tasks Created';
-
-        case 2:
-          return '$subject: Partially Created';
-
-        case 0:
-        default:
-          return '$subject: Not Created';
-      }
+    String statusText(String subject, int subTaskCount) {
+      final taskCount = subTaskCount > 0 ? 1 : 0;
+      return '$subject : $taskCount Task, '
+          '$subTaskCount SubTasks Generated';
     }
-
-    final commonTaskStatus = results['PCB'] ?? 0;
-
-    final commonTaskText = commonTaskStatus == 1
-        ? 'Milestone Test, Analysis and Improvement tasks: Generated'
-        : 'Milestone Test, Analysis and Improvement tasks: Not Generated';
 
     return [
       statusText('Physics', results['PHY'] ?? 0),
       statusText('Chemistry', results['CHEM'] ?? 0),
       statusText('Biology', results['BIO'] ?? 0),
-      commonTaskText,
+      statusText('Milestone Test', results['PCB'] ?? 0),
     ].join('\n');
   }
 
@@ -1084,7 +1001,6 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
             switch (_view) {
               MilestoneCalendarView.view => _buildView(context),
               MilestoneCalendarView.set => _buildSet(context),
-              MilestoneCalendarView.tasks => _buildMilestoneTasks(context),
             },
         ],
       ),
@@ -1142,15 +1058,6 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
               MilestoneCalendarView.set,
             ),
           ),
-          const SizedBox(width: 2),
-          Expanded(
-            child: _modeButton(
-              context,
-              'Milestone Tasks',
-              Icons.task_alt_outlined,
-              MilestoneCalendarView.tasks,
-            ),
-          ),
         ],
       ),
     );
@@ -1176,12 +1083,6 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
             : () async {
           if (value == MilestoneCalendarView.set) {
             await _prepareNewMilestoneEntry();
-          } else if (value == MilestoneCalendarView.tasks) {
-            if (!mounted) return;
-            setState(() {
-              _view = value;
-            });
-            await _loadMilestoneTasksView();
           } else {
             if (!mounted) return;
 
@@ -1214,9 +1115,8 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: selected
-                        ? colors.onPrimary
-                        : colors.onSurfaceVariant,
+                    color:
+                    selected ? colors.onPrimary : colors.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -1469,563 +1369,122 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
   }
 
   // ---------------------------------------------------------------------------
-  // MILESTONE TASKS
-  // ---------------------------------------------------------------------------
-
-  Future<void> _loadMilestoneTasksView() async
-  {
-    if (_milestoneTasksLoading || !mounted) return;
-
-    setState(() {
-      _milestoneTasksLoading = true;
-      _milestoneTasksError = null;
-    });
-
-    try {
-      final db = await AppDatabase.instance.database;
-      final milestoneSvc = MilestoneCalendarSvc(db);
-      final creationRequired = await milestoneSvc.tasksCreationRequired();
-      final rows = await milestoneSvc.getAllOpenMTasks();
-
-      if (!mounted) return;
-
-      setState(() {
-        _milestoneTasksCreationRequired = creationRequired;
-        _openMilestoneTasks = rows;
-        _milestoneTasksLoading = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-
-      setState(() {
-        _milestoneTasksLoading = false;
-        _milestoneTasksCreationRequired = false;
-        _openMilestoneTasks = const [];
-        _milestoneTasksError = 'Unable to load milestone tasks.';
-      });
-    }
-  }
-
-  /// Groups MT task-log rows by the actual milestone identity:
-  ///
-  ///     milestone date + milestone type
-  ///
-  /// The milestone type is read from the TaskID because the MT task ID is the
-  /// source of truth for the generated milestone task records:
-  ///
-  ///     MT_20260906_1_PHY_CMT_FSR
-  ///                    ^^^ milestone type
-  ///
-  Map<String, List<Task>> _groupMilestoneTasksByMilestone()
-  {
-    final grouped = <String, List<Task>>{};
-
-    for (final row in _openMilestoneTasks)
-    {
-      final task = _taskFromMilestoneRow(row);
-      if (task == null) continue;
-
-      final milestoneType = _milestoneTypeFromTaskId(task.id);
-      if (milestoneType.isEmpty) continue;
-
-      final date = DateUtils.dateOnly(task.dueDate);
-      final dateKey = '${date.year.toString().padLeft(4, '0')}-'
-          '${date.month.toString().padLeft(2, '0')}-'
-          '${date.day.toString().padLeft(2, '0')}';
-
-      final key = '$dateKey|$milestoneType';
-      grouped.putIfAbsent(key, () => []).add(task);
-    }
-
-    for (final tasks in grouped.values) {
-      tasks.sort(_compareMilestoneTasks);
-    }
-
-    return grouped;
-  }
-
-  int _compareMilestoneTasks(Task a, Task b)
-  {
-    final aOrder = _milestoneRuleOrder(a.id);
-    final bOrder = _milestoneRuleOrder(b.id);
-
-    return aOrder.compareTo(bOrder);
-  }
-
-  int _milestoneRuleOrder(String taskId)
-  {
-    final parts = taskId.split('_');
-
-    if (parts.length < 3) return 999;
-
-    final ruleId = parts[2].trim().toUpperCase();
-
-    switch (ruleId) {
-      case '1':
-        return 1;
-
-      case '2':
-        return 2;
-
-      case '3':
-        return 3;
-
-      case 'P':
-        return 4;
-
-      default:
-        return 999;
-    }
-  }
-  String _milestoneTypeFromTaskId(String taskId) {
-    final parts = taskId.split('_');
-
-    if (parts.length >= 5) {
-      final type = parts[4].trim().toUpperCase();
-      if (type == 'CMT' || type == 'PMT') return type;
-    }
-
-    for (final part in parts) {
-      final value = part.trim().toUpperCase();
-      if (value == 'CMT' || value == 'PMT') return value;
-    }
-
-    return '';
-  }
-
-  String _milestoneSubjectCode(String taskId) {
-    final parts = taskId.split('_');
-
-    if (parts.length >= 4) {
-      final subject = parts[3].trim().toUpperCase();
-      if (subject == 'PHY' || subject == 'CHEM' || subject == 'BIO') {
-        return subject;
-      }
-      if (subject == 'PCB') return 'PCB';
-    }
-
-    return '';
-  }
-
-  bool _isCommonMilestoneTask(Task task) {
-    final subject = _milestoneSubjectCode(task.id);
-    return subject == 'PCB';
-  }
-
-  String _milestoneGroupKey(String dateKey, String milestoneType) {
-    return '$dateKey|${milestoneType.toUpperCase()}';
-  }
-
-  String _milestoneGroupDate(String groupKey) {
-    final separator = groupKey.indexOf('|');
-    return separator < 0 ? groupKey : groupKey.substring(0, separator);
-  }
-
-  String _milestoneGroupType(String groupKey) {
-    final separator = groupKey.indexOf('|');
-    if (separator < 0) return 'CMT';
-    return groupKey.substring(separator + 1).toUpperCase();
-  }
-
-  String _milestoneHeaderTitle(String milestoneType, DateTime date) {
-    final typeLabel = milestoneType.toUpperCase() == 'PMT'
-        ? 'Personal Milestone'
-        : 'Coaching Milestone';
-
-    return '$typeLabel — '
-        '${date.day.toString().padLeft(2, '0')}/'
-        '${date.month.toString().padLeft(2, '0')}/'
-        '${date.year}';
-  }
-
-  Widget _buildMilestoneTasks(BuildContext context)
-  {
-    if (_milestoneTasksLoading) {
-      return const Card(
-        child: Padding(
-          padding: EdgeInsets.all(14),
-          child: Center(
-            child: SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (_milestoneTasksError != null) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Text(
-            _milestoneTasksError!,
-            style: const TextStyle(fontSize: 11),
-          ),
-        ),
-      );
-    }
-
-    final grouped = _groupMilestoneTasksByMilestone();
-    final groups = grouped.keys.toList()
-      ..sort((a, b) {
-        final dateCompare = _milestoneGroupDate(b).compareTo(
-          _milestoneGroupDate(a),
-        );
-        if (dateCompare != 0) return dateCompare;
-        return _milestoneGroupType(a).compareTo(_milestoneGroupType(b));
-      });
-
-    if (groups.isEmpty) {
-      return const Card(
-        child: Padding(
-          padding: EdgeInsets.all(14),
-          child: Text(
-            'No milestone tasks pending or scheduled.',
-            style: TextStyle(fontSize: 11),
-          ),
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (var i = 0; i < groups.length; i++) ...[
-          _buildMilestoneTaskGroup(
-            context,
-            groupKey: groups[i],
-            tasks: grouped[groups[i]]!,
-          ),
-          if (i < groups.length - 1) const SizedBox(height: 8),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildMilestoneTaskGroup(
-      BuildContext context, {
-        required String groupKey,
-        required List<Task> tasks,
-      })
-  {
-    final colors = Theme.of(context).colorScheme;
-    final date = DateTime.parse(_milestoneGroupDate(groupKey));
-    final milestoneType = _milestoneGroupType(groupKey);
-    final expanded = _milestoneTaskExpanded[groupKey] ?? true;
-
-    return Card(
-      margin: EdgeInsets.zero,
-      color: colors.surfaceContainerLow,
-      child: Column(
-        children: [
-          InkWell(
-            onTap: () {
-              setState(() {
-                _milestoneTaskExpanded[groupKey] = !expanded;
-              });
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
-              child: Row(
-                children: [
-                  Icon(Icons.flag_outlined, size: 19, color: colors.primary),
-                  const SizedBox(width: 7),
-                  Expanded(
-                    child: Text(
-                      _milestoneHeaderTitle(milestoneType, date),
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: colors.onSurface,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    '${tasks.length}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      color: colors.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Icon(
-                    expanded
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    size: 19,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (expanded)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 10, 7),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (final task in tasks)
-                    _buildMilestoneTaskSubHeader(context, task),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  /// The sub-header is deliberately the TaskDescription from
-  /// db_TaskLogWeekEnd. No reconstruction of the description is performed.
-  Widget _buildMilestoneTaskSubHeader(BuildContext context, Task task)
-  {
-    final colors = Theme.of(context).colorScheme;
-    final expanded = _expandedTaskId == task.id;
-    final closed = task.status == TaskStatus.completed ||
-        task.status == TaskStatus.cancelledNotRequired;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 4),
-      decoration: BoxDecoration(
-        color: expanded ? colors.surface : colors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: expanded ? colors.primary.withValues(alpha: .65) : colors.outlineVariant,
-          width: expanded ? 1 : .7,
-        ),
-      ),
-      child: Column(
-        children: [
-          InkWell(
-            onTap: () async {
-              if (expanded) {
-                await _collapseTask(task.id);
-              } else {
-                await _expandTask(task.id, () async {});
-              }
-            },
-            borderRadius: BorderRadius.circular(8),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
-              child: Row(
-                children: [
-                  Icon(
-                    closed
-                        ? Icons.check_circle_outline
-                        : Icons.radio_button_unchecked,
-                    size: 16,
-                    color: closed ? colors.primary : colors.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 7),
-                  Expanded(
-                    child: Text(
-                      task.title.trim().isEmpty ? task.id : task.title.trim(),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: colors.onSurface,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  Icon(
-                    expanded
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    size: 17,
-                    color: colors.onSurfaceVariant,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (expanded)
-            _MilestoneTaskRow(
-              key: ValueKey('milestone-task-${task.id}'),
-              task: task,
-              expanded: true,
-              onExpand: _expandTask,
-              onCollapse: _collapseTask,
-              registerCommit: _registerCommit,
-              onChangeStatus: _changeStatus,
-              onTaskStateChanged: widget.onTaskStateChanged,
-              onTaskUpdated: _notifyTaskUpdated,
-            ),
-        ],
-      ),
-    );
-  }
-
-  Task? _taskFromMilestoneRow(Map<String, Object?> row) {
-    final id = row['TaskID']?.toString().trim();
-    final description = row['TaskDescription']?.toString() ?? '';
-    final dueText = row['TaskDueDate']?.toString();
-
-    if (id == null || id.isEmpty || dueText == null || dueText.isEmpty) {
-      return null;
-    }
-
-    final dueDate = DateTime.tryParse(dueText);
-    if (dueDate == null) return null;
-
-    final status = switch ((row['TaskStatus']?.toString() ?? 'PENDING')
-        .toUpperCase()) {
-      'IN_PROGRESS' || 'STARTED' => TaskStatus.started,
-      'COMPLETED' => TaskStatus.completed,
-      'CANCELLED' || 'CANCELLED / NOT REQUIRED' =>
-      TaskStatus.cancelledNotRequired,
-      _ => TaskStatus.pending,
-    };
-
-    return Task(
-      id: id,
-      title: description,
-      subject: _milestoneSubjectCode(id),
-      dueDate: dueDate,
-      status: status,
-    );
-  }
-
-  String _subjectFromDescription(String description) {
-    final match = RegExp(
-      r'^Subject\s*\-\s*(.+)$',
-      multiLine: true,
-      caseSensitive: false,
-    ).firstMatch(description);
-
-    return match?.group(1)?.trim() ?? 'Task';
-  }
-
-  bool _isFutureTask(Task task) => DateUtils.dateOnly(task.dueDate)
-      .isAfter(DateUtils.dateOnly(DateTime.now()));
-
-  bool _isDueTask(Task task) => !_isFutureTask(task);
-
-  bool _canChangeTask(Task task) {
-    return _isDueTask(task) &&
-        task.status != TaskStatus.completed &&
-        task.status != TaskStatus.cancelledNotRequired;
-  }
-
-  Future<void> _changeStatus(Task task, TaskStatus next) async {
-    if (!_canChangeTask(task)) return;
-
-    final valid = switch (task.status) {
-      TaskStatus.pending => next == TaskStatus.started ||
-          next == TaskStatus.completed ||
-          next == TaskStatus.cancelledNotRequired,
-      TaskStatus.started =>
-      next == TaskStatus.completed || next == TaskStatus.cancelledNotRequired,
-      TaskStatus.completed => false,
-      TaskStatus.cancelledNotRequired => false,
-    };
-
-    if (!valid) return;
-
-    if (next == TaskStatus.completed ||
-        next == TaskStatus.cancelledNotRequired) {
-      final db = await AppDatabase.instance.database;
-      await TaskActivityStatusSvc(db).deleteForTask(task.id);
-    }
-
-    final updated = task.copyWith(status: next);
-    final stateCallback = widget.onTaskStateChanged;
-    if (stateCallback != null) {
-      stateCallback(updated);
-    } else {
-      _notifyTaskUpdated(updated);
-    }
-
-    await _loadMilestoneTasksView();
-  }
-
-  void _notifyTaskUpdated(Task task) {
-    widget.onTaskUpdated?.call(task);
-  }
-
-  void _registerCommit(String taskId, Future<void> Function() commit) {
-    if (_expandedTaskId == taskId) {
-      _commitExpandedTask = commit;
-    }
-  }
-
-  Future<void> _expandTask(
-      String taskId,
-      Future<void> Function() commit,
-      ) async {
-    if (_expandedTaskId != null && _expandedTaskId != taskId) {
-      final oldCommit = _commitExpandedTask;
-      if (oldCommit != null) await oldCommit();
-    }
-
-    if (!mounted) return;
-
-    setState(() {
-      _expandedTaskId = taskId;
-      _commitExpandedTask = commit;
-    });
-  }
-
-  Future<void> _collapseTask(String taskId) async {
-    if (_expandedTaskId != taskId) return;
-
-    final commit = _commitExpandedTask;
-    if (commit != null) await commit();
-
-    if (!mounted) return;
-
-    setState(() {
-      _expandedTaskId = null;
-      _commitExpandedTask = null;
-    });
-  }
-
-  // ---------------------------------------------------------------------------
   // CREATE / EDIT MILESTONE
   // ---------------------------------------------------------------------------
 
+  // Widget _buildSet(BuildContext context)
+  // {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.stretch,
+  //     children: [
+  //       _buildMilestoneEntryHeader(context),
+  //       const SizedBox(height: 8),
+  //       _buildSubjectTabs(context),
+  //       const SizedBox(height: 6),
+  //       _buildSelectedSubjectContent(context),
+  //       const SizedBox(height: 10),
+  //       SizedBox(
+  //         height: 40,
+  //         child: FilledButton.icon(
+  //           onPressed: _saving ? null : _saveMilestone,
+  //           icon: _saving
+  //               ? const SizedBox(
+  //             width: 17,
+  //             height: 17,
+  //             child: CircularProgressIndicator(
+  //               strokeWidth: 2,
+  //               color: Colors.white,
+  //             ),
+  //           )
+  //               : const Icon(Icons.save_outlined),
+  //           label: Text(
+  //             _saving
+  //                 ? 'Saving...'
+  //                 : _existingMilestone == null
+  //                 ? 'Save Milestone'
+  //                 : 'Save Scope',
+  //           ),
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
   Widget _buildSet(BuildContext context) {
+    final isEditingExistingMilestone = _existingMilestone != null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildMilestoneEntryHeader(context),
+
         const SizedBox(height: 8),
+
         _buildSubjectTabs(context),
+
         const SizedBox(height: 6),
+
         _buildSelectedSubjectContent(context),
+
         const SizedBox(height: 10),
-        SizedBox(
-          height: 40,
-          child: FilledButton.icon(
-            onPressed: _saving ? null : _saveMilestone,
-            icon: _saving
-                ? const SizedBox(
-              width: 17,
-              height: 17,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
+
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 40,
+                child: FilledButton.icon(
+                  onPressed: _saving ? null : _saveMilestone,
+                  icon: _saving
+                      ? const SizedBox(
+                    width: 17,
+                    height: 17,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                      : const Icon(Icons.save_outlined),
+                  label: Text(
+                    _saving
+                        ? 'Saving...'
+                        : isEditingExistingMilestone
+                        ? 'Save and Generate Task'
+                        : 'Save Milestone',
+                  ),
+                ),
               ),
-            )
-                : const Icon(Icons.save_outlined),
-            label: Text(
-              _saving
-                  ? 'Saving...'
-                  : _existingMilestone == null
-                  ? 'Save Milestone'
-                  : 'Save Scope',
             ),
-          ),
+
+            if (isEditingExistingMilestone) ...[
+              const SizedBox(width: 8),
+
+              Expanded(
+                child: SizedBox(
+                  height: 40,
+                  child: OutlinedButton.icon(
+                    onPressed: _saving
+                        ? null
+                        : () async {
+                      setState(() {
+                        _view = MilestoneCalendarView.view;
+                        _expandedRanges.clear();
+                        _scopeChangePending = false;
+                        _scopeMessage = null;
+                      });
+
+                      await _load();
+                    },
+                    icon: const Icon(Icons.close_outlined),
+                    label: const Text('Cancel'),
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
       ],
     );
   }
-
   // ---------------------------------------------------------------------------
   // COMPACT TOP ROW
   // ---------------------------------------------------------------------------
@@ -2526,546 +1985,4 @@ class _ChapterOption {
 
   final String code;
   final String name;
-}
-
-class _MilestoneTaskRow extends StatefulWidget
-{
-  const _MilestoneTaskRow({
-    super.key,
-    required this.task,
-    required this.expanded,
-    required this.onExpand,
-    required this.onCollapse,
-    required this.registerCommit,
-    required this.onChangeStatus,
-    required this.onTaskStateChanged,
-    required this.onTaskUpdated,
-  });
-
-  final Task task;
-  final bool expanded;
-
-  final Future<void> Function(String taskId, Future<void> Function() commit)
-  onExpand;
-
-  final Future<void> Function(String taskId) onCollapse;
-
-  final void Function(String taskId, Future<void> Function() commit)
-  registerCommit;
-
-  final Future<void> Function(Task task, TaskStatus next) onChangeStatus;
-
-  final ValueChanged<Task>? onTaskStateChanged;
-
-  final ValueChanged<Task> onTaskUpdated;
-
-  @override
-  State<_MilestoneTaskRow> createState() => _MilestoneTaskRowState();
-}
-
-class _MilestoneTaskRowState extends State<_MilestoneTaskRow>
-{
-  bool _loading = false;
-  bool _saving = false;
-  bool _dirty = false;
-
-  /// ActivityStatusJSON is the source of the activity rows for milestone
-  /// tasks. Keys are chapter names and values are their completion state.
-  ///
-  /// Example:
-  ///   {"Unit & Measurment": false}
-  Map<String, bool> _activityStatus = {};
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.expanded) {
-      _loadActivities();
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant _MilestoneTaskRow oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (!oldWidget.expanded && widget.expanded) {
-      _loadActivities();
-    }
-
-    if (widget.expanded) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || !widget.expanded) return;
-        widget.registerCommit(widget.task.id, _commitIfDirty);
-      });
-    }
-  }
-
-  Future<void> _loadActivities() async {
-    if (!mounted) return;
-
-    setState(() {
-      _loading = true;
-    });
-
-    try {
-      final db = await AppDatabase.instance.database;
-      final saved = await TaskActivityStatusSvc(db).loadStatus(widget.task.id);
-
-      if (!mounted) return;
-
-      setState(() {
-        _activityStatus = Map<String, bool>.from(saved);
-        _dirty = false;
-        _loading = false;
-      });
-
-      if (widget.expanded) {
-        widget.registerCommit(widget.task.id, _commitIfDirty);
-      }
-    } catch (_) {
-      if (!mounted) return;
-
-      setState(() {
-        _activityStatus = {};
-        _dirty = false;
-        _loading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final closed = widget.task.status == TaskStatus.completed ||
-        widget.task.status == TaskStatus.cancelledNotRequired;
-
-    if (!widget.expanded) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 0, 10, 9),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (_loading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: SizedBox(
-                  width: 15,
-                  height: 15,
-                  child: CircularProgressIndicator(strokeWidth: 1.7),
-                ),
-              ),
-            )
-          else if (_activityStatus.isEmpty)
-            const Padding(
-              padding: EdgeInsets.only(bottom: 7),
-              child: Text(
-                'No activities assigned.',
-                style: TextStyle(fontSize: 10.5, color: Colors.black54),
-              ),
-            )
-          else
-            for (final entry in _activityStatus.entries)
-              _activityRow(
-                context,
-                chapterName: entry.key,
-                completed: entry.value,
-                closed: closed,
-              ),
-          if (!_loading && !closed && _isDue(widget.task))
-            _buildInlineActions(context),
-          if (_saving)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                'Saving...',
-                style: TextStyle(
-                  fontSize: 9.5,
-                  color: colors.onSurfaceVariant,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _activityRow(
-      BuildContext context, {
-        required String chapterName,
-        required bool completed,
-        required bool closed,
-      }) {
-    final colors = Theme.of(context).colorScheme;
-    final future = _isFuture(widget.task);
-    final enabled = (!_isPcbTask(widget.task) || !future) &&
-        !closed &&
-        !_saving;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 3),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(6),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(6),
-          onTap: enabled ? () => _toggleActivity(chapterName) : null,
-          child: Container(
-            width: double.infinity,
-            constraints: const BoxConstraints(minHeight: 29),
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
-            decoration: BoxDecoration(
-              color: completed ? const Color(0xFFFFF3C4) : Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(
-                color: completed
-                    ? const Color(0xFFE5C65C)
-                    : Colors.transparent,
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 18,
-                  child: Center(
-                    child: completed
-                        ? const Icon(
-                      Icons.check_circle,
-                      size: 14,
-                      color: Color(0xFF9A7800),
-                    )
-                        : Icon(
-                      Icons.radio_button_unchecked,
-                      size: 14,
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'Revise - $chapterName',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      height: 1.15,
-                      color: colors.onSurface,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _toggleActivity(String chapterName) async {
-    if (_saving ||
-        (_isPcbTask(widget.task) && _isFuture(widget.task)) ||
-        widget.task.status == TaskStatus.completed ||
-        widget.task.status == TaskStatus.cancelledNotRequired) {
-      return;
-    }
-
-    final current = _activityStatus[chapterName] ?? false;
-
-    setState(() {
-      _activityStatus[chapterName] = !current;
-      _dirty = true;
-    });
-
-    // Keep the existing task/activity business rules: the service commits
-    // ActivityStatusJSON and determines the resulting task status.
-    await _commitNow();
-  }
-
-  bool _allActivitiesCompleted() {
-    if (_activityStatus.isEmpty) return false;
-    return _activityStatus.values.every((value) => value);
-  }
-
-  Future<void> _commitIfDirty() async {
-    if (!_dirty) return;
-    await _commitNow();
-  }
-
-  Future<void> _commitNow() async
-  {
-    if (_saving || !_dirty || !mounted) return;
-
-    setState(() {  _saving = true;   });
-
-    try {
-      final db = await AppDatabase.instance.database;
-      final result =
-      await TaskActivityStatusSvc(db).commitMilestoneTaskActivities(
-        task: widget.task,
-        activityStatus: Map<String, bool>.from(_activityStatus),
-      );
-
-      if (!mounted) return;
-
-      setState(() {
-        _activityStatus = Map<String, bool>.from(result.activityStatus);
-        _dirty = false;
-        _saving = false;
-      });
-
-      if (result.taskStatusChanged) {
-        final callback = widget.onTaskStateChanged;
-        if (callback != null) {
-          callback(result.task);
-        } else {
-          widget.onTaskUpdated(result.task);
-        }
-      }
-    } catch (_) {
-      if (!mounted) return;
-
-      setState(() {
-        _saving = false;
-      });
-    }
-  }
-
-  Widget _buildInlineActions(BuildContext context) {
-    final task = widget.task;
-
-    if (task.status == TaskStatus.pending) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          _actionButton(
-            label: 'Start >>',
-            onPressed: _isDue(task)
-                ? () => widget.onChangeStatus(task, TaskStatus.started)
-                : null,
-          ),
-          const SizedBox(width: 6),
-          _actionButton(
-            label: 'X Cancel Task',
-            outlined: true,
-            onPressed: _isDue(task)
-                ? () => widget.onChangeStatus(
-              task,
-              TaskStatus.cancelledNotRequired,
-            )
-                : null,
-          ),
-        ],
-      );
-    }
-
-    if (task.status == TaskStatus.started) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          _actionButton(
-            label: 'Set Completed',
-            onPressed: _isDue(task)
-                ? () => widget.onChangeStatus(task, TaskStatus.completed)
-                : null,
-          ),
-          const SizedBox(width: 6),
-          _actionButton(
-            label: 'X Cancel Task',
-            outlined: true,
-            onPressed: _isDue(task)
-                ? () => widget.onChangeStatus(
-              task,
-              TaskStatus.cancelledNotRequired,
-            )
-                : null,
-          ),
-        ],
-      );
-    }
-
-    return const SizedBox.shrink();
-  }
-
-  Widget _actionButton({
-    required String label,
-    required VoidCallback? onPressed,
-    bool outlined = false,
-  }) {
-    return SizedBox(
-      height: 30,
-      child: outlined
-          ? OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 9),
-          minimumSize: const Size(0, 30),
-          textStyle: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        child: Text(label),
-      )
-          : FilledButton(
-        onPressed: onPressed,
-        style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          minimumSize: const Size(0, 30),
-          textStyle: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        child: Text(label),
-      ),
-    );
-  }
-
-  bool _isPcbTask(Task task)
-  {
-    final parts = task.id.split('_');
-    if (parts.length < 4) return false;
-    return parts[3].trim().toUpperCase() == 'PCB';
-  }
-
-  bool _isFuture(Task task) {
-    final today = DateUtils.dateOnly(DateTime.now());
-    final due = DateUtils.dateOnly(task.dueDate);
-    return due.isAfter(today);
-  }
-
-  bool _isDue(Task task) => !_isFuture(task);
-}
-
-// ============================================================================
-// COMPACT TASK DISPLAY PARSER
-// ============================================================================
-
-class _MilestoneParsedTaskDisplay {
-  const _MilestoneParsedTaskDisplay({required this.dateText, required this.location});
-
-  final String dateText;
-  final String location;
-}
-
-class _MilestoneParsedTaskId {
-  const _MilestoneParsedTaskId({
-    required this.subjectCode,
-    required this.chapterCode,
-    required this.topicCode,
-  });
-
-  final String subjectCode;
-  final String chapterCode;
-  final String topicCode;
-}
-
-class _MilestoneParsedActivityText {
-  const _MilestoneParsedActivityText({required this.topic, required this.activity});
-
-  final String topic;
-  final String activity;
-}
-
-_MilestoneParsedTaskDisplay _parseMilestoneTaskDisplay(Task task) {
-  final id = _parseMilestoneTaskId(task.id);
-
-  String topic = '';
-
-  for (final rawLine in task.title.split('\n')) {
-    final line = rawLine.trim();
-
-    if (line.isEmpty) {
-      continue;
-    }
-
-    if (line.toLowerCase().startsWith('todo')) {
-      final separator = line.indexOf('-');
-
-      if (separator >= 0) {
-        final parsed = _parseMilestoneActivityText(line.substring(separator + 1).trim());
-
-        if (parsed != null) {
-          topic = parsed.topic;
-          break;
-        }
-      }
-    }
-
-    if (RegExp(r'^-\s*\d+\.').hasMatch(line)) {
-      final parsed = _parseMilestoneActivityText(line.substring(1).trim());
-
-      if (parsed != null) {
-        topic = parsed.topic;
-        break;
-      }
-    }
-  }
-
-  if (topic.isEmpty) {
-    topic = id.topicCode;
-  }
-
-  final code = [
-    id.subjectCode,
-    id.chapterCode,
-  ].where((value) => value.isNotEmpty).join('-');
-
-  final location = code.isEmpty ? topic : '$code → $topic';
-
-  return _MilestoneParsedTaskDisplay(
-    dateText: '${task.dueDate.day}/${task.dueDate.month}/${task.dueDate.year}',
-    location: location,
-  );
-}
-
-_MilestoneParsedTaskId _parseMilestoneTaskId(String taskId) {
-  var subject = '';
-  var chapter = '';
-  var topic = '';
-
-  for (final token in taskId.split('_')) {
-    final match = RegExp(
-      r'^([A-Za-z]+)-(Ch\d+)-(T\d+)$',
-    ).firstMatch(token.trim());
-
-    if (match != null) {
-      subject = match.group(1)!;
-
-      chapter = match.group(2)!;
-
-      topic = match.group(3)!;
-
-      break;
-    }
-  }
-
-  return _MilestoneParsedTaskId(
-    subjectCode: subject,
-    chapterCode: chapter,
-    topicCode: topic,
-  );
-}
-
-_MilestoneParsedActivityText? _parseMilestoneActivityText(String value) {
-  final match = RegExp(r'^(\d+)\.\s*(.*?)\s*-\s*(.+)$').firstMatch(value);
-
-  if (match == null) {
-    return null;
-  }
-
-  final topic = match.group(2)!.trim();
-
-  final activity = match.group(3)!.trim();
-
-  if (topic.isEmpty || activity.isEmpty) {
-    return null;
-  }
-
-  return _MilestoneParsedActivityText(topic: topic, activity: activity);
 }

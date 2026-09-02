@@ -2351,37 +2351,26 @@ class _MilestoneTaskRow extends StatefulWidget {
 
   final Future<void> Function(String taskId, Future<void> Function() commit)
       onExpand;
-
   final Future<void> Function(String taskId) onCollapse;
-
   final void Function(String taskId, Future<void> Function() commit)
       registerCommit;
-
   final Future<void> Function(Task task, TaskStatus next) onChangeStatus;
-
   final ValueChanged<Task>? onTaskStateChanged;
-
   final ValueChanged<Task> onTaskUpdated;
-
   @override
   State<_MilestoneTaskRow> createState() => _MilestoneTaskRowState();
 }
 
 class _MilestoneTaskRowState extends State<_MilestoneTaskRow> {
   bool _loading = false;
-
   bool _saving = false;
-
   bool _dirty = false;
-
   List<TaskActivityDefinition> _activities = const [];
-
   Map<String, bool> _activityStatus = {};
 
   @override
   void initState() {
     super.initState();
-
     if (widget.expanded) {
       _loadActivities();
     }
@@ -2390,17 +2379,14 @@ class _MilestoneTaskRowState extends State<_MilestoneTaskRow> {
   @override
   void didUpdateWidget(covariant _MilestoneTaskRow oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     if (!oldWidget.expanded && widget.expanded) {
       _loadActivities();
     }
-
     if (widget.expanded) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !widget.expanded) {
           return;
         }
-
         widget.registerCommit(widget.task.id, _commitIfDirty);
       });
     }
@@ -2479,38 +2465,28 @@ class _MilestoneTaskRowState extends State<_MilestoneTaskRow> {
       await widget.onCollapse(widget.task.id);
       return;
     }
-
     await widget.onExpand(widget.task.id, _commitIfDirty);
   }
 
   // ==========================================================================
   // ACTIVITY LOAD
   // ==========================================================================
-
   Future<void> _loadActivities() async {
     if (!mounted) {
       return;
     }
-
     setState(() {
       _loading = true;
     });
-
     try {
       final db = await AppDatabase.instance.database;
-
       final svc = TaskActivityStatusSvc(db);
-
       final definitions = await svc.getActivitiesForTask(widget.task.id);
-
       final saved = await svc.loadStatus(widget.task.id);
-
       if (!mounted) {
         return;
       }
-
       final normalized = <String, bool>{};
-
       for (final activity in definitions) {
         normalized[activity.activityCode] =
             saved[activity.activityCode] ?? false;
@@ -2804,11 +2780,9 @@ class _MilestoneTaskRowState extends State<_MilestoneTaskRow> {
         _activities.where((activity) => activity.isMandatory).toList();
 
     final required = mandatory.isNotEmpty ? mandatory : _activities;
-
     if (required.isEmpty) {
       return false;
     }
-
     return required.every(
       (activity) => _activityStatus[activity.activityCode] == true,
     );
@@ -2817,12 +2791,10 @@ class _MilestoneTaskRowState extends State<_MilestoneTaskRow> {
   // ==========================================================================
   // ACTIVITY COMMIT
   // ==========================================================================
-
   Future<void> _commitIfDirty() async {
     if (!_dirty) {
       return;
     }
-
     await _commitNow();
   }
 
@@ -2830,18 +2802,14 @@ class _MilestoneTaskRowState extends State<_MilestoneTaskRow> {
     if (_saving || !_dirty) {
       return;
     }
-
     if (!mounted) {
       return;
     }
-
     setState(() {
       _saving = true;
     });
-
     try {
       final db = await AppDatabase.instance.database;
-
       final result = await TaskActivityStatusSvc(db).commitTaskActivities(
         task: widget.task,
         activityStatus: Map<String, bool>.from(_activityStatus),
@@ -2872,7 +2840,6 @@ class _MilestoneTaskRowState extends State<_MilestoneTaskRow> {
       if (!mounted) {
         return;
       }
-
       setState(() {
         _saving = false;
       });
@@ -2881,9 +2848,7 @@ class _MilestoneTaskRowState extends State<_MilestoneTaskRow> {
 
   bool _isFuture(Task task) {
     final today = DateUtils.dateOnly(DateTime.now());
-
     final due = DateUtils.dateOnly(task.dueDate);
-
     return due.isAfter(today);
   }
 
@@ -2935,42 +2900,33 @@ _MilestoneParsedTaskDisplay _parseMilestoneTaskDisplay(Task task) {
     if (line.isEmpty) {
       continue;
     }
-
     if (line.toLowerCase().startsWith('todo')) {
       final separator = line.indexOf('-');
-
       if (separator >= 0) {
         final parsed =
             _parseMilestoneActivityText(line.substring(separator + 1).trim());
-
         if (parsed != null) {
           topic = parsed.topic;
           break;
         }
       }
     }
-
     if (RegExp(r'^-\s*\d+\.').hasMatch(line)) {
       final parsed = _parseMilestoneActivityText(line.substring(1).trim());
-
       if (parsed != null) {
         topic = parsed.topic;
         break;
       }
     }
   }
-
   if (topic.isEmpty) {
     topic = id.topicCode;
   }
-
   final code = [
     id.subjectCode,
     id.chapterCode,
   ].where((value) => value.isNotEmpty).join('-');
-
   final location = code.isEmpty ? topic : '$code → $topic';
-
   return _MilestoneParsedTaskDisplay(
     dateText: '${task.dueDate.day}/${task.dueDate.month}/${task.dueDate.year}',
     location: location,
@@ -2981,7 +2937,6 @@ _MilestoneParsedTaskId _parseMilestoneTaskId(String taskId) {
   var subject = '';
   var chapter = '';
   var topic = '';
-
   for (final token in taskId.split('_')) {
     final match = RegExp(
       r'^([A-Za-z]+)-(Ch\d+)-(T\d+)$',
@@ -2989,15 +2944,11 @@ _MilestoneParsedTaskId _parseMilestoneTaskId(String taskId) {
 
     if (match != null) {
       subject = match.group(1)!;
-
       chapter = match.group(2)!;
-
       topic = match.group(3)!;
-
       break;
     }
   }
-
   return _MilestoneParsedTaskId(
     subjectCode: subject,
     chapterCode: chapter,
@@ -3007,18 +2958,13 @@ _MilestoneParsedTaskId _parseMilestoneTaskId(String taskId) {
 
 _MilestoneParsedActivityText? _parseMilestoneActivityText(String value) {
   final match = RegExp(r'^(\d+)\.\s*(.*?)\s*-\s*(.+)$').firstMatch(value);
-
   if (match == null) {
     return null;
   }
-
   final topic = match.group(2)!.trim();
-
   final activity = match.group(3)!.trim();
-
   if (topic.isEmpty || activity.isEmpty) {
     return null;
   }
-
   return _MilestoneParsedActivityText(topic: topic, activity: activity);
 }

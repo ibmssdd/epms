@@ -34,11 +34,10 @@ class _CurrentTopicsWidgetState extends State<CurrentTopicsWidget> {
 
   Future<void> _loadCurrentTopics() async {
     try {
-      final pending =
-      await StatusTopicService.instance.getPendingTopics();
+      final pending = await StatusTopicService.instance.getPendingTopics();
 
       final inProgress =
-      await StatusTopicService.instance.getInProgressTopics();
+          await StatusTopicService.instance.getInProgressTopics();
 
       final topics = <Map<String, Object?>>[
         ...pending,
@@ -46,7 +45,7 @@ class _CurrentTopicsWidgetState extends State<CurrentTopicsWidget> {
       ];
 
       topics.sort(
-            (a, b) => (a['TopicID']?.toString() ?? '')
+        (a, b) => (a['TopicID']?.toString() ?? '')
             .compareTo(b['TopicID']?.toString() ?? ''),
       );
 
@@ -147,15 +146,12 @@ class _CurrentTopicsWidgetState extends State<CurrentTopicsWidget> {
       );
     }
 
-    final grouped =
-    <String, Map<String, List<Map<String, Object?>>>>{};
+    final grouped = <String, Map<String, List<Map<String, Object?>>>>{};
 
     for (final topic in _topics) {
-      final topicId =
-          topic['TopicID']?.toString().trim() ?? '';
+      final topicId = topic['TopicID']?.toString().trim() ?? '';
 
-      final chapterName =
-          topic['TopicChapterName']?.toString().trim() ?? '';
+      final chapterName = topic['TopicChapterName']?.toString().trim() ?? '';
 
       if (topicId.isEmpty) {
         continue;
@@ -169,25 +165,21 @@ class _CurrentTopicsWidgetState extends State<CurrentTopicsWidget> {
 
       final subjectCode = parts[0];
 
-      final subjectName =
-      _subjectName(subjectCode);
+      final subjectName = _subjectName(subjectCode);
 
-      final cleanChapterName = chapterName.isNotEmpty
-          ? chapterName
-          : parts[1];
+      final cleanChapterName = chapterName.isNotEmpty ? chapterName : parts[1];
 
       grouped.putIfAbsent(
         subjectName,
-            () => {},
+        () => {},
       );
 
       grouped[subjectName]!.putIfAbsent(
         cleanChapterName,
-            () => [],
+        () => [],
       );
 
-      grouped[subjectName]![cleanChapterName]!
-          .add(topic);
+      grouped[subjectName]![cleanChapterName]!.add(topic);
     }
 
     final subjectOrder = <String>[
@@ -249,9 +241,9 @@ class _CurrentTopicsWidgetState extends State<CurrentTopicsWidget> {
   // ============================================================
 
   Widget _buildSubject(
-      String subject,
-      Map<String, List<Map<String, Object?>>> chapters,
-      ) {
+    String subject,
+    Map<String, List<Map<String, Object?>>> chapters,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -263,11 +255,9 @@ class _CurrentTopicsWidgetState extends State<CurrentTopicsWidget> {
             fontWeight: FontWeight.w900,
           ),
         ),
-
         const SizedBox(height: 4),
-
         ...chapters.entries.map(
-              (entry) => _buildChapter(
+          (entry) => _buildChapter(
             entry.key,
             entry.value,
           ),
@@ -281,9 +271,9 @@ class _CurrentTopicsWidgetState extends State<CurrentTopicsWidget> {
   // ============================================================
 
   Widget _buildChapter(
-      String chapterName,
-      List<Map<String, Object?>> topics,
-      ) {
+    String chapterName,
+    List<Map<String, Object?>> topics,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(
         left: 7,
@@ -301,9 +291,7 @@ class _CurrentTopicsWidgetState extends State<CurrentTopicsWidget> {
               fontWeight: FontWeight.w700,
             ),
           ),
-
           const SizedBox(height: 2),
-
           ...topics.map(
             _buildTopic,
           ),
@@ -317,15 +305,13 @@ class _CurrentTopicsWidgetState extends State<CurrentTopicsWidget> {
   // ============================================================
 
   Widget _buildTopic(
-      Map<String, Object?> topic,
-      ) {
+    Map<String, Object?> topic,
+  ) {
     const gold = Color(0xFFD4AF37);
 
-    final topicName =
-        topic['TopicName']?.toString().trim() ?? '';
+    final topicName = topic['TopicName']?.toString().trim() ?? '';
 
-    final topicState =
-        topic['TopicState']?.toString().trim() ?? '';
+    final topicState = topic['TopicState']?.toString().trim() ?? '';
 
     if (topicName.isEmpty) {
       return const SizedBox.shrink();
@@ -346,7 +332,6 @@ class _CurrentTopicsWidgetState extends State<CurrentTopicsWidget> {
               fontSize: 9,
             ),
           ),
-
           Expanded(
             child: Text(
               topicName,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'ui_milestones_mt.dart';
 import '../models/mo_task.dart';
 import '../models/mo_task_group.dart';
 import '../services/svc_milestones.dart';
@@ -13,6 +13,7 @@ import 'ui_lectures.dart';
 import 'ui_syllabus.dart';
 import 'ui_milestones.dart';
 import '../widgets/wd_topics_InProgress.dart';
+
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
   @override
@@ -103,7 +104,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final description = row['TaskDescription']?.toString().trim() ?? '';
 
         final status =
-        (row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase();
+            (row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase();
 
         if (status == 'CANCELLED' || status == 'CANCELLED / NOT REQUIRED') {
           continue;
@@ -118,7 +119,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // NEW: milestone count from MilestoneCalendarSvc
       final milestoneSvc = MilestoneCalendarSvc(db);
       final milestoneCount =
-      await milestoneSvc.getNextAvailableMilestoneTaskCount();
+          await milestoneSvc.getNextAvailableMilestoneTaskCount();
 
       if (!mounted) return;
 
@@ -158,7 +159,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final id = row['TaskID']?.toString().trim() ?? '';
         final description = row['TaskDescription']?.toString().trim() ?? '';
         final status =
-        (row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase();
+            (row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase();
         if (status == 'CANCELLED' || status == 'CANCELLED / NOT REQUIRED') {
           continue;
         }
@@ -173,7 +174,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // MILESTONE TASK COUNT
       final milestoneSvc = MilestoneCalendarSvc(db);
       final milestoneCount =
-      await milestoneSvc.getNextAvailableMilestoneTaskCount();
+          await milestoneSvc.getNextAvailableMilestoneTaskCount();
       // ----------------------------------------------------------
       if (!mounted) return;
 
@@ -250,12 +251,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     final status =
-    switch ((row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase()) {
+        switch ((row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase()) {
       'IN_PROGRESS' || 'STARTED' => TaskStatus.started,
       'COMPLETED' => TaskStatus.completed,
       'CANCELLED' ||
       'CANCELLED / NOT REQUIRED' =>
-      TaskStatus.cancelledNotRequired,
+        TaskStatus.cancelledNotRequired,
       _ => TaskStatus.pending,
     };
 
@@ -315,13 +316,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final db = await AppDatabase.instance.database;
       final svc = MilestoneCalendarSvc(db);
 
-      final rows =
-      await svc.getUpcomingMilestonesForWidget(DateTime.now());
+      final rows = await svc.getUpcomingMilestonesForWidget(DateTime.now());
 
       // ============================================================
       // DEBUG — MILESTONE DATA RECEIVED FROM SERVICE
       // ============================================================
-      debugPrint('============================================================');
+      debugPrint(
+          '============================================================');
       debugPrint('[MILESTONE LOAD] Rows returned: ${rows.length}');
 
       for (final row in rows) {
@@ -336,8 +337,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         debugPrint('[MILESTONE LOAD] scope: ${row['scope']}');
       }
 
-      debugPrint('============================================================');
-      debugPrint('============================================================');
+      debugPrint(
+          '============================================================');
+      debugPrint(
+          '============================================================');
       debugPrint('[MILESTONE LOAD] Rows returned: ${rows.length}');
 
       for (final milestone in rows) {
@@ -360,11 +363,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 if (entry is Map) {
                   debugPrint(
                     '[MILESTONE LOAD] '
-                        '$subjectCode → '
-                        'Subject: ${entry['subject_name']} | '
-                        'Chapter: ${entry['chapter_name']} | '
-                        'Chapter Code: ${entry['chapter_code']} | '
-                        'Topic: ${entry['topic_name']}',
+                    '$subjectCode → '
+                    'Subject: ${entry['subject_name']} | '
+                    'Chapter: ${entry['chapter_name']} | '
+                    'Chapter Code: ${entry['chapter_code']} | '
+                    'Topic: ${entry['topic_name']}',
                   );
                 }
               }
@@ -375,7 +378,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
       }
 
-      debugPrint('============================================================');
+      debugPrint(
+          '============================================================');
 
       if (!mounted) return;
 
@@ -428,8 +432,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       selectedNavigationIndex = 5;
       selectedLectureSubjectCode = null;
-      // leftExpanded = false;
-    });
+     });
   }
 
   // ============================================================
@@ -453,9 +456,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _openMilestoneTasks() {
-    _openMilestoneCalendar();
+    setState(() {
+      selectedNavigationIndex = 6;
+      selectedLectureSubjectCode = null;
+    });
   }
-
   // ============================================================
   // SYLLABUS NAVIGATION
   // ============================================================
@@ -599,6 +604,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       content = LectureScreen(initialSubjectCode: selectedLectureSubjectCode);
     } else if (selectedNavigationIndex == 5) {
       content = const MilestoneCalendarScreen();
+    } else if (selectedNavigationIndex == 6) {
+      content = const MilestonesMtView();
     } else {
       content = _buildDashboardContent(context);
     }
@@ -628,7 +635,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 4:
         return 'LECTURES';
       case 5:
-        return 'MILESTONES';
+        return 'Calender MILESTONES';
+      case 6:
+        return 'Tasks MILESTONES';
       case 0:
       default:
         return 'DASHBOARD';
@@ -911,11 +920,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _lectureSubjectCard(
-      BuildContext context, {
-        required String code,
-        required String name,
-        required IconData icon,
-      }) {
+    BuildContext context, {
+    required String code,
+    required String name,
+    required IconData icon,
+  }) {
     const gold = Color(0xFFD4AF37);
 
     return Material(
@@ -1060,14 +1069,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _taskStatCard(
-      BuildContext context, {
-        required String label,
-        required int? count,
-        required IconData icon,
-        required VoidCallback onTap,
-        bool showChevron = true,
-        bool showSpinner = false,
-      }) {
+    BuildContext context, {
+    required String label,
+    required int? count,
+    required IconData icon,
+    required VoidCallback onTap,
+    bool showChevron = true,
+    bool showSpinner = false,
+  }) {
     const gold = Color(0xFFD4AF37);
 
     return Material(
@@ -1106,10 +1115,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 child: showSpinner
                     ? const SizedBox(
-                  width: 15,
-                  height: 15,
-                  child: CircularProgressIndicator(strokeWidth: 1.8),
-                )
+                        width: 15,
+                        height: 15,
+                        child: CircularProgressIndicator(strokeWidth: 1.8),
+                      )
                     : Icon(icon, color: gold, size: 15),
               ),
               const SizedBox(width: 7),
@@ -1274,12 +1283,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _syllabusStatCard(
-      BuildContext context, {
-        required String label,
-        required String value,
-        required String detail,
-        required IconData icon,
-      }) {
+    BuildContext context, {
+    required String label,
+    required String value,
+    required String detail,
+    required IconData icon,
+  }) {
     const gold = Color(0xFFD4AF37);
 
     return Material(
@@ -1377,10 +1386,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ============================================================
 
   Widget _dashboardPanel(
-      BuildContext context, {
-        required String title,
-        required Widget child,
-      }) {
+    BuildContext context, {
+    required String title,
+    required Widget child,
+  }) {
     const gold = Color(0xFFD4AF37);
 
     return Container(
@@ -1522,7 +1531,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         const SizedBox(height: 6),
         ..._upcomingMilestones.map(
-              (milestone) => _buildMilestoneRow(context, milestone),
+          (milestone) => _buildMilestoneRow(context, milestone),
         ),
       ],
     );
@@ -1532,9 +1541,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // MILESTONE ROW
   // ============================================================
   Widget _buildMilestoneRow(
-      BuildContext context,
-      Map<String, Object?> milestone,
-      ) {
+    BuildContext context,
+    Map<String, Object?> milestone,
+  ) {
     const gold = Color(0xFFD4AF37);
 
     final scope = milestone['scope'];
@@ -1546,7 +1555,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     if (scope is! Map) {
       debugPrint('[MILESTONE WIDGET] ERROR: scope is not a Map');
-      debugPrint('============================================================');
+      debugPrint(
+          '============================================================');
       return const SizedBox.shrink();
     }
 
@@ -1661,13 +1671,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+
   void _appendMilestoneSubject(
-      BuildContext context,
-      List<Widget> children,
-      Map scope, {
-        required String subjectCode,
-        required String subjectName,
-      }) {
+    BuildContext context,
+    List<Widget> children,
+    Map scope, {
+    required String subjectCode,
+    required String subjectName,
+  }) {
     final entries = scope[subjectCode];
 
     if (entries is! List || entries.isEmpty) {
@@ -1678,15 +1689,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
         .whereType<Map>()
         .map(
           (entry) {
-        final chapterName = entry['chapter_name']?.toString().trim();
+            final chapterName = entry['chapter_name']?.toString().trim();
 
-        if (chapterName != null && chapterName.isNotEmpty) {
-          return chapterName;
-        }
+            if (chapterName != null && chapterName.isNotEmpty) {
+              return chapterName;
+            }
 
-        return entry['chapter_code']?.toString().trim() ?? '';
-      },
-    )
+            return entry['chapter_code']?.toString().trim() ?? '';
+          },
+        )
         .where((name) => name.isNotEmpty)
         .toList();
 
@@ -1704,10 +1715,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _milestoneSubjectRow(
-      BuildContext context,
-      String subject,
-      List<String> chapters,
-      ) {
+    BuildContext context,
+    String subject,
+    List<String> chapters,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2.5),
       child: Row(
@@ -1766,7 +1777,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } else if (selectedNavigationIndex == 4) {
       workspaceName = 'Lectures';
     } else if (selectedNavigationIndex == 5) {
-      workspaceName = 'Milestones';
+      workspaceName = 'Calender Milestones';
+    } else if (selectedNavigationIndex == 6) {
+      workspaceName = 'Tasks Milestones ';
     } else {
       workspaceName = 'Dashboard';
     }
