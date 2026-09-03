@@ -28,8 +28,8 @@ class _LectureScreenState extends State<LectureScreen> {
   void _debug(String message) {
     debugPrint(
       '[LECTURE UI] '
-          '${DateTime.now().toIso8601String()} '
-          '$message',
+      '${DateTime.now().toIso8601String()} '
+      '$message',
     );
   }
 
@@ -117,7 +117,7 @@ class _LectureScreenState extends State<LectureScreen> {
 
     _debug(
       'initState(): '
-          'initialSubjectCode=$initialSubject',
+      'initialSubjectCode=$initialSubject',
     );
 
     if (initialSubject != null && initialSubject.isNotEmpty) {
@@ -125,7 +125,7 @@ class _LectureScreenState extends State<LectureScreen> {
 
       _debug(
         'initState(): '
-            'selectedSubjectCode=$_selectedSubjectCode',
+        'selectedSubjectCode=$_selectedSubjectCode',
       );
     }
 
@@ -150,7 +150,7 @@ class _LectureScreenState extends State<LectureScreen> {
   void _changeMainTab(int index) {
     _debug(
       '_changeMainTab(): '
-          'old=$_mainTabIndex, new=$index',
+      'old=$_mainTabIndex, new=$index',
     );
 
     if (_mainTabIndex == index) {
@@ -175,7 +175,7 @@ class _LectureScreenState extends State<LectureScreen> {
   Future<void> _selectSubject(String subjectCode) async {
     _debug(
       '_selectSubject(): '
-          'subjectCode=$subjectCode',
+      'subjectCode=$subjectCode',
     );
 
     setState(() {
@@ -208,14 +208,14 @@ class _LectureScreenState extends State<LectureScreen> {
   Future<void> _selectWorkflow(bool newChapter) async {
     _debug(
       '_selectWorkflow() START - '
-          'newChapter=$newChapter',
+      'newChapter=$newChapter',
     );
 
     final subjectCode = _selectedSubjectCode;
 
     _debug(
       '_selectWorkflow(): '
-          'subjectCode=$subjectCode',
+      'subjectCode=$subjectCode',
     );
 
     if (subjectCode == null) {
@@ -261,8 +261,8 @@ class _LectureScreenState extends State<LectureScreen> {
 
     _debug(
       '_loadChapters(): '
-          'subject=$subjectCode, '
-          'newChapter=$newChapter',
+      'subject=$subjectCode, '
+      'newChapter=$newChapter',
     );
 
     if (subjectCode == null || newChapter == null) {
@@ -277,7 +277,7 @@ class _LectureScreenState extends State<LectureScreen> {
 
     _debug(
       '_loadChapters(): '
-          '_chaptersLoading=true',
+      '_chaptersLoading=true',
     );
 
     try {
@@ -286,14 +286,14 @@ class _LectureScreenState extends State<LectureScreen> {
       if (newChapter) {
         _debug(
           '_loadChapters(): '
-              'calling getNewChapterChapters()',
+          'calling getNewChapterChapters()',
         );
 
         chapters = await _lectureService.getNewChapterChapters(subjectCode);
       } else {
         _debug(
           '_loadChapters(): '
-              'calling getContinuationChapters()',
+          'calling getContinuationChapters()',
         );
 
         chapters = await _lectureService.getContinuationChapters(subjectCode);
@@ -301,7 +301,7 @@ class _LectureScreenState extends State<LectureScreen> {
 
       _debug(
         '_loadChapters(): '
-            'service returned ${chapters.length} chapters',
+        'service returned ${chapters.length} chapters',
       );
 
       if (!mounted) {
@@ -317,7 +317,7 @@ class _LectureScreenState extends State<LectureScreen> {
 
       _debug(
         '_loadChapters(): state updated, '
-            'chapters=${_chapters.length}',
+        'chapters=${_chapters.length}',
       );
 
       if (!newChapter && chapters.length == 1) {
@@ -327,8 +327,8 @@ class _LectureScreenState extends State<LectureScreen> {
 
         _debug(
           '_loadChapters(): '
-              'continuation has exactly one chapter '
-              'chapterCode=$chapterCode',
+          'continuation has exactly one chapter '
+          'chapterCode=$chapterCode',
         );
 
         if (chapterCode != null && chapterCode.isNotEmpty) {
@@ -359,12 +359,12 @@ class _LectureScreenState extends State<LectureScreen> {
   // ---------------------------------------------------------------------------
 
   Future<void> _selectChapter(
-      Map<String, Object?>? chapter, {
-        bool showSelectionMessage = true,
-      }) async {
+    Map<String, Object?>? chapter, {
+    bool showSelectionMessage = true,
+  }) async {
     _debug(
       '_selectChapter() START - '
-          'chapter=$chapter',
+      'chapter=$chapter',
     );
 
     if (chapter == null) {
@@ -385,8 +385,8 @@ class _LectureScreenState extends State<LectureScreen> {
 
     _debug(
       '_selectChapter(): '
-          'subject=$subjectCode, '
-          'chapterCode=$chapterCode',
+      'subject=$subjectCode, '
+      'chapterCode=$chapterCode',
     );
 
     if (chapterCode == null || chapterCode.isEmpty) {
@@ -413,7 +413,7 @@ class _LectureScreenState extends State<LectureScreen> {
 
     _debug(
       '_selectChapter(): '
-          'state updated, loading topics',
+      'state updated, loading topics',
     );
 
     try {
@@ -422,7 +422,7 @@ class _LectureScreenState extends State<LectureScreen> {
       if (_newChapter == true) {
         _debug(
           '_selectChapter(): '
-              'calling getNewChapterTopics()',
+          'calling getNewChapterTopics()',
         );
 
         topics = await _lectureService.getNewChapterTopics(
@@ -432,7 +432,7 @@ class _LectureScreenState extends State<LectureScreen> {
       } else {
         _debug(
           '_selectChapter(): '
-              'calling getContinuationTopics()',
+          'calling getContinuationTopics()',
         );
 
         topics = await _lectureService.getContinuationTopics(
@@ -443,7 +443,7 @@ class _LectureScreenState extends State<LectureScreen> {
 
       _debug(
         '_selectChapter(): '
-            'service returned ${topics.length} topics',
+        'service returned ${topics.length} topics',
       );
 
       if (!mounted) {
@@ -500,7 +500,7 @@ class _LectureScreenState extends State<LectureScreen> {
 
     _debug(
       '_selectTopic(): '
-          'selectedTopicCode=$_selectedTopicCode',
+      'selectedTopicCode=$_selectedTopicCode',
     );
   }
 
@@ -511,7 +511,7 @@ class _LectureScreenState extends State<LectureScreen> {
   Future<void> _selectDate() async {
     _debug(
       '_selectDate(): '
-          'current=$_lectureDate',
+      'current=$_lectureDate',
     );
 
     final selected = await showDatePicker(
@@ -533,7 +533,7 @@ class _LectureScreenState extends State<LectureScreen> {
 
     _debug(
       '_selectDate(): '
-          'new=$_lectureDate',
+      'new=$_lectureDate',
     );
   }
 
@@ -575,7 +575,7 @@ class _LectureScreenState extends State<LectureScreen> {
 
     _debug(
       '_saveLecture(): '
-          'beginning validation',
+      'beginning validation',
     );
 
     final subjectCode = _selectedSubjectCode;
@@ -584,32 +584,32 @@ class _LectureScreenState extends State<LectureScreen> {
     final newChapter = _newChapter;
     _debug(
       '_saveLecture(): '
-          'subjectCode=$subjectCode',
+      'subjectCode=$subjectCode',
     );
 
     _debug(
       '_saveLecture(): '
-          'newChapter=$newChapter',
+      'newChapter=$newChapter',
     );
 
     _debug(
       '_saveLecture(): '
-          'chapter=$chapter',
+      'chapter=$chapter',
     );
 
     _debug(
       '_saveLecture(): '
-          'topic=$topic',
+      'topic=$topic',
     );
 
     _debug(
       '_saveLecture(): '
-          'lectureDate=$_lectureDate',
+      'lectureDate=$_lectureDate',
     );
 
     _debug(
       '_saveLecture(): '
-          'lastLecture=$_lastLecture',
+      'lastLecture=$_lastLecture',
     );
 
     if (subjectCode == null) {
@@ -685,7 +685,7 @@ class _LectureScreenState extends State<LectureScreen> {
         topicName.isEmpty) {
       _debug(
         '_saveLecture(): VALIDATION FAILED - '
-            'incomplete chapter/topic data',
+        'incomplete chapter/topic data',
       );
 
       _showMessage('Selected chapter or topic contains incomplete data.');
@@ -701,7 +701,7 @@ class _LectureScreenState extends State<LectureScreen> {
 
     _debug(
       '_saveLecture(): '
-          '_saving=true',
+      '_saving=true',
     );
 
     try {
@@ -785,19 +785,19 @@ class _LectureScreenState extends State<LectureScreen> {
 
       _debug(
         '_saveLecture(): '
-            'changed main tab to View Lectures',
+        'changed main tab to View Lectures',
       );
 
       _debug(
         '_saveLecture(): '
-            'calling _loadViewLectures()',
+        'calling _loadViewLectures()',
       );
 
       await _loadViewLectures();
 
       _debug(
         '_saveLecture(): '
-            '_loadViewLectures() completed',
+        '_loadViewLectures() completed',
       );
 
       if (!mounted) {
@@ -808,14 +808,14 @@ class _LectureScreenState extends State<LectureScreen> {
 
       final message = result.completedChapter
           ? 'Lecture saved for $topicName. Chapter completed.\n'
-          'Tasks generated: ${taskResult.tasksCreated}'
+              'Tasks generated: ${taskResult.tasksCreated}'
           : 'Lecture saved for $topicName.\n'
-          'Lecture ID: ${result.lectureId}\n'
-          'Tasks generated: ${taskResult.tasksCreated}';
+              'Lecture ID: ${result.lectureId}\n'
+              'Tasks generated: ${taskResult.tasksCreated}';
 
       _debug(
         '_saveLecture(): '
-            'showing success message',
+        'showing success message',
       );
 
       //_showMessage(message);
@@ -828,7 +828,7 @@ class _LectureScreenState extends State<LectureScreen> {
           title: const Text('Lecture Saved'),
           content: Text(
             'Lecture saved successfully.\n\n'
-                'Tasks Created: ${taskResult.tasksCreated}',
+            'Tasks Created: ${taskResult.tasksCreated}',
           ),
           actions: [
             FilledButton(
@@ -865,7 +865,7 @@ class _LectureScreenState extends State<LectureScreen> {
 
         _debug(
           '_saveLecture(): '
-              '_saving=false',
+          '_saving=false',
         );
       }
 
@@ -896,7 +896,7 @@ class _LectureScreenState extends State<LectureScreen> {
 
     _debug(
       '_cancelRecording(): '
-          'loading view lectures',
+      'loading view lectures',
     );
 
     _loadViewLectures();
@@ -955,7 +955,7 @@ class _LectureScreenState extends State<LectureScreen> {
 
     _debug(
       '_loadViewLectures(): '
-          '_viewLoading=true',
+      '_viewLoading=true',
     );
 
     try {
@@ -964,21 +964,21 @@ class _LectureScreenState extends State<LectureScreen> {
       if (_viewMode == 0) {
         _debug(
           '_loadViewLectures(): '
-              'mode=Date-Wise',
+          'mode=Date-Wise',
         );
 
         lectures = await _lectureEnquiryService.getThisWeekLectures();
       } else if (_viewMode == 1) {
         _debug(
           '_loadViewLectures(): '
-              'mode=Subject-Wise / Physics',
+          'mode=Subject-Wise / Physics',
         );
 
         lectures = await _lectureEnquiryService.getPhysicsLectures();
       } else {
         _debug(
           '_loadViewLectures(): '
-              'mode=All Lectures',
+          'mode=All Lectures',
         );
 
         lectures = await _lectureEnquiryService.getAllLectures();
@@ -986,7 +986,7 @@ class _LectureScreenState extends State<LectureScreen> {
 
       _debug(
         '_loadViewLectures(): '
-            'received ${lectures.length} lectures',
+        'received ${lectures.length} lectures',
       );
 
       if (!mounted) {
@@ -1024,7 +1024,7 @@ class _LectureScreenState extends State<LectureScreen> {
   Future<void> _selectViewMode(int mode) async {
     _debug(
       '_selectViewMode(): '
-          'old=$_viewMode, new=$mode',
+      'old=$_viewMode, new=$mode',
     );
 
     setState(() {
@@ -1055,7 +1055,7 @@ class _LectureScreenState extends State<LectureScreen> {
   Future<List<Map<String, Object?>>> _loadSubjectLectures(String subjectCode) {
     _debug(
       '_loadSubjectLectures(): '
-          'subjectCode=$subjectCode',
+      'subjectCode=$subjectCode',
     );
 
     return _lectureEnquiryService.getSubjectLectures(subjectCode);
@@ -1135,8 +1135,8 @@ class _LectureScreenState extends State<LectureScreen> {
           onTap: () async {
             _debug(
               '_buildCollapsiblePeriod onTap: '
-                  'key=$keyName, '
-                  'expanded=$expanded',
+              'key=$keyName, '
+              'expanded=$expanded',
             );
 
             if (expanded) {
@@ -1155,14 +1155,14 @@ class _LectureScreenState extends State<LectureScreen> {
               try {
                 _debug(
                   'Loading collapsed section: '
-                      '$keyName',
+                  '$keyName',
                 );
 
                 final rows = await loader();
 
                 _debug(
                   'Collapsed section returned '
-                      '${rows.length} rows',
+                  '${rows.length} rows',
                 );
 
                 if (!mounted) {
@@ -1285,7 +1285,7 @@ class _LectureScreenState extends State<LectureScreen> {
               onTap: () {
                 _debug(
                   'Lecture group tapped: '
-                      '$key',
+                  '$key',
                 );
 
                 setState(() {
@@ -1424,10 +1424,10 @@ class _LectureScreenState extends State<LectureScreen> {
   // ---------------------------------------------------------------------------
 
   Widget _buildLectureDetail(
-      Map<String, Object?> lecture, {
-        required bool hasFile,
-        required bool hasImages,
-      }) {
+    Map<String, Object?> lecture, {
+    required bool hasFile,
+    required bool hasImages,
+  }) {
     final shortDetails = lecture['shortDetails']?.toString().trim() ?? '';
 
     final lectureDate = lecture['lectureDateDisplay']?.toString() ?? '';
@@ -1561,7 +1561,7 @@ class _LectureScreenState extends State<LectureScreen> {
   }) {
     return Material(
       color:
-      selected ? Theme.of(context).colorScheme.surface : Colors.transparent,
+          selected ? Theme.of(context).colorScheme.surface : Colors.transparent,
       borderRadius: BorderRadius.circular(11),
       elevation: selected ? 1 : 0,
       child: InkWell(
@@ -1601,14 +1601,14 @@ class _LectureScreenState extends State<LectureScreen> {
             padding: const EdgeInsets.fromLTRB(10, 2, 10, 12),
             child: _viewLoading
                 ? const Padding(
-              padding: EdgeInsets.only(top: 30),
-              child: Center(child: CircularProgressIndicator()),
-            )
+                    padding: EdgeInsets.only(top: 30),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
                 : _viewMode == 0
-                ? _buildDateWiseView()
-                : _viewMode == 1
-                ? _buildSubjectWiseView()
-                : _buildAllLecturesView(),
+                    ? _buildDateWiseView()
+                    : _viewMode == 1
+                        ? _buildSubjectWiseView()
+                        : _buildAllLecturesView(),
           ),
         ),
         _buildReturnButton(),
@@ -1846,7 +1846,7 @@ class _LectureScreenState extends State<LectureScreen> {
   Future<void> _selectChapterByCode(String? code) async {
     _debug(
       '_selectChapterByCode(): '
-          'code=$code',
+      'code=$code',
     );
 
     if (code == null || code.isEmpty) {
@@ -1919,7 +1919,7 @@ class _LectureScreenState extends State<LectureScreen> {
   void _selectTopicByCode(String? code) {
     _debug(
       '_selectTopicByCode(): '
-          'code=$code',
+      'code=$code',
     );
 
     if (code == null || code.isEmpty) {
@@ -2012,10 +2012,10 @@ class _LectureScreenState extends State<LectureScreen> {
                   style: _roundedFilledButtonStyle(),
                   icon: _saving
                       ? const SizedBox(
-                    height: 16,
-                    width: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : const Icon(Icons.save, size: 18),
                   label: Text(_saving ? 'Saving...' : 'Save Lecture'),
                 ),
@@ -2077,15 +2077,15 @@ class _LectureScreenState extends State<LectureScreen> {
         onTap: _saving
             ? null
             : () {
-          setState(() {
-            _lastLecture = !_lastLecture;
-          });
+                setState(() {
+                  _lastLecture = !_lastLecture;
+                });
 
-          _debug(
-            'Last Lecture toggled: '
-                '$_lastLecture',
-          );
-        },
+                _debug(
+                  'Last Lecture toggled: '
+                  '$_lastLecture',
+                );
+              },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: Row(
@@ -2101,15 +2101,15 @@ class _LectureScreenState extends State<LectureScreen> {
                 onChanged: _saving
                     ? null
                     : (value) {
-                  setState(() {
-                    _lastLecture = value;
-                  });
+                        setState(() {
+                          _lastLecture = value;
+                        });
 
-                  _debug(
-                    'Last Lecture switch: '
-                        '$value',
-                  );
-                },
+                        _debug(
+                          'Last Lecture switch: '
+                          '$value',
+                        );
+                      },
               ),
             ],
           ),

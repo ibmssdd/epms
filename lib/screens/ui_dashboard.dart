@@ -1,5 +1,13 @@
+//change pixel setting for Tanush-Tab
+// Ctrl+F Tanush-Tab-Settings and change below settings.
+// For virtual emulator - mainAxisExtent: 78,
+// mainAxisExtent: 78,
+// For  Tanu Tab SM 200 - mainAxisExtent: 90,
+// mainAxisExtent: 90,
+
+
 import 'package:flutter/material.dart';
-import 'ui_milestones_mt.dart';
+
 import '../models/mo_task.dart';
 import '../models/mo_task_group.dart';
 import '../services/svc_milestones.dart';
@@ -12,6 +20,7 @@ import 'ui_tasks.dart';
 import 'ui_lectures.dart';
 import 'ui_syllabus.dart';
 import 'ui_milestones.dart';
+import 'ui_milestones_mt.dart';
 import '../widgets/wd_topics_InProgress.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -57,6 +66,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<Map<String, Object?>> _upcomingMilestones = [];
 
   bool _milestonesLoading = true;
+  bool _milestoneRefreshing = false;
 
   // ============================================================
   // SERVICES
@@ -394,6 +404,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _upcomingMilestones = [];
         _milestonesLoading = false;
       });
+    }
+  }
+
+  Future<void> _refreshMilestones() async {
+    if (_milestoneRefreshing) return;
+
+    setState(() {
+      _milestoneRefreshing = true;
+    });
+
+    try {
+      final db = await AppDatabase.instance.database;
+      final svc = MilestoneCalendarSvc(db);
+
+      final rows =
+      await svc.getUpcomingMilestonesForWidget(DateTime.now());
+
+      if (!mounted) return;
+
+      setState(() {
+        _upcomingMilestones = rows;
+        _milestonesLoading = false;
+      });
+    } catch (_) {
+      // Keep the existing milestone data if refresh fails.
+    } finally {
+      if (mounted) {
+        setState(() {
+          _milestoneRefreshing = false;
+        });
+      }
     }
   }
   // ============================================================
@@ -996,10 +1037,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         crossAxisCount: 3,
         crossAxisSpacing: 7,
         mainAxisSpacing: 7,
-        // For virtual emulator
-        mainAxisExtent: 78,
-        // For  Tanu Tab SM 200
-        //       mainAxisExtent: 90,
+        //Tanush-Tab-Settings -
+        // For virtual emulator change mainAxisExtent to 78
+        // For Tanush-Tab SM-200 change mainAxisExtent to 90
+        // mainAxisExtent: 78,
+           mainAxisExtent: 90,
       ),
       itemBuilder: (_, index) {
         switch (index) {
@@ -1272,11 +1314,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         crossAxisCount: 2,
         crossAxisSpacing: 7,
         mainAxisSpacing: 7,
-        // For virtual emulator
-        mainAxisExtent: 78,
-
-        // For  Tanu Tab SM 200
-        //      mainAxisExtent: 90,
+        //Tanush-Tab-Settings -
+        // For virtual emulator change mainAxisExtent to 78
+        // For Tanush-Tab SM-200 change mainAxisExtent to 90
+              mainAxisExtent: 90,
       ),
       itemBuilder: (_, index) => cards[index],
     );
@@ -1330,6 +1371,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(width: 7),
               Expanded(
                 child: Column(
+                  //Tanush-Tab-Settings -
+                  // For virtual emulator change mainAxisExtent to 78
+                  // For Tanush-Tab SM-200 change mainAxisExtent to 90
+                  // mainAxisExtent: 78,
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -1466,31 +1511,82 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ============================================================
   // UPCOMING SUNDAY MILESTONES
   // ============================================================
-
   Widget _buildUpcomingSundaySection(BuildContext context) {
     const gold = Color(0xFFD4AF37);
 
     return Material(
       color: Colors.transparent,
       borderRadius: BorderRadius.circular(11),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(11),
-        onTap: _openMilestoneCalendar,
-        child: Ink(
-          padding: const EdgeInsets.fromLTRB(9, 8, 9, 7),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1C1C1C), Color(0xFF0B0B0B)],
-            ),
-            borderRadius: BorderRadius.circular(11),
-            border: Border.all(color: gold.withValues(alpha: .22)),
+      child: Ink(
+        padding: const EdgeInsets.fromLTRB(9, 8, 9, 7),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF1C1C1C), Color(0xFF0B0B0B)],
           ),
-          child: _buildMilestonePanelContent(context),
+          borderRadius: BorderRadius.circular(11),
+          border: Border.all(color: gold.withValues(alpha: .22)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Upcoming Coaching Milestones',
+                    style: TextStyle(
+                      color: gold,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+
+                // Refresh button
+                SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    tooltip: 'Refresh milestones',
+                    onPressed:
+                    _milestoneRefreshing ? null : _refreshMilestones,
+                    icon: _milestoneRefreshing
+                        ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.8,
+                      ),
+                    )
+                        : const Icon(
+                      Icons.refresh_rounded,
+                      size: 18,
+                    ),
+                    color: gold,
+                  ),
+                ),
+              ],
+            ),
+
+            // Milestone content/card area
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: _openMilestoneCalendar,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: _buildMilestonePanelContent(context),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
-
   Widget _buildMilestonePanelContent(BuildContext context) {
     const gold = Color(0xFFD4AF37);
 
@@ -1501,7 +1597,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: SizedBox(
             width: 17,
             height: 17,
-            child: CircularProgressIndicator(strokeWidth: 2),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+            ),
           ),
         ),
       );
@@ -1521,22 +1619,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text(
-          'Upcoming Coaching Milestones',
-          style: TextStyle(
-            color: gold,
-            fontSize: 11,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        const SizedBox(height: 6),
         ..._upcomingMilestones.map(
-          (milestone) => _buildMilestoneRow(context, milestone),
+              (milestone) => _buildMilestoneRow(
+            context,
+            milestone,
+          ),
         ),
       ],
     );
   }
-
   // ============================================================
   // MILESTONE ROW
   // ============================================================

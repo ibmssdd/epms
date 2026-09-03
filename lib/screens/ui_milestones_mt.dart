@@ -203,7 +203,8 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
     final grouped = _groupMilestoneTasksByDate();
 
     final dates = grouped.keys.toList()
-      ..sort((a, b) => b.compareTo(a));
+    //  ..sort((a, b) => b.compareTo(a));
+      ..sort((a, b) => a.compareTo(b));
 
     if (dates.isEmpty) {
       return ListView(
@@ -223,6 +224,14 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
       );
     }
 
+// Only the first/top milestone is expanded by default.
+// All other milestones are collapsed.
+    for (var i = 0; i < dates.length; i++) {
+      _milestoneTaskExpanded.putIfAbsent(
+        dates[i],
+            () => i == 0,
+      );
+    }
     return ListView(
       padding: const EdgeInsets.all(4),
       physics: const AlwaysScrollableScrollPhysics(),
@@ -256,9 +265,7 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
 
       final date = DateTime.tryParse(dueText);
 
-      if (date == null) {
-        continue;
-      }
+      if (date == null) { continue; }
 
       final dateKey =
           '${date.year.toString().padLeft(4, '0')}-'
@@ -284,7 +291,8 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
 
     final date = DateTime.parse(dateKey);
 
-    final expanded = _milestoneTaskExpanded[dateKey] ?? true;
+    //final expanded = _milestoneTaskExpanded[dateKey] ?? true;
+    final expanded = _milestoneTaskExpanded[dateKey] ?? false;
 
     final milestoneType = rows.isNotEmpty
         ? rows.first['MilestoneType']

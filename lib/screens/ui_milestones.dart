@@ -613,7 +613,50 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
 
     return result ?? false;
   }
+  List<Map<String, String>> _buildMTCalendarScope() {
+    final scope = <Map<String, String>>[];
 
+    // ------------------------------------------------------------
+    // PHYSICS
+    // ------------------------------------------------------------
+    for (final chapter in _phyChapters) {
+      if (_selectedPhy.contains(chapter.code)) {
+        scope.add({
+          'subjectCode': 'PHY',
+          'chapterCode': chapter.code,
+          'chapterName': chapter.name,
+        });
+      }
+    }
+
+    // ------------------------------------------------------------
+    // CHEMISTRY
+    // ------------------------------------------------------------
+    for (final chapter in _chemChapters) {
+      if (_selectedChem.contains(chapter.code)) {
+        scope.add({
+          'subjectCode': 'CHEM',
+          'chapterCode': chapter.code,
+          'chapterName': chapter.name,
+        });
+      }
+    }
+
+    // ------------------------------------------------------------
+    // BIOLOGY
+    // ------------------------------------------------------------
+    for (final chapter in _bioChapters) {
+      if (_selectedBio.contains(chapter.code)) {
+        scope.add({
+          'subjectCode': 'BIO',
+          'chapterCode': chapter.code,
+          'chapterName': chapter.name,
+        });
+      }
+    }
+
+    return scope;
+  }
   Future<void> _persistMilestone() async {
     final svc = _svc;
     if (svc == null || _saving) return;
@@ -621,6 +664,14 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
     setState(() { _saving = true; _error = null; });
     bool progressDialogShown = false;
     try {
+
+      // 0 Save Milestone Task Calendar scope.
+
+      await svc.saveMTCalender(
+        milestoneType: _milestoneType,
+        date: _selectedDate,
+        scope: _buildMTCalendarScope(),
+      );
       // 1. Save milestone.
       await svc.saveMilestone( milestoneType: _milestoneType, date: _selectedDate,
         phyChapters: _selectedPhy.join(','),

@@ -31,26 +31,7 @@ class MilestoneCalendarSvc {
   static const String colBio = 'milestone_bio_chapters';
   static const String colBioTaskCreated = 'milestone_bio_task_created';
   static const String colCommonTaskCreated = 'milestone_common_tasks_created';
-//===========
-// begin - for new mt calender table
-  static const String mtCalendarTable = 'db_MT_Calender';
 
-  static const String mtDate = 'MT_Date';
-  static const String mtType = 'MT_Type';
-  static const String mtSubjectCode = 'MT_SubjectCode';
-  static const String mtChapterCode = 'MT_ChapterCode';
-  static const String mtChapterName = 'MT_ChapterName';
-  static const String mtChapterTaskID = 'MT_ChapterTaskID';
-  static const String mtTaskCreationTS = 'MT_TaskCreationTS';
-  static const String mtTaskCounts = 'MT_TaskCounts';
-  static const String mtStatus = 'MT_Status';
-  static const String mtTypeText = 'MT_TypeText';
-  static const String mtDescription = 'MT_Description';
-  static const String mtScopeFirstTS = 'MT_Scope_FirstTS';
-  static const String mtScopeEditTS = 'MT_Scope_EditTS';
-  static const String mtId = 'MT_Id';
-// end - for new MT Calender table
-//===========
   Future<List<Map<String, Object?>>> getUpcomingMilestonesForWidget(
     DateTime fromDate,
   ) async {
@@ -586,25 +567,24 @@ class MilestoneCalendarSvc {
         final chapterName =
             item['chapterName']?.trim() ?? '';
 
-        // Invalid scope entry - ignore it.
         if (subjectCode.isEmpty || chapterCode.isEmpty) {
           continue;
         }
 
         final existing = await txn.query(
-          mtCalendarTable,
+          'db_MT_Calender',
           columns: const [
-            mtScopeFirstTS,
-            mtChapterTaskID,
-            mtTaskCreationTS,
-            mtTaskCounts,
-            mtStatus,
+            'MT_Scope_FirstTS',
+            'MT_ChapterTaskID',
+            'MT_TaskCreationTS',
+            'MT_TaskCounts',
+            'MT_Status',
           ],
           where: '''
-          $mtDate = ?
-          AND $mtType = ?
-          AND $mtSubjectCode = ?
-          AND $mtChapterCode = ?
+          MT_Date = ?
+          AND MT_Type = ?
+          AND MT_SubjectCode = ?
+          AND MT_ChapterCode = ?
         ''',
           whereArgs: [
             formattedDate,
@@ -615,57 +595,47 @@ class MilestoneCalendarSvc {
           limit: 1,
         );
 
-        // ------------------------------------------------------------
-        // NEW ROW
-        // ------------------------------------------------------------
         if (existing.isEmpty) {
+          // New scope row.
           await txn.insert(
-            mtCalendarTable,
+            'db_MT_Calender',
             {
-              mtDate: formattedDate,
-              mtType: type,
-              mtSubjectCode: subjectCode,
-              mtChapterCode: chapterCode,
-              mtChapterName:
+              'MT_Date': formattedDate,
+              'MT_Type': type,
+              'MT_SubjectCode': subjectCode,
+              'MT_ChapterCode': chapterCode,
+              'MT_ChapterName':
               chapterName.isEmpty ? null : chapterName,
-
-              // Task-related fields are initially empty.
-              mtChapterTaskID: null,
-              mtTaskCreationTS: '0',
-              mtTaskCounts: '0',
-
-              mtStatus: 'Active',
-              mtTypeText: typeText,
-              mtDescription: description,
-
-              // Scope timestamps.
-              mtScopeFirstTS: now,
-              mtScopeEditTS: now,
+              'MT_ChapterTaskID': null,
+              'MT_TaskCreationTS': '0',
+              'MT_TaskCounts': '0',
+              'MT_Status': 'Active',
+              'MT_TypeText': typeText,
+              'MT_Description': description,
+              'MT_Scope_FirstTS': now,
+              'MT_Scope_EditTS': now,
             },
           );
-        }
-
-        // ------------------------------------------------------------
-        // EXISTING ROW
-        // ------------------------------------------------------------
-        else {
+        } else {
+          // Existing scope row.
+          //
+          // IMPORTANT:
+          // Do not reset task-related fields here because the
+          // task may already have been created for this chapter.
           await txn.update(
-            mtCalendarTable,
+            'db_MT_Calender',
             {
-              // UI already provides the chapter name.
-              // No db_SyllabusMaster lookup is required here.
-              mtChapterName:
+              'MT_ChapterName':
               chapterName.isEmpty ? null : chapterName,
-
-              mtTypeText: typeText,
-              mtDescription: description,
-              mtScopeEditTS: now,
+              'MT_TypeText': typeText,
+              'MT_Description': description,
+              'MT_Scope_EditTS': now,
             },
             where: '''
-            $mtDate = ?
-            AND $mtType = ?
-            AND $mtSubjectCode = ?
-            AND $mtChapterCode = ?
+            MT_Date = ?
+            AND MT_Type = ?
+            AND MT_SubjectCode = ?
+            AND MT_ChapterCode = ?
           ''',
             whereArgs: [
               formattedDate,
