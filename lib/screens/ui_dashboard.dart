@@ -442,28 +442,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ============================================================
 
   void _selectNavigation(int index) {
-    setState(() {
-      selectedNavigationIndex = index;
-
-      // if (index != 0) {
-      //   leftExpanded = false;
-      // }
-
-      if (index != 4) {
-        selectedLectureSubjectCode = null;
-      }
-    });
-
-    if (index == 0) {
-      _refreshTaskCounters();
-    }
+    setState(() { selectedNavigationIndex = index; });
+    if (index == 0) { _refreshTaskCounters();}
   }
-
-  // void _toggleLeftNavigation() {
-  //   setState(() {
-  //     leftExpanded = !leftExpanded;
-  //   });
-  // }
 
   // ============================================================
   // MILESTONE NAVIGATION
@@ -883,60 +864,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // ============================================================
   // DASHBOARD CONTENT
-  // ============================================================
-
   Widget _buildDashboardContent(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildLectureSection(context),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Renamed method call here
+          _buildStudiesSection(context),
 
-              const SizedBox(height: 10),
+          const SizedBox(height: 10),
 
-              // ------------------------------------------------
-              // TASKS + SYLLABUS
-              // ------------------------------------------------
-              if (constraints.maxWidth < 620)
-                Column(
-                  children: [
-                    _buildTasksSection(context),
-                    const SizedBox(height: 10),
-                    _buildSyllabusSection(context),
-                  ],
-                )
-              else
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(child: _buildTasksSection(context)),
-                    const SizedBox(width: 10),
-                    Expanded(child: _buildSyllabusSection(context)),
-                  ],
-                ),
-            ],
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: _buildTasksSection(context)),
+                const SizedBox(width: 10),
+                Expanded(child: _buildSyllabusSection(context)),
+              ],
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
+// ============================================================
+// CONSOLIDATED SUB-WIDGETS
+// ============================================================
 
-  // ============================================================
-  // LECTURES
-  // ============================================================
-
-  Widget _buildLectureSection(BuildContext context) {
-    return _dashboardPanel(
-      context,
-      title: 'LECTURES',
-      child: _buildLectureSubjectCards(context),
-    );
-  }
-
-  Widget _buildLectureSubjectCards(BuildContext context) {
+  Widget _buildConsolidatedLectures() {
     final lectureSubjects = [
       ('Phy', 'Physics', Icons.science_outlined),
       ('Chem', 'Chemistry', Icons.biotech_outlined),
@@ -947,11 +904,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: [
         for (var i = 0; i < lectureSubjects.length; i++) ...[
           Expanded(
-            child: _lectureSubjectCard(
-              context,
-              code: lectureSubjects[i].$1,
-              name: lectureSubjects[i].$2,
-              icon: lectureSubjects[i].$3,
+            child: InkWell(
+              onTap: () => _openLectureSubject(lectureSubjects[i].$1),
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1F1F1F),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF2C2C2C)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(lectureSubjects[i].$3, size: 18, color: const Color(0xFFD4AF37)),
+                    const SizedBox(width: 6),
+                    Text(
+                      lectureSubjects[i].$2,
+                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
           if (i < lectureSubjects.length - 1) const SizedBox(width: 8),
@@ -960,71 +934,624 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _lectureSubjectCard(
-    BuildContext context, {
-    required String code,
-    required String name,
-    required IconData icon,
-  }) {
+  Widget _buildConsolidatedTaskGrid() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _compactTaskChip("Today's Tasks", _dueTodayCount, Icons.today_rounded, () => _openTaskGroup(TaskGroup.dueToday)),
+        _compactTaskChip("Past Due", _pastDueCount, Icons.pending_actions_rounded, () => _openTaskGroup(TaskGroup.pastDue)),
+        _compactTaskChip("In Progress", _inProgressCount, Icons.play_circle_outline_rounded, () => _openTaskGroup(TaskGroup.inProgress)),
+        _compactTaskChip("Revision Tasks", _revisionTaskCount, Icons.replay_rounded, _openRevisionTasks),
+        _compactTaskChip("Milestones", _milestoneTaskCount, Icons.flag_rounded, _openMilestoneTasks),
+      ],
+    );
+  }
+
+  Widget _compactTaskChip(String label, int count, IconData icon, VoidCallback onTap) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final itemWidth = (constraints.maxWidth - 16) / 3; // Fits 3 items per row neatly
+        return InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            width: itemWidth,
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1A1A),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFF292929)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Icon(icon, size: 16, color: const Color(0xFFD4AF37)),
+                    Text(
+                      '$count',
+                      style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 10),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildConsolidatedSyllabusProgress() {
+    if (_syllabusLoading) {
+      return const Center(child: Padding(padding: EdgeInsets.all(8.0), child: CircularProgressIndicator(color: Color(0xFFD4AF37))));
+    }
+
+    // Fallback defaults if null
+    final coveragePercent = _syllabusCoverage?['overall_percent'] as num? ?? 0;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF292929)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Overall Progress', style: TextStyle(color: Colors.white, fontSize: 12)),
+              Text('${coveragePercent.toStringAsFixed(1)}%', style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 12, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(
+            value: (coveragePercent / 100).clamp(0.0, 1.0),
+            backgroundColor: const Color(0xFF2C2C2C),
+            color: const Color(0xFFD4AF37),
+            minHeight: 6,
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ],
+      ),
+    );
+  }
+
+// ============================================================
+  // CONSOLIDATED SINGLE-CARD MY LECTURES SECTION
+  // ============================================================
+
+  // ============================================================
+  // CONSOLIDATED SINGLE-CARD MY LECTURES SECTION
+  // ============================================================
+
+// ============================================================
+  // CONSOLIDATED SINGLE-CARD MY STUDIES SECTION
+  // ============================================================
+// ============================================================
+  // CONSOLIDATED SINGLE-ROW MY STUDIES SECTION (1x4 HORIZONTAL)
+  // ============================================================
+
+  Widget _buildStudiesSection(BuildContext context) {
     const gold = Color(0xFFD4AF37);
+
+    // Configuration for the 4 horizontal options
+    final studyItems = [
+      (
+      'My Lectures',
+      Icons.co_present_rounded, // Teacher/Teaching Icon
+      const Color(0xFF2196F3), // Vivid Blue
+          // () => _openLectureWorkspaceScreen(), // Navigates to Lecture Workspace
+          () =>  _openLectureSubject('Phy'),
+      ),
+      (
+      'Notes & Revisions',
+      Icons.edit_note_rounded, // Open book with writing pen
+      const Color(0xFF4CAF50), // Emerald Green
+          () => _openNotesAndRevisions(),
+      ),
+      (
+      'Books & Registers',
+      Icons.menu_book_rounded, // Stacked Books & Registers
+      const Color(0xFFFF9800), // Vibrant Amber/Orange
+          () => _openBooksAndRegisters(),
+      ),
+      (
+      'Goals & Studies',
+      Icons.military_tech_rounded, // Achievement Goal Badge
+      gold, // Metallic Gold Accent
+          () => _openGoalsAndStudies(),
+      ),
+    ];
 
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(10),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(10),
-        onTap: () => _openLectureSubject(code),
-        child: Ink(
-          height: 68,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF202020), Color(0xFF0E0E0E)],
-            ),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: gold.withValues(alpha: .28)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: .45),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
+      child: Ink(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF202020), Color(0xFF0E0E0E)],
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 21, color: gold),
-              const SizedBox(width: 7),
-              Flexible(
-                child: Text(
-                  name,
-                  maxLines: 1,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: gold.withValues(alpha: .28)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: .45),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Frame Header Row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'MY STUDIES',
+                  style: TextStyle(
+                    color: gold,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                Text(
+                  'Workspace',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // Single Row Layout (1x4 Grid)
+            Row(
+              children: [
+                for (var i = 0; i < studyItems.length; i++) ...[
+                  Expanded(child: _build3DStudyCardTile(studyItems[i])),
+                  if (i < studyItems.length - 1) const SizedBox(width: 8),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Helper tile widget generating 3D depth, glowing borders, and drop shadows
+  Widget _build3DStudyCardTile((String, IconData, Color, VoidCallback) item) {
+    final title = item.$1;
+    final icon = item.$2;
+    final color = item.$3;
+    final onTap = item.$4;
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          // Soft outer color glow matching the theme
+          BoxShadow(
+            color: color.withValues(alpha: 0.18),
+            blurRadius: 6,
+            spreadRadius: 0,
+            offset: const Offset(0, 2),
+          ),
+          // Deep drop shadow for elevation
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.6),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Ink(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  const Color(0xFF282828),
+                  const Color(0xFF141414),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(8),
+              // Color-matched glowing card border
+              border: Border.all(
+                color: color.withValues(alpha: 0.55),
+                width: 1.2,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Simulated 3D Layered Icon Stack
+                SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Ambient Backlight Glow
+                      Positioned(
+                        top: 2,
+                        child: Icon(
+                          icon,
+                          size: 20,
+                          color: color.withValues(alpha: 0.4),
+                        ),
+                      ),
+                      // Drop Shadow Layer
+                      Positioned(
+                        top: 1,
+                        left: 1,
+                        child: Icon(
+                          icon,
+                          size: 19,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      // Vibrant Foreground Highlight Icon
+                      Icon(
+                        icon,
+                        size: 19,
+                        color: color,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 5),
+
+                // Label Text
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    height: 1.1,
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  void _openLectureWorkspaceScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const LectureScreen(), // Replace with your target screen widget class name
+      ),
+    );
+  }
+
+  void _openNotesAndRevisions() {
+    // Implement navigation for Notes & Revisions
+  }
+
+  void _openBooksAndRegisters() {
+    // Implement navigation for Books & Registers
+  }
+
+  void _openGoalsAndStudies() {
+    // Implement navigation for Goals & Studies
+  }
+
+  // Helper tile widget for study options
+  Widget _buildStudyItemTile((String, IconData, Color, VoidCallback) item) {
+    final title = item.$1;
+    final icon = item.$2;
+    final color = item.$3;
+    final onTap = item.$4;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF171717),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: color.withValues(alpha: 0.35),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 15,
+              color: color,
+            ),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  // Tile helper widget for each resource option
+  Widget _buildLectureItemTile((String, IconData, Color, VoidCallback) item) {
+    final title = item.$1;
+    final icon = item.$2;
+    final color = item.$3;
+    final onTap = item.$4;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF171717),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: color.withValues(alpha: 0.35),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 15,
+              color: color,
+            ),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
   // ============================================================
-  // TASKS SECTION
+  // CONSOLIDATED SINGLE-CARD TASKS SECTION ;
   // ============================================================
 
   Widget _buildTasksSection(BuildContext context) {
-    return _dashboardPanel(
-      context,
-      title: 'TASKS',
-      child: _buildTaskCards(context),
+    const gold = Color(0xFFD4AF37);
+
+    return Material(
+      color: Colors.transparent,
+      child: Ink(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF202020), Color(0xFF0E0E0E)],
+          ),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: gold.withValues(alpha: .28)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: .45),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header Row with Refresh Action
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'TASKS SUMMARY',
+                  style: TextStyle(
+                    color: gold,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                InkWell(
+                  onTap: _refreshTaskCounters,
+                  borderRadius: BorderRadius.circular(4),
+                  child: Padding(
+                    padding: const EdgeInsets.all(2.0),
+                    child: Row(
+                      children: const [
+                        Text(
+                          'Refresh',
+                          style: TextStyle(
+                            color: gold,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(width: 3),
+                        Icon(Icons.refresh_rounded, size: 12, color: gold),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            if (_taskCountersLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    height: 16,
+                    width: 16,
+                    child: CircularProgressIndicator(color: gold, strokeWidth: 2),
+                  ),
+                ),
+              )
+            else ...[
+              // 1. Due Today Row
+              _buildTaskRow(
+                label: "Today's Tasks",
+                count: _dueTodayCount,
+                icon: Icons.today_rounded,
+                color: const Color(0xFF4CAF50), // Green accent
+                onTap: () => _openTaskGroup(TaskGroup.dueToday),
+              ),
+              const SizedBox(height: 5),
+
+              // 2. Past Due Row
+              _buildTaskRow(
+                label: 'Past Due',
+                count: _pastDueCount,
+                icon: Icons.pending_actions_rounded,
+                color: const Color(0xFFF44336), // Red accent
+                onTap: () => _openTaskGroup(TaskGroup.pastDue),
+              ),
+              const SizedBox(height: 5),
+
+              // 3. In Progress Row
+              _buildTaskRow(
+                label: 'In Progress',
+                count: _inProgressCount,
+                icon: Icons.play_circle_outline_rounded,
+                color: const Color(0xFF2196F3), // Blue accent
+                onTap: () => _openTaskGroup(TaskGroup.inProgress),
+              ),
+
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 4.0),
+                child: Divider(color: Color(0xFF2E2E2E), height: 1, thickness: 1),
+              ),
+
+              // 4. Revision Tasks Row
+              _buildTaskRow(
+                label: 'Revision Tasks',
+                count: _revisionTaskCount,
+                icon: Icons.replay_rounded,
+                color: gold, // Gold accent for Revisions
+                isHighlight: true,
+                onTap: _openRevisionTasks,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Row helper widget designed for interactive task metrics
+  Widget _buildTaskRow({
+    required String label,
+    required int count,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+    bool isHighlight = false,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 2.0),
+        child: Row(
+          children: [
+            // Category Icon
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 8),
+
+            // Task Category Name
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: isHighlight ? Colors.white : Colors.white70,
+                  fontSize: 11,
+                  fontWeight: isHighlight ? FontWeight.bold : FontWeight.w500,
+                ),
+              ),
+            ),
+
+            // Count Badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: color.withValues(alpha: 0.4), width: 1),
+              ),
+              child: Text(
+                '$count',
+                style: TextStyle(
+                  color: color,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+
+            // Arrow Indicator
+            const Icon(
+              Icons.chevron_right_rounded,
+              size: 14,
+              color: Colors.grey,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1214,215 +1741,240 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // SYLLABUS SECTION
   // ============================================================
 
+// ============================================================
+  // CONSOLIDATED SYLLABUS SECTION
+  // ============================================================
+
+  // ============================================================
+  // CONSOLIDATED SYLLABUS SECTION
+  // ============================================================
+
+// ============================================================
+  // CONSOLIDATED SINGLE-CARD SYLLABUS SECTION
+  // ============================================================
+
+  // ============================================================
+  // CONSOLIDATED SINGLE-CARD SYLLABUS SECTION (WITH ICONS)
+  // ============================================================
+
+  // ============================================================
+  // CONSOLIDATED SINGLE-CARD SYLLABUS SECTION (MATCHED SCALE)
+  // ============================================================
+
+// ============================================================
+  // CONSOLIDATED SINGLE-CARD SYLLABUS SECTION (MATCHED SCALE)
+  // ============================================================
+
   Widget _buildSyllabusSection(BuildContext context) {
-    return _dashboardPanel(
-      context,
-      title: 'SYLLABUS COVERAGE',
-      child: _buildSyllabusCards(context),
-    );
-  }
-
-  Widget _buildSyllabusCards(BuildContext context) {
-    if (_syllabusLoading) {
-      return const SizedBox(
-        height: 139,
-        child: Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      );
-    }
-
-    if (_syllabusCoverage == null) {
-      return SizedBox(
-        height: 139,
-        child: Center(
-          child: Text(
-            'Unable to load syllabus coverage.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: .60),
-              fontSize: 10,
-            ),
-          ),
-        ),
-      );
-    }
-
-    final subjects =
-        (_syllabusCoverage!['subjects'] as List<Map<String, Object?>>?) ??
-            <Map<String, Object?>>[];
-
-    final overallProgress = _asDouble(_syllabusCoverage!['progress']);
-
-    final overallCompletedChapters = _asInt(
-      _syllabusCoverage!['completedChapters'],
-    );
-
-    final overallTotalChapters = _asInt(_syllabusCoverage!['totalChapters']);
-
-    final cards = <Widget>[
-      _syllabusStatCard(
-        context,
-        label: 'Total Syllabus',
-        value: '${(overallProgress * 100).round()}%',
-        detail: '$overallCompletedChapters/$overallTotalChapters chapters',
-        icon: Icons.auto_graph_rounded,
-      ),
-    ];
-
-    for (final subject in subjects.take(3)) {
-      final subjectName = subject['subjectName']?.toString().trim() ?? '';
-
-      final completedTopics = _asInt(subject['completedTopics']);
-
-      final totalTopics = _asInt(subject['totalTopics']);
-
-      final progress = _asDouble(subject['progress']);
-
-      cards.add(
-        _syllabusStatCard(
-          context,
-          label: subjectName.isEmpty ? 'Subject' : subjectName,
-          value: '${(progress * 100).round()}%',
-          detail: '$completedTopics/$totalTopics topics',
-          icon: Icons.menu_book_rounded,
-        ),
-      );
-    }
-
-    while (cards.length < 4) {
-      cards.add(
-        _syllabusStatCard(
-          context,
-          label: 'Syllabus',
-          value: '0%',
-          detail: 'No data',
-          icon: Icons.menu_book_outlined,
-        ),
-      );
-    }
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: 4,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 7,
-        mainAxisSpacing: 7,
-        //Tanush-Tab-Settings -
-        // For virtual emulator change mainAxisExtent to 78
-        // For Tanush-Tab SM-200 change mainAxisExtent to 90
-              mainAxisExtent: 90,
-      ),
-      itemBuilder: (_, index) => cards[index],
-    );
-  }
-
-  Widget _syllabusStatCard(
-    BuildContext context, {
-    required String label,
-    required String value,
-    required String detail,
-    required IconData icon,
-  }) {
     const gold = Color(0xFFD4AF37);
+
+    final Map<String, dynamic> coverage = (_syllabusCoverage ?? {}) as Map<String, dynamic>;
+
+    final bioPercent = (coverage['bio_percent'] as num?)?.toDouble() ?? 0.0;
+    final bioDone = (coverage['bio_completed'] as num?)?.toInt() ?? 0;
+    final bioTotal = (coverage['bio_total'] as num?)?.toInt() ?? 0;
+
+    final chemPercent = (coverage['chem_percent'] as num?)?.toDouble() ?? 0.0;
+    final chemDone = (coverage['chem_completed'] as num?)?.toInt() ?? 0;
+    final chemTotal = (coverage['chem_total'] as num?)?.toInt() ?? 0;
+
+    final phyPercent = (coverage['phy_percent'] as num?)?.toDouble() ?? 0.0;
+    final phyDone = (coverage['phy_completed'] as num?)?.toInt() ?? 0;
+    final phyTotal = (coverage['phy_total'] as num?)?.toInt() ?? 0;
+
+    final overallPercent = (coverage['overall_percent'] as num?)?.toDouble() ?? 0.0;
+    final overallDone = bioDone + chemDone + phyDone;
+    final overallTotal = bioTotal + chemTotal + phyTotal;
 
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(9),
       child: InkWell(
-        borderRadius: BorderRadius.circular(9),
         onTap: _openSyllabus,
+        borderRadius: BorderRadius.circular(10),
         child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF242424), Color(0xFF0D0D0D)],
+              colors: [Color(0xFF202020), Color(0xFF0E0E0E)],
             ),
-            borderRadius: BorderRadius.circular(9),
-            border: Border.all(color: gold.withValues(alpha: .30)),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: gold.withValues(alpha: .28)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: .45),
-                blurRadius: 7,
+                blurRadius: 8,
                 offset: const Offset(0, 3),
               ),
             ],
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distributes height evenly
             children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: gold.withValues(alpha: .10),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: gold.withValues(alpha: .22)),
+              // Header Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'SYLLABUS',
+                    style: TextStyle(
+                      color: gold,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                  Row(
+                    children: const [
+                      Text(
+                        'Details',
+                        style: TextStyle(
+                          color: gold,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(width: 2),
+                      Icon(Icons.arrow_forward_ios_rounded, size: 9, color: gold),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              if (_syllabusLoading)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(color: gold, strokeWidth: 2),
+                    ),
+                  ),
+                )
+              else ...[
+                // Biology Row
+                _buildSyllabusRow(
+                  label: 'Biology',
+                  icon: Icons.eco_outlined,
+                  percent: bioPercent,
+                  completed: bioDone,
+                  total: bioTotal,
+                  color: const Color(0xFF4CAF50),
                 ),
-                child: Icon(icon, color: gold, size: 15),
-              ),
-              const SizedBox(width: 7),
-              Expanded(
-                child: Column(
-                  //Tanush-Tab-Settings -
-                  // For virtual emulator change mainAxisExtent to 78
-                  // For Tanush-Tab SM-200 change mainAxisExtent to 90
-                  // mainAxisExtent: 78,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      value,
-                      maxLines: 1,
-                      style: const TextStyle(
-                        color: gold,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
-                      detail,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: .52),
-                        fontSize: 8,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 8), // Increased vertical spacing
+
+                // Chemistry Row
+                _buildSyllabusRow(
+                  label: 'Chemistry',
+                  icon: Icons.biotech_outlined,
+                  percent: chemPercent,
+                  completed: chemDone,
+                  total: chemTotal,
+                  color: const Color(0xFF2196F3),
                 ),
-              ),
-              const SizedBox(width: 2),
-              Icon(
-                Icons.chevron_right_rounded,
-                size: 15,
-                color: Colors.white.withValues(alpha: .40),
-              ),
+                const SizedBox(height: 8), // Increased vertical spacing
+
+                // Physics Row
+                _buildSyllabusRow(
+                  label: 'Physics',
+                  icon: Icons.science_outlined,
+                  percent: phyPercent,
+                  completed: phyDone,
+                  total: phyTotal,
+                  color: const Color(0xFFFF9800),
+                ),
+
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 6.0),
+                  child: Divider(color: Color(0xFF2E2E2E), height: 1, thickness: 1),
+                ),
+
+                // Overall Row
+                _buildSyllabusRow(
+                  label: 'Overall',
+                  icon: Icons.auto_awesome,
+                  percent: overallPercent,
+                  completed: overallDone,
+                  total: overallTotal,
+                  color: gold,
+                  isOverall: true,
+                ),
+              ],
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSyllabusRow({
+    required String label,
+    required IconData icon,
+    required double percent,
+    required int completed,
+    required int total,
+    required Color color,
+    bool isOverall = false,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 6),
+
+        SizedBox(
+          width: 62,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isOverall ? Colors.white : Colors.white70,
+              fontSize: 12,
+              fontWeight: isOverall ? FontWeight.bold : FontWeight.w500,
+            ),
+          ),
+        ),
+
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: (percent / 100).clamp(0.0, 1.0),
+              minHeight: 7, // Slightly thicker progress bar
+              backgroundColor: const Color(0xFF1B1B1B),
+              color: color,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+
+        SizedBox(
+          width: 34,
+          child: Text(
+            '${percent.toStringAsFixed(0)}%',
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              color: isOverall ? color : Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+
+        SizedBox(
+          width: 48,
+          child: Text(
+            ' ($completed/$total)',
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              color: Colors.grey,
+              fontSize: 11,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
