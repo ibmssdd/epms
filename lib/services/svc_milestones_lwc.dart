@@ -558,14 +558,11 @@ class MilestoneCalendarSvc {
 
     await _db.transaction((txn) async {
       for (final item in scope) {
-        final subjectCode =
-            item['subjectCode']?.trim().toUpperCase() ?? '';
+        final subjectCode = item['subjectCode']?.trim().toUpperCase() ?? '';
 
-        final chapterCode =
-            item['chapterCode']?.trim() ?? '';
+        final chapterCode = item['chapterCode']?.trim() ?? '';
 
-        final chapterName =
-            item['chapterName']?.trim() ?? '';
+        final chapterName = item['chapterName']?.trim() ?? '';
 
         if (subjectCode.isEmpty || chapterCode.isEmpty) {
           continue;
@@ -604,8 +601,7 @@ class MilestoneCalendarSvc {
               'MT_Type': type,
               'MT_SubjectCode': subjectCode,
               'MT_ChapterCode': chapterCode,
-              'MT_ChapterName':
-              chapterName.isEmpty ? null : chapterName,
+              'MT_ChapterName': chapterName.isEmpty ? null : chapterName,
               'MT_ChapterTaskID': null,
               'MT_TaskCreationTS': '0',
               'MT_TaskCounts': '0',
@@ -625,8 +621,7 @@ class MilestoneCalendarSvc {
           await txn.update(
             'db_MT_Calender',
             {
-              'MT_ChapterName':
-              chapterName.isEmpty ? null : chapterName,
+              'MT_ChapterName': chapterName.isEmpty ? null : chapterName,
               'MT_TypeText': typeText,
               'MT_Description': description,
               'MT_Scope_EditTS': now,
@@ -648,6 +643,7 @@ class MilestoneCalendarSvc {
       }
     });
   }
+
   /// Inserts a new milestone or updates the scope for the same
   /// (milestone_type, milestone_date) key.
   Future<void> saveMilestone({

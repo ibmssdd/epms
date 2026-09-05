@@ -15,7 +15,10 @@ const List<NavigationItem> epmsNavigationItems = [
   NavigationItem(icon: Icons.replay_outlined, label: 'Revision & Tests'),
   NavigationItem(icon: Icons.video_library_outlined, label: 'Notes & Lectures'),
   NavigationItem(icon: Icons.flag_outlined, label: 'Milestone Calendar'),
-  NavigationItem(icon: Icons.checklist_rtl_outlined, label: 'Milestone Tasks',),
+  NavigationItem(
+    icon: Icons.checklist_rtl_outlined,
+    label: 'Milestone Tasks',
+  ),
   NavigationItem(icon: Icons.exit_to_app_outlined, label: 'Exit'),
   //  NavigationItem(icon: Icons.note_alt_outlined, label: 'My Notes'),
   //  NavigationItem(icon: Icons.fact_check_outlined, label: 'Exam Readiness'),

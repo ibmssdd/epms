@@ -136,13 +136,14 @@ class MtTaskGenerator {
   Future<Map<String, int>> generateMilestoneTasks({
     required String mtType,
     DateTime? milestoneDate,
-  }) async
-  {
+  }) async {
     final date = _dateOnly(milestoneDate ?? _now());
 
     final normalizedType = mtType.trim().toUpperCase();
 
-    if (normalizedType.isEmpty) { throw ArgumentError('MT Type cannot be empty.');}
+    if (normalizedType.isEmpty) {
+      throw ArgumentError('MT Type cannot be empty.');
+    }
 
     // =========================================================================
     // EXISTING WEEKEND/SUNDAY RULE
@@ -334,9 +335,9 @@ class MtTaskGenerator {
   // ===========================================================================
 
   bool _isSyllabusRevisionTask(
-      Map<String, Object?> subjectTask,
-      Map<String, Object?> rule,
-      ) {
+    Map<String, Object?> subjectTask,
+    Map<String, Object?> rule,
+  ) {
     final subjectTaskId =
         _string(subjectTask[_subjectTaskIdColumn])?.toUpperCase() ?? '';
 
@@ -489,7 +490,7 @@ class MtTaskGenerator {
     for (final candidate in subjectCandidates) {
       print(
         'Trying db_SyllabusMaster: '
-            'subject_code=$candidate, chapter_code=$chapterCode',
+        'subject_code=$candidate, chapter_code=$chapterCode',
       );
 
       final rows = await _db.query(
@@ -523,7 +524,7 @@ class MtTaskGenerator {
     print('!!! CHAPTER NOT FOUND !!!');
     print(
       'Could not find subject=$subjectCode '
-          'chapter=$chapterCode in db_SyllabusMaster',
+      'chapter=$chapterCode in db_SyllabusMaster',
     );
     print('==========================================================');
 
@@ -916,8 +917,8 @@ class MtTaskGenerator {
   // ===========================================================================
 
   String _activityDescription(
-      Map<String, Object?> activity,
-      ) {
+    Map<String, Object?> activity,
+  ) {
     return _string(activity['ActivityDescription']) ??
         _string(activity['ActivityName']) ??
         _string(activity['Description']) ??
@@ -930,8 +931,8 @@ class MtTaskGenerator {
   // ===========================================================================
 
   String _subjectCodeFromSubjectTask(
-      String subjectTaskId,
-      ) {
+    String subjectTaskId,
+  ) {
     final normalized = subjectTaskId.trim().toUpperCase();
 
     if (normalized.startsWith('PHY_')) {
@@ -973,9 +974,9 @@ class MtTaskGenerator {
   // ===========================================================================
 
   Future<List<Map<String, Object?>>> _getRulesForSubject(
-      String subjectCode,
-      String mtType,
-      ) async {
+    String subjectCode,
+    String mtType,
+  ) async {
     final normalizedSubject = _normalizeSubjectCode(subjectCode);
 
     final normalizedType = mtType.trim().toUpperCase();
@@ -997,7 +998,7 @@ class MtTaskGenerator {
       final ruleSubject = _string(row[_ruleSubjectColumn])?.toUpperCase();
 
       final normalizedRuleSubject =
-      ruleSubject == null ? null : _normalizeSubjectCode(ruleSubject);
+          ruleSubject == null ? null : _normalizeSubjectCode(ruleSubject);
 
       if (normalizedRuleSubject == normalizedSubject) {
         result.add(row);
@@ -1012,8 +1013,8 @@ class MtTaskGenerator {
   // ===========================================================================
 
   Future<List<Map<String, Object?>>> _getSubjectTasksByPartialKey(
-      String partialKey,
-      ) async {
+    String partialKey,
+  ) async {
     return _db.query(
       _subjectTaskTable,
       where: '$_subjectTaskIdColumn LIKE ? '
@@ -1031,8 +1032,8 @@ class MtTaskGenerator {
   // ===========================================================================
 
   Future<Map<String, Object?>?> _getSubjectTaskById(
-      String subjectTaskId,
-      ) async {
+    String subjectTaskId,
+  ) async {
     final rows = await _db.query(
       _subjectTaskTable,
       where: '$_subjectTaskIdColumn = ? '
@@ -1070,8 +1071,8 @@ class MtTaskGenerator {
   // ===========================================================================
 
   Future<List<Map<String, Object?>>> _getActivitiesForSubjectTask(
-      String subjectTaskId,
-      ) async {
+    String subjectTaskId,
+  ) async {
     final links = await _db.query(
       _subjectTaskActivityTable,
       where: 'SubjectTaskID = ?',
@@ -1132,9 +1133,9 @@ class MtTaskGenerator {
   // ===========================================================================
 
   int _taskDuration(
-      Map<String, Object?> subjectTask,
-      List<Map<String, Object?>> activities,
-      ) {
+    Map<String, Object?> subjectTask,
+    List<Map<String, Object?>> activities,
+  ) {
     final configured = _int(subjectTask[_subjectTaskDurationColumn]);
 
     if (configured != null) {
@@ -1143,7 +1144,7 @@ class MtTaskGenerator {
 
     return activities.fold<int>(
       0,
-          (sum, row) => sum + (_int(row['ActivityDurationMinutes']) ?? 0),
+      (sum, row) => sum + (_int(row['ActivityDurationMinutes']) ?? 0),
     );
   }
 
@@ -1152,9 +1153,9 @@ class MtTaskGenerator {
   // ===========================================================================
 
   Future<Map<String, Object?>?> _getMilestone(
-      DateTime date,
-      String mtType,
-      ) async {
+    DateTime date,
+    String mtType,
+  ) async {
     final rows = await _db.query(
       _milestoneTable,
       where: '$_milestoneTypeColumn = ? '
@@ -1188,9 +1189,9 @@ class MtTaskGenerator {
   // ===========================================================================
 
   List<String> _milestoneScope(
-      Map<String, Object?> milestone,
-      String subjectCode,
-      ) {
+    Map<String, Object?> milestone,
+    String subjectCode,
+  ) {
     final normalizedSubject = _normalizeSubjectCode(subjectCode);
 
     final column = switch (normalizedSubject) {
@@ -1286,8 +1287,8 @@ class MtTaskGenerator {
   // ===========================================================================
 
   String _normalizeSubjectCode(
-      String value,
-      ) {
+    String value,
+  ) {
     final code = value.trim().toUpperCase();
 
     switch (code) {
@@ -1318,8 +1319,8 @@ class MtTaskGenerator {
   // ===========================================================================
 
   DateTime _parseMilestoneDate(
-      Map<String, Object?> milestone,
-      ) {
+    Map<String, Object?> milestone,
+  ) {
     final value = _string(milestone[_milestoneDateColumn]);
 
     if (value == null) {
@@ -1332,8 +1333,8 @@ class MtTaskGenerator {
   }
 
   static DateTime _dateOnly(
-      DateTime date,
-      ) {
+    DateTime date,
+  ) {
     return DateTime(
       date.year,
       date.month,
@@ -1342,8 +1343,8 @@ class MtTaskGenerator {
   }
 
   static String _formatDate(
-      DateTime date,
-      ) {
+    DateTime date,
+  ) {
     final month = date.month.toString().padLeft(2, '0');
 
     final day = date.day.toString().padLeft(2, '0');
@@ -1352,8 +1353,8 @@ class MtTaskGenerator {
   }
 
   static String _compactDate(
-      DateTime date,
-      ) {
+    DateTime date,
+  ) {
     return '${date.year.toString().padLeft(4, '0')}'
         '${date.month.toString().padLeft(2, '0')}'
         '${date.day.toString().padLeft(2, '0')}';
@@ -1364,8 +1365,8 @@ class MtTaskGenerator {
   // ===========================================================================
 
   static List<String> _splitCodes(
-      String? value,
-      ) {
+    String? value,
+  ) {
     if (value == null || value.trim().isEmpty) {
       return const [];
     }
@@ -1378,8 +1379,8 @@ class MtTaskGenerator {
   }
 
   static String? _string(
-      Object? value,
-      ) {
+    Object? value,
+  ) {
     final text = value?.toString().trim();
 
     if (text == null || text.isEmpty) {
@@ -1390,8 +1391,8 @@ class MtTaskGenerator {
   }
 
   static int? _int(
-      Object? value,
-      ) {
+    Object? value,
+  ) {
     if (value is int) {
       return value;
     }

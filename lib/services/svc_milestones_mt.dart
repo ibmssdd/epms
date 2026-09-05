@@ -254,6 +254,7 @@ class MilestoneCalendarSvc {
 
     return rows;
   }
+
   MtTask? mtTaskFromRow(Map<String, Object?> row) {
     final id = row['TaskID']?.toString().trim();
     final description = row['TaskDescription']?.toString() ?? '';

@@ -203,7 +203,7 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
     final grouped = _groupMilestoneTasksByDate();
 
     final dates = grouped.keys.toList()
-    //  ..sort((a, b) => b.compareTo(a));
+      //  ..sort((a, b) => b.compareTo(a));
       ..sort((a, b) => a.compareTo(b));
 
     if (dates.isEmpty) {
@@ -229,7 +229,7 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
     for (var i = 0; i < dates.length; i++) {
       _milestoneTaskExpanded.putIfAbsent(
         dates[i],
-            () => i == 0,
+        () => i == 0,
       );
     }
     return ListView(
@@ -242,8 +242,7 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
             dateKey: dates[i],
             rows: grouped[dates[i]]!,
           ),
-          if (i < dates.length - 1)
-            const SizedBox(height: 8),
+          if (i < dates.length - 1) const SizedBox(height: 8),
         ],
       ],
     );
@@ -265,10 +264,11 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
 
       final date = DateTime.tryParse(dueText);
 
-      if (date == null) { continue; }
+      if (date == null) {
+        continue;
+      }
 
-      final dateKey =
-          '${date.year.toString().padLeft(4, '0')}-'
+      final dateKey = '${date.year.toString().padLeft(4, '0')}-'
           '${date.month.toString().padLeft(2, '0')}-'
           '${date.day.toString().padLeft(2, '0')}';
 
@@ -283,10 +283,10 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
   // ==========================================================================
 
   Widget _buildMilestoneHeader(
-      BuildContext context, {
-        required String dateKey,
-        required List<Map<String, Object?>> rows,
-      }) {
+    BuildContext context, {
+    required String dateKey,
+    required List<Map<String, Object?>> rows,
+  }) {
     final colors = Theme.of(context).colorScheme;
 
     final date = DateTime.parse(dateKey);
@@ -295,10 +295,7 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
     final expanded = _milestoneTaskExpanded[dateKey] ?? false;
 
     final milestoneType = rows.isNotEmpty
-        ? rows.first['MilestoneType']
-        ?.toString()
-        .trim()
-        .toUpperCase()
+        ? rows.first['MilestoneType']?.toString().trim().toUpperCase()
         : null;
 
     final milestoneTitle = switch (milestoneType) {
@@ -307,8 +304,7 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
       _ => 'Milestone',
     };
 
-    final dateText =
-        '${date.day.toString().padLeft(2, '0')}/'
+    final dateText = '${date.day.toString().padLeft(2, '0')}/'
         '${date.month.toString().padLeft(2, '0')}/'
         '${date.year}';
 
@@ -408,23 +404,21 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
   }
 
   Widget _buildMilestoneTaskFromRow(
-      BuildContext context,
-      Map<String, Object?> row,
-      ) {
+    BuildContext context,
+    Map<String, Object?> row,
+  ) {
     final baseTask = _taskFromMilestoneRow(row);
 
     if (baseTask == null) {
       return const SizedBox.shrink();
     }
 
-    final task =
-        _taskOverrides[baseTask.id] ?? baseTask;
+    final task = _taskOverrides[baseTask.id] ?? baseTask;
 
-    final parentStatus =
-        _taskStatusOverrides[baseTask.id] ??
-            _parentStatusFromDatabase(
-              row['TaskStatus']?.toString(),
-            );
+    final parentStatus = _taskStatusOverrides[baseTask.id] ??
+        _parentStatusFromDatabase(
+          row['TaskStatus']?.toString(),
+        );
 
     return _MilestoneTaskRow(
       key: ValueKey(task.id),
@@ -444,20 +438,15 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
   // ==========================================================================
 
   MtTask? _taskFromMilestoneRow(
-      Map<String, Object?> row,
-      ) {
+    Map<String, Object?> row,
+  ) {
     final id = row['TaskID']?.toString().trim();
 
-    final description =
-        row['TaskDescription']?.toString() ?? '';
+    final description = row['TaskDescription']?.toString() ?? '';
 
-    final dueText =
-    row['TaskDueDate']?.toString();
+    final dueText = row['TaskDueDate']?.toString();
 
-    if (id == null ||
-        id.isEmpty ||
-        dueText == null ||
-        dueText.isEmpty) {
+    if (id == null || id.isEmpty || dueText == null || dueText.isEmpty) {
       return null;
     }
 
@@ -468,23 +457,15 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
     }
 
     final rawStatus =
-    (row['TaskStatus']?.toString() ?? 'PENDING')
-        .trim()
-        .toUpperCase();
+        (row['TaskStatus']?.toString() ?? 'PENDING').trim().toUpperCase();
 
     final status = switch (rawStatus) {
-      'IN_PROGRESS' || 'STARTED' =>
-      MtTaskStatus.started,
-
-      'COMPLETED' || 'CLOSED' =>
-      MtTaskStatus.completed,
-
+      'IN_PROGRESS' || 'STARTED' => MtTaskStatus.started,
+      'COMPLETED' || 'CLOSED' => MtTaskStatus.completed,
       'CANCELLED' ||
       'CANCELLED / NOT REQUIRED' =>
-      MtTaskStatus.cancelledNotRequired,
-
-      _ =>
-      MtTaskStatus.pending,
+        MtTaskStatus.cancelledNotRequired,
+      _ => MtTaskStatus.pending,
     };
 
     return MtTask(
@@ -516,8 +497,7 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
     final parts = taskId.split('_');
 
     if (parts.length > 3) {
-      final subject =
-      parts[3].trim().toUpperCase();
+      final subject = parts[3].trim().toUpperCase();
 
       if (subject == 'PHY' ||
           subject == 'CHE' ||
@@ -531,11 +511,9 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
   }
 
   _ParentTaskStatus _parentStatusFromDatabase(
-      String? value,
-      ) {
-    switch ((value ?? 'PENDING')
-        .trim()
-        .toUpperCase()) {
+    String? value,
+  ) {
+    switch ((value ?? 'PENDING').trim().toUpperCase()) {
       case 'IN_PROGRESS':
       case 'STARTED':
         return _ParentTaskStatus.inProgress;
@@ -574,9 +552,9 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
   }
 
   Future<void> _handleTaskStatusChanged(
-      MtTask task,
-      _ParentTaskStatus status,
-      ) async {
+    MtTask task,
+    _ParentTaskStatus status,
+  ) async {
     if (!mounted) {
       return;
     }
@@ -594,20 +572,19 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
   // ==========================================================================
 
   void _registerCommit(
-      String taskId,
-      Future<void> Function() commit,
-      ) {
+    String taskId,
+    Future<void> Function() commit,
+  ) {
     if (_expandedTaskId == taskId) {
       _commitExpandedTask = commit;
     }
   }
 
   Future<void> _expandTask(
-      String taskId,
-      Future<void> Function() commit,
-      ) async {
-    if (_expandedTaskId != null &&
-        _expandedTaskId != taskId) {
+    String taskId,
+    Future<void> Function() commit,
+  ) async {
+    if (_expandedTaskId != null && _expandedTaskId != taskId) {
       final oldCommit = _commitExpandedTask;
 
       if (oldCommit != null) {
@@ -626,8 +603,8 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
   }
 
   Future<void> _collapseTask(
-      String taskId,
-      ) async {
+    String taskId,
+  ) async {
     if (_expandedTaskId != taskId) {
       return;
     }
@@ -653,8 +630,8 @@ class _MilestonesMtViewState extends State<MilestonesMtView> {
   }
 
   void _notifyTaskStateChanged(
-      MtTask task,
-      ) {
+    MtTask task,
+  ) {
     final callback = widget.onTaskStateChanged;
 
     if (callback != null) {
@@ -687,39 +664,36 @@ class _MilestoneTaskRow extends StatefulWidget {
   final bool expanded;
 
   final Future<void> Function(
-      String taskId,
-      Future<void> Function() commit,
-      ) onExpand;
+    String taskId,
+    Future<void> Function() commit,
+  ) onExpand;
 
   final Future<void> Function(
-      String taskId,
-      ) onCollapse;
+    String taskId,
+  ) onCollapse;
 
   final void Function(
-      String taskId,
-      Future<void> Function() commit,
-      ) registerCommit;
+    String taskId,
+    Future<void> Function() commit,
+  ) registerCommit;
 
   final Future<void> Function(
-      MtTask task,
-      _ParentTaskStatus status,
-      ) onTaskStatusChanged;
+    MtTask task,
+    _ParentTaskStatus status,
+  ) onTaskStatusChanged;
 
   final ValueChanged<MtTask> onTaskUpdated;
 
   @override
-  State<_MilestoneTaskRow> createState() =>
-      _MilestoneTaskRowState();
+  State<_MilestoneTaskRow> createState() => _MilestoneTaskRowState();
 }
 
-class _MilestoneTaskRowState
-    extends State<_MilestoneTaskRow> {
+class _MilestoneTaskRowState extends State<_MilestoneTaskRow> {
   bool _loading = false;
   bool _saving = false;
   bool _dirty = false;
 
-  List<Map<String, Object?>> _subtasks =
-  const [];
+  List<Map<String, Object?>> _subtasks = const [];
 
   /// Temporary subtask status values.
   ///
@@ -731,8 +705,7 @@ class _MilestoneTaskRowState
   final Map<String, String> _subtaskStatus = {};
 
   /// Status values loaded from the database.
-  final Map<String, String>
-  _originalSubtaskStatus = {};
+  final Map<String, String> _originalSubtaskStatus = {};
 
   @override
   void initState() {
@@ -745,18 +718,16 @@ class _MilestoneTaskRowState
 
   @override
   void didUpdateWidget(
-      covariant _MilestoneTaskRow oldWidget,
-      ) {
+    covariant _MilestoneTaskRow oldWidget,
+  ) {
     super.didUpdateWidget(oldWidget);
 
-    if (!oldWidget.expanded &&
-        widget.expanded) {
+    if (!oldWidget.expanded && widget.expanded) {
       _loadSubtasks();
     }
 
     if (widget.expanded) {
-      WidgetsBinding.instance
-          .addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !widget.expanded) {
           return;
         }
@@ -771,16 +742,11 @@ class _MilestoneTaskRowState
 
   @override
   Widget build(BuildContext context) {
-    final colors =
-        Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
 
-    final terminalParent =
-        widget.parentStatus ==
-            _ParentTaskStatus.completed ||
-            widget.parentStatus ==
-                _ParentTaskStatus.closed ||
-            widget.parentStatus ==
-                _ParentTaskStatus.cancelled;
+    final terminalParent = widget.parentStatus == _ParentTaskStatus.completed ||
+        widget.parentStatus == _ParentTaskStatus.closed ||
+        widget.parentStatus == _ParentTaskStatus.cancelled;
 
     return TapRegion(
       groupId: widget.task.id,
@@ -794,38 +760,30 @@ class _MilestoneTaskRowState
       },
 
       child: Container(
-        margin:
-        const EdgeInsets.only(bottom: 5),
-
+        margin: const EdgeInsets.only(bottom: 5),
         decoration: widget.expanded
             ? BoxDecoration(
-          color: colors.surface,
-          borderRadius:
-          BorderRadius.circular(11),
-          border: Border.all(
-            color: colors.primary
-                .withValues(alpha: .75),
-            width: 1.3,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: colors.primary
-                  .withValues(alpha: .10),
-              blurRadius: 7,
-            ),
-          ],
-        )
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(11),
+                border: Border.all(
+                  color: colors.primary.withValues(alpha: .75),
+                  width: 1.3,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: colors.primary.withValues(alpha: .10),
+                    blurRadius: 7,
+                  ),
+                ],
+              )
             : null,
-
         child: Column(
           children: [
             InkWell(
-              borderRadius:
-              BorderRadius.circular(11),
+              borderRadius: BorderRadius.circular(11),
               onTap: _toggleExpanded,
               child: Padding(
-                padding:
-                const EdgeInsets.fromLTRB(
+                padding: const EdgeInsets.fromLTRB(
                   12,
                   8,
                   7,
@@ -836,44 +794,33 @@ class _MilestoneTaskRowState
                     _buildTaskStatusText(
                       context,
                     ),
-
                     const SizedBox(width: 8),
-
                     Expanded(
                       child: Text(
                         widget.task.title,
                         maxLines: 1,
-                        overflow:
-                        TextOverflow.ellipsis,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 12.5,
-                          fontWeight:
-                          FontWeight.w500,
-                          color:
-                          colors.onSurface,
+                          fontWeight: FontWeight.w500,
+                          color: colors.onSurface,
                         ),
                       ),
                     ),
-
                     const SizedBox(width: 6),
-
                     Icon(
                       widget.expanded
-                          ? Icons
-                          .keyboard_arrow_up
-                          : Icons
-                          .keyboard_arrow_down,
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
                       size: 19,
                       color: widget.expanded
                           ? colors.primary
-                          : colors
-                          .onSurfaceVariant,
+                          : colors.onSurfaceVariant,
                     ),
                   ],
                 ),
               ),
             ),
-
             if (widget.expanded)
               _buildExpandedContent(
                 context,
@@ -886,23 +833,14 @@ class _MilestoneTaskRowState
   }
 
   Widget _buildTaskStatusText(
-      BuildContext context,
-      ) {
+    BuildContext context,
+  ) {
     final text = switch (widget.parentStatus) {
-      _ParentTaskStatus.pending =>
-      'Pending',
-
-      _ParentTaskStatus.inProgress =>
-      'In Progress',
-
-      _ParentTaskStatus.completed =>
-      'Completed',
-
-      _ParentTaskStatus.closed =>
-      'Closed',
-
-      _ParentTaskStatus.cancelled =>
-      'Cancelled',
+      _ParentTaskStatus.pending => 'Pending',
+      _ParentTaskStatus.inProgress => 'In Progress',
+      _ParentTaskStatus.completed => 'Completed',
+      _ParentTaskStatus.closed => 'Closed',
+      _ParentTaskStatus.cancelled => 'Cancelled',
     };
 
     return Text(
@@ -919,27 +857,17 @@ class _MilestoneTaskRowState
   }
 
   Color _parentStatusColor(
-      BuildContext context,
-      _ParentTaskStatus status,
-      ) {
-    final colors =
-        Theme.of(context).colorScheme;
+    BuildContext context,
+    _ParentTaskStatus status,
+  ) {
+    final colors = Theme.of(context).colorScheme;
 
     return switch (status) {
-      _ParentTaskStatus.pending =>
-      colors.onSurfaceVariant,
-
-      _ParentTaskStatus.inProgress =>
-      colors.primary,
-
-      _ParentTaskStatus.completed =>
-      colors.primary,
-
-      _ParentTaskStatus.closed =>
-      colors.onSurfaceVariant,
-
-      _ParentTaskStatus.cancelled =>
-      colors.error,
+      _ParentTaskStatus.pending => colors.onSurfaceVariant,
+      _ParentTaskStatus.inProgress => colors.primary,
+      _ParentTaskStatus.completed => colors.primary,
+      _ParentTaskStatus.closed => colors.onSurfaceVariant,
+      _ParentTaskStatus.cancelled => colors.error,
     };
   }
 
@@ -971,8 +899,7 @@ class _MilestoneTaskRowState
     });
 
     try {
-      final db =
-      await AppDatabase.instance.database;
+      final db = await AppDatabase.instance.database;
 
       // Direct relationship:
       //
@@ -987,8 +914,7 @@ class _MilestoneTaskRowState
         whereArgs: [
           widget.task.id,
         ],
-        orderBy:
-        'SubTaskSubjectCode ASC, '
+        orderBy: 'SubTaskSubjectCode ASC, '
             'SubTaskChapterCode ASC',
       );
 
@@ -1000,29 +926,23 @@ class _MilestoneTaskRowState
       _originalSubtaskStatus.clear();
 
       for (final row in rows) {
-        final key =
-        _subtaskKey(row);
+        final key = _subtaskKey(row);
 
-        final status =
-        _normalizeStatus(
+        final status = _normalizeStatus(
           row['SubTaskStatus'],
         );
 
         _subtaskStatus[key] = status;
-        _originalSubtaskStatus[key] =
-            status;
+        _originalSubtaskStatus[key] = status;
       }
 
-      final derivedParent =
-      _deriveParentStatusFromSubtasks();
+      final derivedParent = _deriveParentStatusFromSubtasks();
 
-      final databaseParent =
-          widget.parentStatus;
+      final databaseParent = widget.parentStatus;
 
       setState(() {
         _subtasks = rows;
-        _dirty =
-            derivedParent != databaseParent;
+        _dirty = derivedParent != databaseParent;
         _loading = false;
       });
 
@@ -1061,43 +981,26 @@ class _MilestoneTaskRowState
   }
 
   String _subtaskKey(
-      Map<String, Object?> row,
-      ) {
-    final id =
-        row['SubTaskID']?.toString() ?? '';
+    Map<String, Object?> row,
+  ) {
+    final id = row['SubTaskID']?.toString() ?? '';
 
-    final subject =
-        row['SubTaskSubjectCode']
-            ?.toString() ??
-            '';
+    final subject = row['SubTaskSubjectCode']?.toString() ?? '';
 
-    final chapter =
-        row['SubTaskChapterCode']
-            ?.toString() ??
-            '';
+    final chapter = row['SubTaskChapterCode']?.toString() ?? '';
 
     return '$id|$subject|$chapter';
   }
 
   String _normalizeStatus(
-      Object? value,
-      ) {
-    final status =
-    (value?.toString() ?? 'PENDING')
-        .trim()
-        .toUpperCase();
+    Object? value,
+  ) {
+    final status = (value?.toString() ?? 'PENDING').trim().toUpperCase();
 
     return switch (status) {
-      'IN_PROGRESS' || 'STARTED' =>
-      'IN_PROGRESS',
-
-      'COMPLETED' || 'STOPPED' =>
-      'COMPLETED',
-
-      'CANCELLED' ||
-      'CANCELLED / NOT REQUIRED' =>
-      'CANCELLED',
-
+      'IN_PROGRESS' || 'STARTED' => 'IN_PROGRESS',
+      'COMPLETED' || 'STOPPED' => 'COMPLETED',
+      'CANCELLED' || 'CANCELLED / NOT REQUIRED' => 'CANCELLED',
       _ => 'PENDING',
     };
   }
@@ -1107,9 +1010,9 @@ class _MilestoneTaskRowState
   // ==========================================================================
 
   Widget _buildExpandedContent(
-      BuildContext context,
-      bool terminalParent,
-      ) {
+    BuildContext context,
+    bool terminalParent,
+  ) {
     if (_loading) {
       return const Padding(
         padding: EdgeInsets.fromLTRB(
@@ -1123,8 +1026,7 @@ class _MilestoneTaskRowState
           child: SizedBox(
             width: 16,
             height: 16,
-            child:
-            CircularProgressIndicator(
+            child: CircularProgressIndicator(
               strokeWidth: 1.8,
             ),
           ),
@@ -1178,94 +1080,63 @@ class _MilestoneTaskRowState
   // ==========================================================================
 
   Widget _buildSubtaskRow(
-      BuildContext context,
-      Map<String, Object?> row,
-      bool terminalParent,
-      ) {
-    final key =
-    _subtaskKey(row);
+    BuildContext context,
+    Map<String, Object?> row,
+    bool terminalParent,
+  ) {
+    final key = _subtaskKey(row);
 
-    final status =
-        _subtaskStatus[key] ??
-            'PENDING';
+    final status = _subtaskStatus[key] ?? 'PENDING';
 
-    final colors =
-        Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
 
-    final interactive =
-    _subtaskIsInteractive();
+    final interactive = _subtaskIsInteractive();
 
-    final locked =
-        !interactive ||
-            terminalParent;
+    final locked = !interactive || terminalParent;
 
-    final description =
-        row['SubTaskDescription']
-            ?.toString()
-            .trim() ??
-            '';
+    final description = row['SubTaskDescription']?.toString().trim() ?? '';
 
     return Padding(
-      padding:
-      const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.only(bottom: 4),
       child: Container(
-        padding:
-        const EdgeInsets.symmetric(
+        padding: const EdgeInsets.symmetric(
           horizontal: 7,
           vertical: 5,
         ),
         decoration: BoxDecoration(
           color: status == 'CANCELLED'
-              ? colors.errorContainer
-              .withValues(alpha: .35)
-              : colors
-              .surfaceContainerLowest,
-
-          borderRadius:
-          BorderRadius.circular(8),
-
+              ? colors.errorContainer.withValues(alpha: .35)
+              : colors.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: status == 'CANCELLED'
-                ? colors.error
-                .withValues(alpha: .30)
-                : colors.outlineVariant
-                .withValues(alpha: .55),
+                ? colors.error.withValues(alpha: .30)
+                : colors.outlineVariant.withValues(alpha: .55),
           ),
         ),
         child: Row(
           children: [
             _SubtaskStatusBox(
               status: status,
-              enabled:
-              !locked && !_saving,
-              onStatusSelected:
-                  (next) =>
-                  _selectSubtaskStatus(
-                    row,
-                    next,
-                  ),
+              enabled: !locked && !_saving,
+              onStatusSelected: (next) => _selectSubtaskStatus(
+                row,
+                next,
+              ),
             ),
-
             const SizedBox(width: 8),
-
             Expanded(
               child: Text(
                 description,
                 maxLines: 2,
-                overflow:
-                TextOverflow.ellipsis,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 11.5,
                   height: 1.15,
-                  color:
-                  locked &&
-                      status ==
-                          'PENDING'
-                      ? colors
-                      .onSurfaceVariant
+                  color: locked && status == 'PENDING'
+                      ? colors.onSurfaceVariant
                       : colors.onSurface,
-                  fontWeight:
-                  FontWeight.w400,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ),
@@ -1280,8 +1151,7 @@ class _MilestoneTaskRowState
   // ==========================================================================
 
   bool _subtaskIsInteractive() {
-    final subject =
-    _subjectCodeFromTaskId(
+    final subject = _subjectCodeFromTaskId(
       widget.task.id,
     );
 
@@ -1302,16 +1172,12 @@ class _MilestoneTaskRowState
   }
 
   String _subjectCodeFromTaskId(
-      String taskId,
-      ) {
-    final parts =
-    taskId.split('_');
+    String taskId,
+  ) {
+    final parts = taskId.split('_');
 
     if (parts.length > 3) {
-      final subject =
-      parts[3]
-          .trim()
-          .toUpperCase();
+      final subject = parts[3].trim().toUpperCase();
 
       if (subject == 'PHY' ||
           subject == 'CHE' ||
@@ -1335,8 +1201,8 @@ class _MilestoneTaskRowState
   }
 
   bool _isDueDateOrPast(
-      MtTask task,
-      ) {
+    MtTask task,
+  ) {
     return !_isFuture(task);
   }
 
@@ -1345,46 +1211,37 @@ class _MilestoneTaskRowState
   // ==========================================================================
 
   Future<void> _selectSubtaskStatus(
-      Map<String, Object?> row,
-      String next,
-      ) async {
-    if (_saving ||
-        !_subtaskIsInteractive()) {
+    Map<String, Object?> row,
+    String next,
+  ) async {
+    if (_saving || !_subtaskIsInteractive()) {
       return;
     }
 
-    final key =
-    _subtaskKey(row);
+    final key = _subtaskKey(row);
 
-    final current =
-        _subtaskStatus[key] ??
-            'PENDING';
+    final current = _subtaskStatus[key] ?? 'PENDING';
 
     // Terminal subtask states cannot
     // be changed again.
-    if (current == 'COMPLETED' ||
-        current == 'CANCELLED') {
+    if (current == 'COMPLETED' || current == 'CANCELLED') {
       return;
     }
 
     // PENDING -> PENDING has no effect.
-    if (current == 'PENDING' &&
-        next == 'PENDING') {
+    if (current == 'PENDING' && next == 'PENDING') {
       return;
     }
 
     // PENDING can only move to
     // IN_PROGRESS or CANCELLED.
-    if (current == 'PENDING' &&
-        next != 'IN_PROGRESS' &&
-        next != 'CANCELLED') {
+    if (current == 'PENDING' && next != 'IN_PROGRESS' && next != 'CANCELLED') {
       return;
     }
 
     // IN_PROGRESS can never return
     // to PENDING.
-    if (current == 'IN_PROGRESS' &&
-        next == 'PENDING') {
+    if (current == 'IN_PROGRESS' && next == 'PENDING') {
       return;
     }
 
@@ -1417,8 +1274,7 @@ class _MilestoneTaskRowState
     // is committed later with the subtask
     // changes.
 
-    final nextParent =
-    _deriveParentStatusFromSubtasks();
+    final nextParent = _deriveParentStatusFromSubtasks();
 
     await widget.onTaskStatusChanged(
       _taskForParentStatus(
@@ -1439,14 +1295,12 @@ class _MilestoneTaskRowState
   _ParentTaskStatus _deriveParentStatusFromSubtasks() {
     // Explicit parent cancellation is
     // terminal.
-    if (widget.parentStatus ==
-        _ParentTaskStatus.cancelled) {
+    if (widget.parentStatus == _ParentTaskStatus.cancelled) {
       return _ParentTaskStatus.cancelled;
     }
 
     // Existing CLOSED is terminal.
-    if (widget.parentStatus ==
-        _ParentTaskStatus.closed) {
+    if (widget.parentStatus == _ParentTaskStatus.closed) {
       return _ParentTaskStatus.closed;
     }
 
@@ -1454,42 +1308,32 @@ class _MilestoneTaskRowState
       return widget.parentStatus;
     }
 
-    final statuses =
-    _subtaskStatus.values.toList();
+    final statuses = _subtaskStatus.values.toList();
 
-    final allCompleted =
-    statuses.every(
-          (status) =>
-      status == 'COMPLETED',
+    final allCompleted = statuses.every(
+      (status) => status == 'COMPLETED',
     );
 
-    final allClosed =
-    statuses.every(
-          (status) =>
-      status == 'COMPLETED' ||
-          status == 'CANCELLED',
+    final allClosed = statuses.every(
+      (status) => status == 'COMPLETED' || status == 'CANCELLED',
     );
 
-    final anyStarted =
-    statuses.any(
-          (status) =>
-      status == 'IN_PROGRESS' ||
+    final anyStarted = statuses.any(
+      (status) =>
+          status == 'IN_PROGRESS' ||
           status == 'COMPLETED' ||
           status == 'CANCELLED',
     );
 
-    final dueDate =
-    DateUtils.dateOnly(
+    final dueDate = DateUtils.dateOnly(
       widget.task.dueDate,
     );
 
-    final today =
-    DateUtils.dateOnly(
+    final today = DateUtils.dateOnly(
       DateTime.now(),
     );
 
-    final dueDatePassed =
-    dueDate.isBefore(today);
+    final dueDatePassed = dueDate.isBefore(today);
 
     // ------------------------------------------------------------
     // CLOSED
@@ -1504,15 +1348,12 @@ class _MilestoneTaskRowState
     //
     // PCB additionally requires exactly
     // three subtasks.
-    if (allClosed &&
-        dueDatePassed) {
-      final subject =
-      _subjectCodeFromTaskId(
+    if (allClosed && dueDatePassed) {
+      final subject = _subjectCodeFromTaskId(
         widget.task.id,
       );
 
-      if (subject != 'PCB' ||
-          _subtasks.length == 3) {
+      if (subject != 'PCB' || _subtasks.length == 3) {
         return _ParentTaskStatus.closed;
       }
     }
@@ -1547,26 +1388,17 @@ class _MilestoneTaskRowState
   // ==========================================================================
 
   MtTask _taskForParentStatus(
-      _ParentTaskStatus status,
-      ) {
-    final mappedStatus =
-    switch (status) {
-      _ParentTaskStatus.pending =>
-      MtTaskStatus.pending,
+    _ParentTaskStatus status,
+  ) {
+    final mappedStatus = switch (status) {
+      _ParentTaskStatus.pending => MtTaskStatus.pending,
+      _ParentTaskStatus.inProgress => MtTaskStatus.started,
+      _ParentTaskStatus.completed => MtTaskStatus.completed,
 
-      _ParentTaskStatus.inProgress =>
-      MtTaskStatus.started,
-
-      _ParentTaskStatus.completed =>
-      MtTaskStatus.completed,
-
-    // Existing MtTaskStatus has no
-    // CLOSED value.
-      _ParentTaskStatus.closed =>
-      MtTaskStatus.completed,
-
-      _ParentTaskStatus.cancelled =>
-      MtTaskStatus.cancelledNotRequired,
+      // Existing MtTaskStatus has no
+      // CLOSED value.
+      _ParentTaskStatus.closed => MtTaskStatus.completed,
+      _ParentTaskStatus.cancelled => MtTaskStatus.cancelledNotRequired,
     };
 
     return widget.task.copyWith(
@@ -1580,8 +1412,8 @@ class _MilestoneTaskRowState
 
   bool _isPcbTask() {
     return _subjectCodeFromTaskId(
-      widget.task.id,
-    ) ==
+          widget.task.id,
+        ) ==
         'PCB';
   }
 
@@ -1596,15 +1428,11 @@ class _MilestoneTaskRowState
     }
 
     return _subtasks.every((row) {
-      final key =
-      _subtaskKey(row);
+      final key = _subtaskKey(row);
 
-      final status =
-          _subtaskStatus[key] ??
-              'PENDING';
+      final status = _subtaskStatus[key] ?? 'PENDING';
 
-      return status == 'COMPLETED' ||
-          status == 'CANCELLED';
+      return status == 'COMPLETED' || status == 'CANCELLED';
     });
   }
 
@@ -1634,26 +1462,20 @@ class _MilestoneTaskRowState
     });
 
     try {
-      final db =
-      await AppDatabase.instance.database;
+      final db = await AppDatabase.instance.database;
 
       // Calculate the final parent state
       // from the current in-memory subtasks.
-      var finalParentStatus =
-      _deriveParentStatusFromSubtasks();
+      var finalParentStatus = _deriveParentStatusFromSubtasks();
 
       final isPcb = _isPcbTask();
 
-      final allSubtasksClosed =
-          _subtaskStatus.isNotEmpty &&
-              _subtaskStatus.values.every(
-                    (status) =>
-                status == 'COMPLETED' ||
-                    status == 'CANCELLED',
-              );
+      final allSubtasksClosed = _subtaskStatus.isNotEmpty &&
+          _subtaskStatus.values.every(
+            (status) => status == 'COMPLETED' || status == 'CANCELLED',
+          );
 
-      final dueDatePassed =
-      DateUtils.dateOnly(
+      final dueDatePassed = DateUtils.dateOnly(
         widget.task.dueDate,
       ).isBefore(
         DateUtils.dateOnly(
@@ -1690,48 +1512,36 @@ class _MilestoneTaskRowState
                   DateTime.now(),
                 ),
               )) {
-            finalParentStatus =
-                _ParentTaskStatus.closed;
+            finalParentStatus = _ParentTaskStatus.closed;
           } else {
-            finalParentStatus =
-                _ParentTaskStatus.completed;
+            finalParentStatus = _ParentTaskStatus.completed;
           }
         } else if (dueDatePassed) {
-          finalParentStatus =
-              _ParentTaskStatus.closed;
+          finalParentStatus = _ParentTaskStatus.closed;
         } else {
-          finalParentStatus =
-              _ParentTaskStatus.completed;
+          finalParentStatus = _ParentTaskStatus.completed;
         }
       } else {
-        final hasStarted =
-        _subtaskStatus.values.any(
-              (status) =>
-          status == 'IN_PROGRESS' ||
+        final hasStarted = _subtaskStatus.values.any(
+          (status) =>
+              status == 'IN_PROGRESS' ||
               status == 'COMPLETED' ||
               status == 'CANCELLED',
         );
 
-        if (hasStarted &&
-            widget.parentStatus ==
-                _ParentTaskStatus.pending) {
-          finalParentStatus =
-              _ParentTaskStatus.inProgress;
+        if (hasStarted && widget.parentStatus == _ParentTaskStatus.pending) {
+          finalParentStatus = _ParentTaskStatus.inProgress;
         }
       }
 
       // A previously CLOSED or CANCELLED
       // parent remains terminal.
-      if (widget.parentStatus ==
-          _ParentTaskStatus.closed) {
-        finalParentStatus =
-            _ParentTaskStatus.closed;
+      if (widget.parentStatus == _ParentTaskStatus.closed) {
+        finalParentStatus = _ParentTaskStatus.closed;
       }
 
-      if (widget.parentStatus ==
-          _ParentTaskStatus.cancelled) {
-        finalParentStatus =
-            _ParentTaskStatus.cancelled;
+      if (widget.parentStatus == _ParentTaskStatus.cancelled) {
+        finalParentStatus = _ParentTaskStatus.cancelled;
       }
 
       await db.transaction((txn) async {
@@ -1740,16 +1550,11 @@ class _MilestoneTaskRowState
         // ------------------------------------------------------------
 
         for (final row in _subtasks) {
-          final key =
-          _subtaskKey(row);
+          final key = _subtaskKey(row);
 
-          final original =
-              _originalSubtaskStatus[key] ??
-                  'PENDING';
+          final original = _originalSubtaskStatus[key] ?? 'PENDING';
 
-          final current =
-              _subtaskStatus[key] ??
-                  original;
+          final current = _subtaskStatus[key] ?? original;
 
           if (original == current) {
             continue;
@@ -1759,12 +1564,9 @@ class _MilestoneTaskRowState
             'db_SubTasksMT',
             {
               'SubTaskStatus': current,
-              'SubTaskStatusUpdateTime':
-              DateTime.now()
-                  .toIso8601String(),
+              'SubTaskStatusUpdateTime': DateTime.now().toIso8601String(),
             },
-            where:
-            'SubTaskID = ? '
+            where: 'SubTaskID = ? '
                 'AND SubTaskSubjectCode = ? '
                 'AND SubTaskChapterCode = ?',
             whereArgs: [
@@ -1779,29 +1581,18 @@ class _MilestoneTaskRowState
         // PARENT TASK STATUS
         // ------------------------------------------------------------
 
-        final databaseParentStatus =
-        switch (finalParentStatus) {
-          _ParentTaskStatus.pending =>
-          'PENDING',
-
-          _ParentTaskStatus.inProgress =>
-          'IN_PROGRESS',
-
-          _ParentTaskStatus.completed =>
-          'COMPLETED',
-
-          _ParentTaskStatus.closed =>
-          'CLOSED',
-
-          _ParentTaskStatus.cancelled =>
-          'CANCELLED',
+        final databaseParentStatus = switch (finalParentStatus) {
+          _ParentTaskStatus.pending => 'PENDING',
+          _ParentTaskStatus.inProgress => 'IN_PROGRESS',
+          _ParentTaskStatus.completed => 'COMPLETED',
+          _ParentTaskStatus.closed => 'CLOSED',
+          _ParentTaskStatus.cancelled => 'CANCELLED',
         };
 
         await txn.update(
           'db_TaskLogWeekEnd',
           {
-            'TaskStatus':
-            databaseParentStatus,
+            'TaskStatus': databaseParentStatus,
           },
           where: 'TaskID = ?',
           whereArgs: [
@@ -1817,16 +1608,12 @@ class _MilestoneTaskRowState
       // Current in-memory values are now
       // the committed baseline.
       for (final row in _subtasks) {
-        final key =
-        _subtaskKey(row);
+        final key = _subtaskKey(row);
 
-        _originalSubtaskStatus[key] =
-            _subtaskStatus[key] ??
-                'PENDING';
+        _originalSubtaskStatus[key] = _subtaskStatus[key] ?? 'PENDING';
       }
 
-      final updatedTask =
-      _taskForParentStatus(
+      final updatedTask = _taskForParentStatus(
         finalParentStatus,
       );
 
@@ -1854,12 +1641,11 @@ class _MilestoneTaskRowState
         _saving = false;
       });
 
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             'Unable to save subtask status: '
-                '$error',
+            '$error',
           ),
         ),
       );
@@ -1871,8 +1657,7 @@ class _MilestoneTaskRowState
 // SUBTASK STATUS BOX
 // =============================================================================
 
-class _SubtaskStatusBox
-    extends StatelessWidget {
+class _SubtaskStatusBox extends StatelessWidget {
   const _SubtaskStatusBox({
     required this.status,
     required this.enabled,
@@ -1881,62 +1666,46 @@ class _SubtaskStatusBox
 
   final String status;
   final bool enabled;
-  final ValueChanged<String>
-  onStatusSelected;
+  final ValueChanged<String> onStatusSelected;
 
   @override
   Widget build(BuildContext context) {
-    final colors =
-        Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
 
     return Container(
-      padding:
-      const EdgeInsets.all(2),
+      padding: const EdgeInsets.all(2),
       decoration: BoxDecoration(
-        color:
-        colors.surfaceContainerHigh,
-        borderRadius:
-        BorderRadius.circular(9),
+        color: colors.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(9),
         border: Border.all(
-          color:
-          colors.outlineVariant,
+          color: colors.outlineVariant,
           width: .7,
         ),
       ),
       child: Row(
-        mainAxisSize:
-        MainAxisSize.min,
+        mainAxisSize: MainAxisSize.min,
         children: [
           _statusButton(
             context,
-            icon:
-            Icons
-                .radio_button_unchecked,
+            icon: Icons.radio_button_unchecked,
             value: 'PENDING',
             tooltip: 'Pending',
           ),
-
           _statusButton(
             context,
-            icon:
-            Icons
-                .play_arrow_rounded,
+            icon: Icons.play_arrow_rounded,
             value: 'IN_PROGRESS',
             tooltip: 'In Progress',
           ),
-
           _statusButton(
             context,
-            icon:
-            Icons.stop_rounded,
+            icon: Icons.stop_rounded,
             value: 'COMPLETED',
             tooltip: 'Completed',
           ),
-
           _statusButton(
             context,
-            icon:
-            Icons.close_rounded,
+            icon: Icons.close_rounded,
             value: 'CANCELLED',
             tooltip: 'Cancel',
             isCancel: true,
@@ -1947,78 +1716,58 @@ class _SubtaskStatusBox
   }
 
   Widget _statusButton(
-      BuildContext context, {
-        required IconData icon,
-        required String value,
-        required String tooltip,
-        bool isCancel = false,
-      }) {
-    final colors =
-        Theme.of(context).colorScheme;
+    BuildContext context, {
+    required IconData icon,
+    required String value,
+    required String tooltip,
+    bool isCancel = false,
+  }) {
+    final colors = Theme.of(context).colorScheme;
 
-    final selected =
-        status == value;
+    final selected = status == value;
 
     final activeBackground =
-    isCancel
-        ? colors.errorContainer
-        : colors.primaryContainer;
+        isCancel ? colors.errorContainer : colors.primaryContainer;
 
-    final activeForeground =
-    isCancel
-        ? colors.error
-        : colors.primary;
+    final activeForeground = isCancel ? colors.error : colors.primary;
 
     return Tooltip(
       message: tooltip,
       child: InkWell(
         onTap: enabled
-            ? () =>
-            onStatusSelected(
-              value,
-            )
+            ? () => onStatusSelected(
+                  value,
+                )
             : null,
-        borderRadius:
-        BorderRadius.circular(7),
+        borderRadius: BorderRadius.circular(7),
         child: AnimatedContainer(
-          duration:
-          const Duration(
+          duration: const Duration(
             milliseconds: 120,
           ),
           width: 28,
           height: 27,
-          decoration:
-          BoxDecoration(
-            color: selected
-                ? activeBackground
-                : Colors.transparent,
-            borderRadius:
-            BorderRadius.circular(7),
+          decoration: BoxDecoration(
+            color: selected ? activeBackground : Colors.transparent,
+            borderRadius: BorderRadius.circular(7),
             border: selected
                 ? Border.all(
-              color:
-              activeForeground
-                  .withValues(
-                alpha: .75,
-              ),
-              width: 1.1,
-            )
+                    color: activeForeground.withValues(
+                      alpha: .75,
+                    ),
+                    width: 1.1,
+                  )
                 : null,
           ),
           child: Icon(
             icon,
-            size:
-            isCancel ? 20 : 18,
+            size: isCancel ? 20 : 18,
             color: !enabled
-                ? colors
-                .onSurfaceVariant
-                .withValues(
-              alpha: .45,
-            )
+                ? colors.onSurfaceVariant.withValues(
+                    alpha: .45,
+                  )
                 : selected
-                ? activeForeground
-                : colors
-                .onSurfaceVariant,
+                    ? activeForeground
+                    : colors.onSurfaceVariant,
           ),
         ),
       ),

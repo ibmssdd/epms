@@ -38,7 +38,7 @@ class MilestoneCalendarScreen extends StatefulWidget {
   final ValueChanged<DateTime>? onCmtTaskGenerationStarted;
 
   final void Function(DateTime, List<Map<String, Object?>>)?
-  onCmtTasksGenerated;
+      onCmtTasksGenerated;
 
   final void Function(DateTime, Object)? onCmtTaskGenerationFailed;
 
@@ -356,7 +356,7 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
     _scopeChangePending = row != null;
 
     _scopeMessage =
-    row == null ? null : 'Existing milestone found for this Sunday.';
+        row == null ? null : 'Existing milestone found for this Sunday.';
 
     _loadSelectionsFromMilestone(row);
   }
@@ -441,7 +441,7 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
         }
 
         final chapterCode =
-        subjectChapterCode.substring(separatorIndex + 1).trim();
+            subjectChapterCode.substring(separatorIndex + 1).trim();
 
         if (chapterCode.isNotEmpty) {
           target.add(chapterCode);
@@ -598,7 +598,7 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
         _existingMilestone = existing;
 
         _scopeMessage =
-        'Existing milestone found. Do you want to change its scope?';
+            'Existing milestone found. Do you want to change its scope?';
 
         _scopeChangePending = true;
       });
@@ -636,10 +636,10 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
         title: const Text('No Chapter Selected'),
         content: Text(
           '${missingSubjects.join(', ')} '
-              '${missingSubjects.length == 1 ? 'has' : 'have'} '
-              'no chapter selected.\n\n'
-              'Are you sure you want to continue without '
-              '${missingSubjects.length == 1 ? 'it' : 'them'}?',
+          '${missingSubjects.length == 1 ? 'has' : 'have'} '
+          'no chapter selected.\n\n'
+          'Are you sure you want to continue without '
+          '${missingSubjects.length == 1 ? 'it' : 'them'}?',
         ),
         actions: [
           TextButton(
@@ -656,6 +656,7 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
 
     return result ?? false;
   }
+
   List<Map<String, String>> _buildMTCalendarScope() {
     final scope = <Map<String, String>>[];
 
@@ -700,6 +701,7 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
 
     return scope;
   }
+
   Future<void> _persistMilestone() async {
     final svc = _svc;
 
@@ -851,8 +853,8 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
           title: const Text('Milestone Save / Task Creation Failed'),
           content: Text(
             'The milestone may have been saved, '
-                'but an error occurred during processing.'
-                '\n\n$error',
+            'but an error occurred during processing.'
+            '\n\n$error',
           ),
           actions: [
             FilledButton(
@@ -934,7 +936,7 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
       _loadSelectionsFromMilestone(row);
 
       _scopeMessage =
-      'Existing scope loaded. Tap chapters to select or unselect.';
+          'Existing scope loaded. Tap chapters to select or unselect.';
 
       _scopeChangePending = true;
 
@@ -948,9 +950,9 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
   }
 
   bool _sameMilestone(
-      Map<String, Object?>? first,
-      Map<String, Object?> second,
-      ) {
+    Map<String, Object?>? first,
+    Map<String, Object?> second,
+  ) {
     if (first == null) return false;
 
     final firstDate = first[MilestoneCalendarSvc.colDate]?.toString();
@@ -1203,11 +1205,11 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
   }
 
   Widget _modeButton(
-      BuildContext context,
-      String label,
-      IconData icon,
-      MilestoneCalendarView value,
-      ) {
+    BuildContext context,
+    String label,
+    IconData icon,
+    MilestoneCalendarView value,
+  ) {
     final selected = _view == value;
 
     final colors = Theme.of(context).colorScheme;
@@ -1220,22 +1222,22 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
         onTap: _saving
             ? null
             : () async {
-          if (value == MilestoneCalendarView.set) {
-            await _prepareNewMilestoneEntry();
-          } else if (value == MilestoneCalendarView.tasks) {
-            if (!mounted) return;
-            setState(() {
-              _view = value;
-            });
-            await _loadMilestoneTasksView();
-          } else {
-            if (!mounted) return;
+                if (value == MilestoneCalendarView.set) {
+                  await _prepareNewMilestoneEntry();
+                } else if (value == MilestoneCalendarView.tasks) {
+                  if (!mounted) return;
+                  setState(() {
+                    _view = value;
+                  });
+                  await _loadMilestoneTasksView();
+                } else {
+                  if (!mounted) return;
 
-            setState(() {
-              _view = value;
-            });
-          }
-        },
+                  setState(() {
+                    _view = value;
+                  });
+                }
+              },
         child: Container(
           height: double.infinity,
           decoration: _segmentDecoration(
@@ -1261,7 +1263,7 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
                     color:
-                    selected ? colors.onPrimary : colors.onSurfaceVariant,
+                        selected ? colors.onPrimary : colors.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -1358,37 +1360,37 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
           child: expanded
               ? _expandedMilestoneView(context, row, date, type)
               : Row(
-            children: [
-              Icon(Icons.flag_outlined, size: 18, color: colors.primary),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '${type.toUpperCase()}  •  '
-                      '${date == null ? rawDate ?? '' : _dateText(date)}',
-                  style: const TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w800,
-                  ),
+                  children: [
+                    Icon(Icons.flag_outlined, size: 18, color: colors.primary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${type.toUpperCase()}  •  '
+                        '${date == null ? rawDate ?? '' : _dateText(date)}',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.keyboard_arrow_down,
+                      size: 19,
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ],
                 ),
-              ),
-              Icon(
-                Icons.keyboard_arrow_down,
-                size: 19,
-                color: colors.onSurfaceVariant,
-              ),
-            ],
-          ),
         ),
       ),
     );
   }
 
   Widget _expandedMilestoneView(
-      BuildContext context,
-      Map<String, Object?> row,
-      DateTime? date,
-      String type,
-      ) {
+    BuildContext context,
+    Map<String, Object?> row,
+    DateTime? date,
+    String type,
+  ) {
     final colors = Theme.of(context).colorScheme;
 
     final dateText = date == null
@@ -1405,7 +1407,7 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
             Expanded(
               child: Text(
                 '$dateText, ${type.toUpperCase()} - '
-                    '${_typeLabel(type)}',
+                '${_typeLabel(type)}',
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
@@ -1449,11 +1451,11 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
   }
 
   Widget _viewScope(
-      BuildContext context,
-      String subject,
-      Object? raw,
-      String subjectCode,
-      ) {
+    BuildContext context,
+    String subject,
+    Object? raw,
+    String subjectCode,
+  ) {
     final codes = MilestoneCalendarSvc.splitCodes(raw?.toString());
 
     if (codes.isEmpty) {
@@ -1488,7 +1490,7 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
                     padding: const EdgeInsets.only(bottom: 2, left: 2),
                     child: Text(
                       '$code - '
-                          '${_chapterName(chapters, code)}',
+                      '${_chapterName(chapters, code)}',
                       style: TextStyle(
                         fontSize: 11,
                         color: colors.onSurfaceVariant,
@@ -1627,10 +1629,10 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
   }
 
   Widget _buildMilestoneTaskDateSection(
-      BuildContext context, {
-        required String dateKey,
-        required List<Task> tasks,
-      }) {
+    BuildContext context, {
+    required String dateKey,
+    required List<Task> tasks,
+  }) {
     final colors = Theme.of(context).colorScheme;
     final date = DateTime.parse(dateKey);
     final today = DateUtils.dateOnly(DateTime.now());
@@ -1728,12 +1730,12 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
     if (dueDate == null) return null;
 
     final status =
-    switch ((row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase()) {
+        switch ((row['TaskStatus']?.toString() ?? 'PENDING').toUpperCase()) {
       'IN_PROGRESS' || 'STARTED' => TaskStatus.started,
       'COMPLETED' => TaskStatus.completed,
       'CANCELLED' ||
       'CANCELLED / NOT REQUIRED' =>
-      TaskStatus.cancelledNotRequired,
+        TaskStatus.cancelledNotRequired,
       _ => TaskStatus.pending,
     };
 
@@ -1775,7 +1777,7 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
           next == TaskStatus.completed ||
           next == TaskStatus.cancelledNotRequired,
       TaskStatus.started =>
-      next == TaskStatus.completed || next == TaskStatus.cancelledNotRequired,
+        next == TaskStatus.completed || next == TaskStatus.cancelledNotRequired,
       TaskStatus.completed => false,
       TaskStatus.cancelledNotRequired => false,
     };
@@ -1810,9 +1812,9 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
   }
 
   Future<void> _expandTask(
-      String taskId,
-      Future<void> Function() commit,
-      ) async {
+    String taskId,
+    Future<void> Function() commit,
+  ) async {
     if (_expandedTaskId != null && _expandedTaskId != taskId) {
       final oldCommit = _commitExpandedTask;
       if (oldCommit != null) await oldCommit();
@@ -1860,20 +1862,20 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
             onPressed: _saving ? null : _saveMilestone,
             icon: _saving
                 ? const SizedBox(
-              width: 17,
-              height: 17,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
-            )
+                    width: 17,
+                    height: 17,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
                 : const Icon(Icons.save_outlined),
             label: Text(
               _saving
                   ? 'Saving...'
                   : _existingMilestone == null
-                  ? 'Save Milestone'
-                  : 'Save Scope',
+                      ? 'Save Milestone'
+                      : 'Save Scope',
             ),
           ),
         ),
@@ -1922,11 +1924,11 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
   }
 
   Widget _typeChoice(
-      BuildContext context,
-      String value,
-      String title,
-      IconData icon,
-      ) {
+    BuildContext context,
+    String value,
+    String title,
+    IconData icon,
+  ) {
     final selected = _milestoneType == value;
 
     final colors = Theme.of(context).colorScheme;
@@ -2124,7 +2126,7 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
 
   Widget _buildSelectedSubjectContent(BuildContext context) {
     final subject = _subjects.firstWhere(
-          (item) => item.code == _expandedSubject,
+      (item) => item.code == _expandedSubject,
       orElse: () => _subjects.first,
     );
 
@@ -2134,10 +2136,10 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
   }
 
   Widget _subjectContent(
-      BuildContext context,
-      _SubjectInfo subject,
-      List<_ChapterOption> chapters,
-      ) {
+    BuildContext context,
+    _SubjectInfo subject,
+    List<_ChapterOption> chapters,
+  ) {
     return _chapterSwipeArea(context, subject, chapters);
   }
 
@@ -2146,10 +2148,10 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
   // ---------------------------------------------------------------------------
 
   Widget _chapterSwipeArea(
-      BuildContext context,
-      _SubjectInfo subject,
-      List<_ChapterOption> chapters,
-      ) {
+    BuildContext context,
+    _SubjectInfo subject,
+    List<_ChapterOption> chapters,
+  ) {
     final totalPages = (chapters.length / _chaptersPerSwipe).ceil();
 
     if (chapters.isEmpty) {
@@ -2208,10 +2210,10 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
   }
 
   Widget _chapterBox(
-      BuildContext context,
-      _SubjectInfo subject,
-      List<_ChapterOption> chapters,
-      ) {
+    BuildContext context,
+    _SubjectInfo subject,
+    List<_ChapterOption> chapters,
+  ) {
     final colors = Theme.of(context).colorScheme;
 
     return Container(
@@ -2264,10 +2266,10 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
   // ---------------------------------------------------------------------------
 
   Widget _chapterRow(
-      BuildContext context,
-      _SubjectInfo subject,
-      _ChapterOption chapter,
-      ) {
+    BuildContext context,
+    _SubjectInfo subject,
+    _ChapterOption chapter,
+  ) {
     final colors = Theme.of(context).colorScheme;
 
     final selected = _selectionFor(subject.code).contains(chapter.code);
@@ -2300,7 +2302,7 @@ class _MilestoneCalendarScreenState extends State<MilestoneCalendarScreen> {
                 Expanded(
                   child: Text(
                     '${chapter.code} - '
-                        '${_truncateChapterName(chapter.name)}',
+                    '${_truncateChapterName(chapter.name)}',
                     maxLines: 1,
                     softWrap: false,
                     overflow: TextOverflow.clip,
@@ -2400,10 +2402,10 @@ class _MilestoneTaskRow extends StatefulWidget {
   final bool expanded;
 
   final Future<void> Function(String taskId, Future<void> Function() commit)
-  onExpand;
+      onExpand;
   final Future<void> Function(String taskId) onCollapse;
   final void Function(String taskId, Future<void> Function() commit)
-  registerCommit;
+      registerCommit;
   final Future<void> Function(Task task, TaskStatus next) onChangeStatus;
   final ValueChanged<Task>? onTaskStateChanged;
   final ValueChanged<Task> onTaskUpdated;
@@ -2455,19 +2457,19 @@ class _MilestoneTaskRowState extends State<_MilestoneTaskRow> {
       margin: const EdgeInsets.only(bottom: 5),
       decoration: widget.expanded
           ? BoxDecoration(
-        color: const Color(0xFFF7F8FA),
-        borderRadius: BorderRadius.circular(11),
-        border: Border.all(
-          color: colors.primary.withValues(alpha: .75),
-          width: 1.3,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.primary.withValues(alpha: .10),
-            blurRadius: 7,
-          ),
-        ],
-      )
+              color: const Color(0xFFF7F8FA),
+              borderRadius: BorderRadius.circular(11),
+              border: Border.all(
+                color: colors.primary.withValues(alpha: .75),
+                width: 1.3,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: colors.primary.withValues(alpha: .10),
+                  blurRadius: 7,
+                ),
+              ],
+            )
           : null,
       child: Column(
         children: [
@@ -2487,7 +2489,7 @@ class _MilestoneTaskRowState extends State<_MilestoneTaskRow> {
                         fontSize: 12.5,
                         fontWeight: FontWeight.w400,
                         color:
-                        widget.expanded ? Colors.black : colors.onSurface,
+                            widget.expanded ? Colors.black : colors.onSurface,
                       ),
                     ),
                   ),
@@ -2624,10 +2626,10 @@ class _MilestoneTaskRowState extends State<_MilestoneTaskRow> {
   // ==========================================================================
 
   Widget _activityRow(
-      BuildContext context,
-      TaskActivityDefinition activity,
-      bool closed,
-      ) {
+    BuildContext context,
+    TaskActivityDefinition activity,
+    bool closed,
+  ) {
     final completed = _activityStatus[activity.activityCode] ?? false;
 
     final future = _isFuture(widget.task);
@@ -2661,15 +2663,15 @@ class _MilestoneTaskRowState extends State<_MilestoneTaskRow> {
                   child: Center(
                     child: completed
                         ? const Icon(
-                      Icons.check_circle,
-                      size: 14,
-                      color: Color(0xFF9A7800),
-                    )
+                            Icons.check_circle,
+                            size: 14,
+                            color: Color(0xFF9A7800),
+                          )
                         : const Icon(
-                      Icons.radio_button_unchecked,
-                      size: 14,
-                      color: Colors.black45,
-                    ),
+                            Icons.radio_button_unchecked,
+                            size: 14,
+                            color: Colors.black45,
+                          ),
                   ),
                 ),
                 const SizedBox(width: 6),
@@ -2717,9 +2719,9 @@ class _MilestoneTaskRowState extends State<_MilestoneTaskRow> {
             outlined: true,
             onPressed: _isDue(task)
                 ? () => widget.onChangeStatus(
-              task,
-              TaskStatus.cancelledNotRequired,
-            )
+                      task,
+                      TaskStatus.cancelledNotRequired,
+                    )
                 : null,
           ),
         ],
@@ -2742,9 +2744,9 @@ class _MilestoneTaskRowState extends State<_MilestoneTaskRow> {
             outlined: true,
             onPressed: _isDue(task)
                 ? () => widget.onChangeStatus(
-              task,
-              TaskStatus.cancelledNotRequired,
-            )
+                      task,
+                      TaskStatus.cancelledNotRequired,
+                    )
                 : null,
           ),
         ],
@@ -2763,29 +2765,29 @@ class _MilestoneTaskRowState extends State<_MilestoneTaskRow> {
       height: 30,
       child: outlined
           ? OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 9),
-          minimumSize: const Size(0, 30),
-          textStyle: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        child: Text(label),
-      )
+              onPressed: onPressed,
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 9),
+                minimumSize: const Size(0, 30),
+                textStyle: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              child: Text(label),
+            )
           : FilledButton(
-        onPressed: onPressed,
-        style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          minimumSize: const Size(0, 30),
-          textStyle: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        child: Text(label),
-      ),
+              onPressed: onPressed,
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                minimumSize: const Size(0, 30),
+                textStyle: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              child: Text(label),
+            ),
     );
   }
 
@@ -2827,14 +2829,14 @@ class _MilestoneTaskRowState extends State<_MilestoneTaskRow> {
 
   bool _allMandatoryCompleted() {
     final mandatory =
-    _activities.where((activity) => activity.isMandatory).toList();
+        _activities.where((activity) => activity.isMandatory).toList();
 
     final required = mandatory.isNotEmpty ? mandatory : _activities;
     if (required.isEmpty) {
       return false;
     }
     return required.every(
-          (activity) => _activityStatus[activity.activityCode] == true,
+      (activity) => _activityStatus[activity.activityCode] == true,
     );
   }
 
@@ -2954,7 +2956,7 @@ _MilestoneParsedTaskDisplay _parseMilestoneTaskDisplay(Task task) {
       final separator = line.indexOf('-');
       if (separator >= 0) {
         final parsed =
-        _parseMilestoneActivityText(line.substring(separator + 1).trim());
+            _parseMilestoneActivityText(line.substring(separator + 1).trim());
         if (parsed != null) {
           topic = parsed.topic;
           break;

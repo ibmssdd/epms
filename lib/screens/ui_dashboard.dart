@@ -5,7 +5,6 @@
 // For  Tanu Tab SM 200 - mainAxisExtent: 90,
 // mainAxisExtent: 90,
 
-
 import 'package:flutter/material.dart';
 
 import '../models/mo_task.dart';
@@ -21,6 +20,7 @@ import 'ui_lectures.dart';
 import 'ui_syllabus.dart';
 import 'ui_milestones.dart';
 import 'ui_milestones_mt.dart';
+import 'ui_my_studies.dart';
 import '../widgets/wd_topics_InProgress.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -418,8 +418,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final db = await AppDatabase.instance.database;
       final svc = MilestoneCalendarSvc(db);
 
-      final rows =
-      await svc.getUpcomingMilestonesForWidget(DateTime.now());
+      final rows = await svc.getUpcomingMilestonesForWidget(DateTime.now());
 
       if (!mounted) return;
 
@@ -442,8 +441,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ============================================================
 
   void _selectNavigation(int index) {
-    setState(() { selectedNavigationIndex = index; });
-    if (index == 0) { _refreshTaskCounters();}
+    setState(() {
+      selectedNavigationIndex = index;
+    });
+    if (index == 0) {
+      _refreshTaskCounters();
+    }
   }
 
   // ============================================================
@@ -454,7 +457,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       selectedNavigationIndex = 5;
       selectedLectureSubjectCode = null;
-     });
+    });
   }
 
   // ============================================================
@@ -464,7 +467,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _openTaskGroup(TaskGroup group) {
     setState(() {
       selectedNavigationIndex = 1;
-      // leftExpanded = false;
       _selectedTaskGroup = group;
     });
   }
@@ -472,8 +474,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _openRevisionTasks() {
     setState(() {
       selectedNavigationIndex = 1;
-      // leftExpanded = false;
-      //    _selectedTaskGroup = group;
     });
   }
 
@@ -491,7 +491,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       selectedNavigationIndex = 2;
       selectedLectureSubjectCode = null;
-      // leftExpanded = false;
     });
   }
 
@@ -622,6 +621,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     } else if (selectedNavigationIndex == 2) {
       content = const SyllabusScreen();
+    } else if (selectedNavigationIndex == 3) {
+      content = const MyStudyScreen();
     } else if (selectedNavigationIndex == 4) {
       content = LectureScreen(initialSubjectCode: selectedLectureSubjectCode);
     } else if (selectedNavigationIndex == 5) {
@@ -899,7 +900,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ('Chem', 'Chemistry', Icons.biotech_outlined),
       ('Bio', 'Biology', Icons.eco_outlined),
     ];
-
     return Row(
       children: [
         for (var i = 0; i < lectureSubjects.length; i++) ...[
@@ -917,11 +917,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(lectureSubjects[i].$3, size: 18, color: const Color(0xFFD4AF37)),
+                    Icon(lectureSubjects[i].$3,
+                        size: 18, color: const Color(0xFFD4AF37)),
                     const SizedBox(width: 6),
                     Text(
                       lectureSubjects[i].$2,
-                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -939,19 +943,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
       spacing: 8,
       runSpacing: 8,
       children: [
-        _compactTaskChip("Today's Tasks", _dueTodayCount, Icons.today_rounded, () => _openTaskGroup(TaskGroup.dueToday)),
-        _compactTaskChip("Past Due", _pastDueCount, Icons.pending_actions_rounded, () => _openTaskGroup(TaskGroup.pastDue)),
-        _compactTaskChip("In Progress", _inProgressCount, Icons.play_circle_outline_rounded, () => _openTaskGroup(TaskGroup.inProgress)),
-        _compactTaskChip("Revision Tasks", _revisionTaskCount, Icons.replay_rounded, _openRevisionTasks),
-        _compactTaskChip("Milestones", _milestoneTaskCount, Icons.flag_rounded, _openMilestoneTasks),
+        _compactTaskChip("Today's Tasks", _dueTodayCount, Icons.today_rounded,
+            () => _openTaskGroup(TaskGroup.dueToday)),
+        _compactTaskChip(
+            "Past Due",
+            _pastDueCount,
+            Icons.pending_actions_rounded,
+            () => _openTaskGroup(TaskGroup.pastDue)),
+        _compactTaskChip(
+            "In Progress",
+            _inProgressCount,
+            Icons.play_circle_outline_rounded,
+            () => _openTaskGroup(TaskGroup.inProgress)),
+        _compactTaskChip("Revision Tasks", _revisionTaskCount,
+            Icons.replay_rounded, _openRevisionTasks),
+        _compactTaskChip("Milestones", _milestoneTaskCount, Icons.flag_rounded,
+            _openMilestoneTasks),
       ],
     );
   }
 
-  Widget _compactTaskChip(String label, int count, IconData icon, VoidCallback onTap) {
+  Widget _compactTaskChip(
+      String label, int count, IconData icon, VoidCallback onTap) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final itemWidth = (constraints.maxWidth - 16) / 3; // Fits 3 items per row neatly
+        final itemWidth =
+            (constraints.maxWidth - 16) / 3; // Fits 3 items per row neatly
         return InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),
@@ -972,7 +989,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Icon(icon, size: 16, color: const Color(0xFFD4AF37)),
                     Text(
                       '$count',
-                      style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -981,7 +1001,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 10),
+                  style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.6), fontSize: 10),
                 ),
               ],
             ),
@@ -993,7 +1014,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildConsolidatedSyllabusProgress() {
     if (_syllabusLoading) {
-      return const Center(child: Padding(padding: EdgeInsets.all(8.0), child: CircularProgressIndicator(color: Color(0xFFD4AF37))));
+      return const Center(
+          child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: CircularProgressIndicator(color: Color(0xFFD4AF37))));
     }
 
     // Fallback defaults if null
@@ -1011,8 +1035,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Overall Progress', style: TextStyle(color: Colors.white, fontSize: 12)),
-              Text('${coveragePercent.toStringAsFixed(1)}%', style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 12, fontWeight: FontWeight.bold)),
+              const Text('Overall Progress',
+                  style: TextStyle(color: Colors.white, fontSize: 12)),
+              Text('${coveragePercent.toStringAsFixed(1)}%',
+                  style: const TextStyle(
+                      color: Color(0xFFD4AF37),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 8),
@@ -1029,19 +1058,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
 // ============================================================
-  // CONSOLIDATED SINGLE-CARD MY LECTURES SECTION
-  // ============================================================
-
-  // ============================================================
-  // CONSOLIDATED SINGLE-CARD MY LECTURES SECTION
-  // ============================================================
-
+// CONSOLIDATED SINGLE-ROW MY STUDIES SECTION (1x4 HORIZONTAL)
 // ============================================================
-  // CONSOLIDATED SINGLE-CARD MY STUDIES SECTION
-  // ============================================================
-// ============================================================
-  // CONSOLIDATED SINGLE-ROW MY STUDIES SECTION (1x4 HORIZONTAL)
-  // ============================================================
 
   Widget _buildStudiesSection(BuildContext context) {
     const gold = Color(0xFFD4AF37);
@@ -1049,29 +1067,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Configuration for the 4 horizontal options
     final studyItems = [
       (
-      'My Lectures',
-      Icons.co_present_rounded, // Teacher/Teaching Icon
-      const Color(0xFF2196F3), // Vivid Blue
-          // () => _openLectureWorkspaceScreen(), // Navigates to Lecture Workspace
-          () =>  _openLectureSubject('Phy'),
+        'My Lectures',
+        Icons.co_present_rounded, // Teacher/Teaching Icon
+        const Color(0xFF2196F3), // Vivid Blue
+        // () => _openLectureWorkspaceScreen(), // Navigates to Lecture Workspace
+        () => _openLectureSubject('Phy'),
       ),
       (
-      'Notes & Revisions',
-      Icons.edit_note_rounded, // Open book with writing pen
-      const Color(0xFF4CAF50), // Emerald Green
-          () => _openNotesAndRevisions(),
+        'Notes & Revisions',
+        Icons.edit_note_rounded, // Open book with writing pen
+        const Color(0xFF4CAF50), // Emerald Green
+        () => _openNotesAndRevisions(),
       ),
       (
-      'Books & Registers',
-      Icons.menu_book_rounded, // Stacked Books & Registers
-      const Color(0xFFFF9800), // Vibrant Amber/Orange
-          () => _openBooksAndRegisters(),
+        'Books & Registers',
+        Icons.menu_book_rounded, // Stacked Books & Registers
+        const Color(0xFFFF9800), // Vibrant Amber/Orange
+        () => _openBooksAndRegisters(),
       ),
       (
-      'Goals & Studies',
-      Icons.military_tech_rounded, // Achievement Goal Badge
-      gold, // Metallic Gold Accent
-          () => _openGoalsAndStudies(),
+        'Goals & Studies',
+        Icons.military_tech_rounded, // Achievement Goal Badge
+        gold, // Metallic Gold Accent
+        () => _openGoalsAndStudies(),
       ),
     ];
 
@@ -1254,7 +1272,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const LectureScreen(), // Replace with your target screen widget class name
+        builder: (context) =>
+            const LectureScreen(), // Replace with your target screen widget class name
+      ),
+    );
+  }
+
+  void _openMyStudyScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            const MyStudyScreen(), // Replace with your target screen widget class name
       ),
     );
   }
@@ -1316,6 +1345,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+
   // Tile helper widget for each resource option
   Widget _buildLectureItemTile((String, IconData, Color, VoidCallback) item) {
     final title = item.$1;
@@ -1437,7 +1467,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: SizedBox(
                     height: 16,
                     width: 16,
-                    child: CircularProgressIndicator(color: gold, strokeWidth: 2),
+                    child:
+                        CircularProgressIndicator(color: gold, strokeWidth: 2),
                   ),
                 ),
               )
@@ -1473,7 +1504,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 4.0),
-                child: Divider(color: Color(0xFF2E2E2E), height: 1, thickness: 1),
+                child:
+                    Divider(color: Color(0xFF2E2E2E), height: 1, thickness: 1),
               ),
 
               // 4. Revision Tasks Row
@@ -1530,7 +1562,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: color.withValues(alpha: 0.4), width: 1),
+                border:
+                    Border.all(color: color.withValues(alpha: 0.4), width: 1),
               ),
               child: Text(
                 '$count',
@@ -1568,7 +1601,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         // For virtual emulator change mainAxisExtent to 78
         // For Tanush-Tab SM-200 change mainAxisExtent to 90
         // mainAxisExtent: 78,
-           mainAxisExtent: 90,
+        mainAxisExtent: 90,
       ),
       itemBuilder: (_, index) {
         switch (index) {
@@ -1768,7 +1801,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildSyllabusSection(BuildContext context) {
     const gold = Color(0xFFD4AF37);
 
-    final Map<String, dynamic> coverage = (_syllabusCoverage ?? {}) as Map<String, dynamic>;
+    final Map<String, dynamic> coverage =
+        (_syllabusCoverage ?? {}) as Map<String, dynamic>;
 
     final bioPercent = (coverage['bio_percent'] as num?)?.toDouble() ?? 0.0;
     final bioDone = (coverage['bio_completed'] as num?)?.toInt() ?? 0;
@@ -1782,7 +1816,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final phyDone = (coverage['phy_completed'] as num?)?.toInt() ?? 0;
     final phyTotal = (coverage['phy_total'] as num?)?.toInt() ?? 0;
 
-    final overallPercent = (coverage['overall_percent'] as num?)?.toDouble() ?? 0.0;
+    final overallPercent =
+        (coverage['overall_percent'] as num?)?.toDouble() ?? 0.0;
     final overallDone = bioDone + chemDone + phyDone;
     final overallTotal = bioTotal + chemTotal + phyTotal;
 
@@ -1811,7 +1846,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distributes height evenly
+            mainAxisAlignment:
+                MainAxisAlignment.spaceBetween, // Distributes height evenly
             children: [
               // Header Row
               Row(
@@ -1837,7 +1873,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
                       SizedBox(width: 2),
-                      Icon(Icons.arrow_forward_ios_rounded, size: 9, color: gold),
+                      Icon(Icons.arrow_forward_ios_rounded,
+                          size: 9, color: gold),
                     ],
                   ),
                 ],
@@ -1851,7 +1888,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: SizedBox(
                       height: 16,
                       width: 16,
-                      child: CircularProgressIndicator(color: gold, strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                          color: gold, strokeWidth: 2),
                     ),
                   ),
                 )
@@ -1890,7 +1928,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 6.0),
-                  child: Divider(color: Color(0xFF2E2E2E), height: 1, thickness: 1),
+                  child: Divider(
+                      color: Color(0xFF2E2E2E), height: 1, thickness: 1),
                 ),
 
                 // Overall Row
@@ -1924,7 +1963,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: [
         Icon(icon, size: 14, color: color),
         const SizedBox(width: 6),
-
         SizedBox(
           width: 62,
           child: Text(
@@ -1936,7 +1974,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
         ),
-
         Expanded(
           child: ClipRRect(
             borderRadius: BorderRadius.circular(4),
@@ -1949,7 +1986,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
         const SizedBox(width: 8),
-
         SizedBox(
           width: 34,
           child: Text(
@@ -1962,7 +1998,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
         ),
-
         SizedBox(
           width: 48,
           child: Text(
@@ -2060,6 +2095,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+
   // ============================================================
   // UPCOMING SUNDAY MILESTONES
   // ============================================================
@@ -2102,20 +2138,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: IconButton(
                     padding: EdgeInsets.zero,
                     tooltip: 'Refresh milestones',
-                    onPressed:
-                    _milestoneRefreshing ? null : _refreshMilestones,
+                    onPressed: _milestoneRefreshing ? null : _refreshMilestones,
                     icon: _milestoneRefreshing
                         ? const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 1.8,
-                      ),
-                    )
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 1.8,
+                            ),
+                          )
                         : const Icon(
-                      Icons.refresh_rounded,
-                      size: 18,
-                    ),
+                            Icons.refresh_rounded,
+                            size: 18,
+                          ),
                     color: gold,
                   ),
                 ),
@@ -2139,6 +2174,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+
   Widget _buildMilestonePanelContent(BuildContext context) {
     const gold = Color(0xFFD4AF37);
 
@@ -2172,7 +2208,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         ..._upcomingMilestones.map(
-              (milestone) => _buildMilestoneRow(
+          (milestone) => _buildMilestoneRow(
             context,
             milestone,
           ),
@@ -2180,6 +2216,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ],
     );
   }
+
   // ============================================================
   // MILESTONE ROW
   // ============================================================

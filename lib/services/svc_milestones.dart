@@ -577,14 +577,11 @@ class MilestoneCalendarSvc {
 
     await _db.transaction((txn) async {
       for (final item in scope) {
-        final subjectCode =
-            item['subjectCode']?.trim().toUpperCase() ?? '';
+        final subjectCode = item['subjectCode']?.trim().toUpperCase() ?? '';
 
-        final chapterCode =
-            item['chapterCode']?.trim() ?? '';
+        final chapterCode = item['chapterCode']?.trim() ?? '';
 
-        final chapterName =
-            item['chapterName']?.trim() ?? '';
+        final chapterName = item['chapterName']?.trim() ?? '';
 
         // Invalid scope entry - ignore it.
         if (subjectCode.isEmpty || chapterCode.isEmpty) {
@@ -626,8 +623,7 @@ class MilestoneCalendarSvc {
               mtType: type,
               mtSubjectCode: subjectCode,
               mtChapterCode: chapterCode,
-              mtChapterName:
-              chapterName.isEmpty ? null : chapterName,
+              mtChapterName: chapterName.isEmpty ? null : chapterName,
 
               // Task-related fields are initially empty.
               mtChapterTaskID: null,
@@ -654,8 +650,7 @@ class MilestoneCalendarSvc {
             {
               // UI already provides the chapter name.
               // No db_SyllabusMaster lookup is required here.
-              mtChapterName:
-              chapterName.isEmpty ? null : chapterName,
+              mtChapterName: chapterName.isEmpty ? null : chapterName,
 
               mtTypeText: typeText,
               mtDescription: description,
@@ -678,6 +673,7 @@ class MilestoneCalendarSvc {
       }
     });
   }
+
   /// Inserts a new milestone or updates the scope for the same
   /// (milestone_type, milestone_date) key.
   Future<void> saveMilestone({
